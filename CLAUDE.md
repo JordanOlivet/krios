@@ -1,0 +1,55 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## What this is
+
+Monorepo for **Krios**, an ecosystem of original Minecraft mods (MC 1.21.1, Java 21, NeoForge + Fabric via the MultiLoader pattern — no Forge, no Architectury). First mod: `mods/industry` (Krios: Industry). Each mod is a standalone Gradle build; there is no root build.
+
+Read first, in order: the latest `docs/progress/YYYY-MM-DD.md` (session resume point), `docs/DECISIONS.md` (ADRs — binding), `docs/mods/01-industry-design.md` (gameplay design), `docs/VISION.md`.
+
+## Commands
+
+All Gradle work happens inside a mod directory (e.g. `mods/industry`):
+
+```powershell
+cd mods\industry
+.\gradlew.bat build --no-daemon          # builds common + fabric + neoforge jars
+.\gradlew.bat neoforge:runServer         # dev server (run dir: neoforge\run, eula.txt required)
+.\gradlew.bat fabric:runServer           # dev server (run dir: fabric\runs\server)
+tools\run-client.bat [neoforge|fabric]   # from repo root: launch a dev client for manual testing
+```
+
+No unit tests yet; verification = build green + dev-server boot (registration and datapack errors surface in `logs/latest.log`) + manual client play. GameTest is planned once machines warrant it.
+
+Windows gotcha: a backgrounded/killed gradle `runServer` orphans the child JVM. After automated smoke tests, sweep leftovers: `Get-CimInstance Win32_Process -Filter "Name = 'java.exe'" | Where-Object { $_.CommandLine -match 'krios' }`.
+
+## Architecture (mods/industry)
+
+MultiLoader layout: `common/` (99% of the code, compiled against pure vanilla via NeoForm), `neoforge/` and `fabric/` (thin platform layers). Common cannot touch loader APIs; the bridge is **Java ServiceLoader** services declared in `platform/services/` and implemented per loader (`META-INF/services` files in each loader's resources — file *name* must be the fully qualified interface name).
+
+- `IRegistrar`: all registration goes through it. Fabric registers immediately; NeoForge routes through `DeferredRegister`s that the entry point attaches to the mod bus (`NeoForgeRegistrar.attach`). It also constructs `CreativeModeTab.Builder`, `BlockEntityType` and `MenuType`, because vanilla keeps their factories package-private and each loader widens them differently — never construct these in common.
+- `IPlatformHelper`: platform queries + `getBurnTime` (NeoForge extends fuels per-stack; Fabric uses the vanilla fuel map).
+- Registries holding wildcard generics (`BlockEntityType<?>`, `MenuType<?>`, `RecipeType<?>`) need the cast-helper pattern used in `registry/ModBlockEntities`/`ModMenus`/`ModRecipeTypes`.
+
+Machine pattern (Generator and Crusher are the references):
+
+- **Tickless idle (ADR-012 is binding)**: the `LIT` blockstate gates the ticker — `getTicker` returns null when unlit. Machines wake on item insertion (`setItem` → `tryWake`) and extinguish themselves. Never add an always-on ticker.
+- **Energy**: common `EnergyBuffer` (primitive ints) is the only thing game logic touches. Platform adapters wrap it: extract-only FE capability (neoforge entry) and TRE `SnapshotParticipant` adapter (fabric). Crusher pulls from *adjacent* generators directly — v0 transport, to be replaced by a proper network with scheduled wake-ups.
+- **GUI sync**: `ContainerData` truncates to signed 16-bit shorts. Any value that can exceed 32767 (energy!) ships as a low/high pair reassembled in the menu; constants are never synced.
+- **Recipes**: everything is datapack (`data/krios_industry/recipe/`). Custom type `krios_industry:crushing`. Material inputs use `c:` tags (ADR-008); we also provide `c:` tags for our materials.
+- **Worldgen**: configured/placed features are common datapack JSONs; biome injection is per-loader (neoforge `biome_modifier` JSON vs `BiomeModifications` code in the fabric entry).
+
+Client code lives in `common/.../client/` (only referenced client-side); screens are registered per loader (`RegisterMenuScreensEvent` on NeoForge, `MenuScreens.register` in the fabric client entrypoint).
+
+Placeholder textures are script-generated (pure-stdlib PNG writers); regenerate rather than hand-edit.
+
+## Conventions and process
+
+- Language: docs/code/commits in English; conversation with the user in French.
+- ADRs in `docs/DECISIONS.md`: append a new entry to change a decision, don't edit history. New structural choices get an ADR.
+- Progress log: one `docs/progress/YYYY-MM-DD.md` per working day, written at session end (state, what was validated, prioritized next steps).
+- Git: Conventional Commits, no AI attribution trailers. Direct pushes to `main` are for the bootstrap phase only — once the user declares the base done, switch to branches + PRs. Versioning per ADR-009 (SemVer per mod, tags `industry/v0.1.0`).
+- CI: thin callers in `.github/workflows/` delegating to reusable workflows in `JordanOlivet/ci-workflows` (pinned `@main` until that repo's next proper release, then `@v1`). Never direct-push ci-workflows once its CI shape is finalized — PR + `VERSION` bump there.
+- License: LGPL-3.0-or-later, code and assets (ADR-011).
+- `templates/multiloader/` is the pristine upstream template for bootstrapping new mods — never edit it in place.
