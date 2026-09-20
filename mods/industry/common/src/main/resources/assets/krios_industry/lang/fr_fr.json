@@ -1,6 +1,8 @@
 {
   "block.krios_industry.chronite_ore": "Minerai de chronite",
   "block.krios_industry.crusher": "Broyeur",
+  "block.krios_industry.deepslate_chronite_ore": "Minerai de chronite des abîmes",
+  "block.krios_industry.deepslate_neurite_ore": "Minerai de neurite des abîmes",
   "block.krios_industry.generator": "Générateur",
   "block.krios_industry.neurite_ore": "Minerai de neurite",
   "item.krios_industry.chronite_shard": "Éclat de chronite",

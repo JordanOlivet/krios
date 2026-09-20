@@ -18,7 +18,9 @@ public final class ModCreativeTabs {
                     .icon(() -> new ItemStack(ModItems.CHRONITE_SHARD.get()))
                     .displayItems((params, output) -> {
                         output.accept(ModBlocks.CHRONITE_ORE.get());
+                        output.accept(ModBlocks.DEEPSLATE_CHRONITE_ORE.get());
                         output.accept(ModBlocks.NEURITE_ORE.get());
+                        output.accept(ModBlocks.DEEPSLATE_NEURITE_ORE.get());
                         output.accept(ModBlocks.GENERATOR.get());
                         output.accept(ModBlocks.CRUSHER.get());
                         output.accept(ModItems.CHRONITE_SHARD.get());

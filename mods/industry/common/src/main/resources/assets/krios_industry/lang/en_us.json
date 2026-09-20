@@ -1,6 +1,8 @@
 {
   "block.krios_industry.chronite_ore": "Chronite Ore",
   "block.krios_industry.crusher": "Crusher",
+  "block.krios_industry.deepslate_chronite_ore": "Deepslate Chronite Ore",
+  "block.krios_industry.deepslate_neurite_ore": "Deepslate Neurite Ore",
   "block.krios_industry.generator": "Generator",
   "block.krios_industry.neurite_ore": "Neurite Ore",
   "item.krios_industry.chronite_shard": "Chronite Shard",

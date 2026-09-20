@@ -30,6 +30,20 @@ public final class ModBlocks {
                     .strength(3.0F, 3.0F)
                     .sound(SoundType.STONE)));
 
+    public static final Supplier<Block> DEEPSLATE_CHRONITE_ORE = registerWithItem("deepslate_chronite_ore",
+            () -> new Block(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.DEEPSLATE)
+                    .requiresCorrectToolForDrops()
+                    .strength(4.5F, 3.0F)
+                    .sound(SoundType.DEEPSLATE)));
+
+    public static final Supplier<Block> DEEPSLATE_NEURITE_ORE = registerWithItem("deepslate_neurite_ore",
+            () -> new Block(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.DEEPSLATE)
+                    .requiresCorrectToolForDrops()
+                    .strength(4.5F, 3.0F)
+                    .sound(SoundType.DEEPSLATE)));
+
     public static final Supplier<Block> GENERATOR = registerWithItem("generator",
             () -> new GeneratorBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.METAL)

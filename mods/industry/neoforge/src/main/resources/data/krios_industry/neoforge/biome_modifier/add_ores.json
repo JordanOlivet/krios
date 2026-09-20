@@ -1,0 +1,6 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#minecraft:is_overworld",
+  "features": [ "krios_industry:chronite_ore", "krios_industry:neurite_ore" ],
+  "step": "underground_ores"
+}

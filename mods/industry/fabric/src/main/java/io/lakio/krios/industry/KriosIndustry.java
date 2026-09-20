@@ -3,6 +3,11 @@ package io.lakio.krios.industry;
 import io.lakio.krios.industry.energy.ExtractOnlyEnergyAdapter;
 import io.lakio.krios.industry.registry.ModBlockEntities;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
+import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.levelgen.GenerationStep;
 import team.reborn.energy.api.EnergyStorage;
 
 public class KriosIndustry implements ModInitializer {
@@ -15,5 +20,16 @@ public class KriosIndustry implements ModInitializer {
         EnergyStorage.SIDED.registerForBlockEntity(
                 (generator, direction) -> new ExtractOnlyEnergyAdapter(generator),
                 ModBlockEntities.GENERATOR.get());
+        // Ore veins: features/placements are datapack JSONs in common; only
+        // the biome injection is loader code (NeoForge does it via a
+        // biome_modifier JSON instead).
+        addOre("chronite_ore");
+        addOre("neurite_ore");
+    }
+
+    private static void addOre(String name) {
+        BiomeModifications.addFeature(BiomeSelectors.foundInOverworld(),
+                GenerationStep.Decoration.UNDERGROUND_ORES,
+                ResourceKey.create(Registries.PLACED_FEATURE, Constants.id(name)));
     }
 }
