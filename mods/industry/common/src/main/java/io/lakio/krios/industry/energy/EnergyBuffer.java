@@ -34,6 +34,18 @@ public final class EnergyBuffer {
         return removed;
     }
 
+    /**
+     * Internal machine consumption: removes exactly {@code amount} or nothing.
+     * Ignores maxExtract — that cap only applies to external extraction.
+     */
+    public boolean consume(int amount) {
+        if (stored < amount) {
+            return false;
+        }
+        stored -= amount;
+        return true;
+    }
+
     public int getStored() {
         return stored;
     }

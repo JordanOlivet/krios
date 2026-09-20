@@ -3,6 +3,7 @@ package io.lakio.krios.industry.registry;
 import java.util.function.Supplier;
 
 import io.lakio.krios.industry.Constants;
+import io.lakio.krios.industry.machine.crusher.CrusherMenu;
 import io.lakio.krios.industry.machine.generator.GeneratorMenu;
 import io.lakio.krios.industry.platform.Services;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -13,6 +14,9 @@ public final class ModMenus {
 
     public static final Supplier<MenuType<GeneratorMenu>> GENERATOR = register("generator",
             () -> Services.REGISTRAR.createMenuType(GeneratorMenu::new));
+
+    public static final Supplier<MenuType<CrusherMenu>> CRUSHER = register("crusher",
+            () -> Services.REGISTRAR.createMenuType(CrusherMenu::new));
 
     private ModMenus() {
     }

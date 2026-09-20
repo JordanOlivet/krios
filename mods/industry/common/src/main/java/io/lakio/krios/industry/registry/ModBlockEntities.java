@@ -3,6 +3,7 @@ package io.lakio.krios.industry.registry;
 import java.util.function.Supplier;
 
 import io.lakio.krios.industry.Constants;
+import io.lakio.krios.industry.machine.crusher.CrusherBlockEntity;
 import io.lakio.krios.industry.machine.generator.GeneratorBlockEntity;
 import io.lakio.krios.industry.platform.Services;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -13,6 +14,9 @@ public final class ModBlockEntities {
 
     public static final Supplier<BlockEntityType<GeneratorBlockEntity>> GENERATOR = register("generator",
             () -> Services.REGISTRAR.createBlockEntityType(GeneratorBlockEntity::new, ModBlocks.GENERATOR.get()));
+
+    public static final Supplier<BlockEntityType<CrusherBlockEntity>> CRUSHER = register("crusher",
+            () -> Services.REGISTRAR.createBlockEntityType(CrusherBlockEntity::new, ModBlocks.CRUSHER.get()));
 
     private ModBlockEntities() {
     }

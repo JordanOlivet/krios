@@ -15,6 +15,12 @@ public final class ModItems {
     public static final Supplier<Item> RAW_NEURITE = register("raw_neurite",
             () -> new Item(new Item.Properties()));
 
+    public static final Supplier<Item> NEURITE_DUST = register("neurite_dust",
+            () -> new Item(new Item.Properties()));
+
+    public static final Supplier<Item> NEURITE_INGOT = register("neurite_ingot",
+            () -> new Item(new Item.Properties()));
+
     private ModItems() {
     }
 

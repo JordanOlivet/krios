@@ -1,0 +1,7 @@
+{
+  "type": "krios_industry:crushing",
+  "ingredient": { "item": "minecraft:gravel" },
+  "result": { "id": "minecraft:sand", "count": 1 },
+  "energy": 400,
+  "time": 60
+}

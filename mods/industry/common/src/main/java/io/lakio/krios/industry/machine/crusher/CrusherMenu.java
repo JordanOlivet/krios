@@ -1,0 +1,101 @@
+package io.lakio.krios.industry.machine.crusher;
+
+import io.lakio.krios.industry.registry.ModMenus;
+import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.SimpleContainerData;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+
+public class CrusherMenu extends AbstractContainerMenu {
+
+    private final Container container;
+    private final ContainerData data;
+
+    /** Client constructor. */
+    public CrusherMenu(int containerId, Inventory playerInventory) {
+        this(containerId, playerInventory, new SimpleContainer(2), new SimpleContainerData(4));
+    }
+
+    public CrusherMenu(int containerId, Inventory playerInventory, Container container, ContainerData data) {
+        super(ModMenus.CRUSHER.get(), containerId);
+        this.container = container;
+        this.data = data;
+
+        addSlot(new Slot(container, CrusherBlockEntity.INPUT_SLOT, 56, 41));
+        addSlot(new Slot(container, CrusherBlockEntity.OUTPUT_SLOT, 116, 41) {
+            @Override
+            public boolean mayPlace(ItemStack stack) {
+                return false;
+            }
+        });
+
+        for (int row = 0; row < 3; ++row) {
+            for (int col = 0; col < 9; ++col) {
+                addSlot(new Slot(playerInventory, col + row * 9 + 9, 8 + col * 18, 84 + row * 18));
+            }
+        }
+        for (int col = 0; col < 9; ++col) {
+            addSlot(new Slot(playerInventory, col, 8 + col * 18, 142));
+        }
+
+        addDataSlots(data);
+    }
+
+    @Override
+    public ItemStack quickMoveStack(Player player, int index) {
+        ItemStack result = ItemStack.EMPTY;
+        Slot slot = slots.get(index);
+        if (slot.hasItem()) {
+            ItemStack stack = slot.getItem();
+            result = stack.copy();
+            if (index <= CrusherBlockEntity.OUTPUT_SLOT) {
+                if (!moveItemStackTo(stack, 2, 38, true)) {
+                    return ItemStack.EMPTY;
+                }
+            } else if (!moveItemStackTo(stack, CrusherBlockEntity.INPUT_SLOT, 1, false)) {
+                return ItemStack.EMPTY;
+            }
+            if (stack.isEmpty()) {
+                slot.setByPlayer(ItemStack.EMPTY);
+            } else {
+                slot.setChanged();
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public boolean stillValid(Player player) {
+        return container.stillValid(player);
+    }
+
+    /** 0..width pixels of crushing progress (arrow). */
+    public int getProgress(int width) {
+        int total = Math.max(1, data.get(1));
+        return Math.min(width, data.get(0) * width / total);
+    }
+
+    public boolean isWorking() {
+        return data.get(0) > 0;
+    }
+
+    /** 0..width pixels of stored energy (gauge). */
+    public int getEnergyProgress(int width) {
+        int progress = (int) ((long) getEnergyStored() * width / CrusherBlockEntity.CAPACITY);
+        return Math.max(0, Math.min(width, progress));
+    }
+
+    /** Reassembled from the low/high 16-bit pair (ContainerData syncs shorts). */
+    public int getEnergyStored() {
+        return (data.get(3) << 16) | (data.get(2) & 0xFFFF);
+    }
+
+    public int getEnergyCapacity() {
+        return CrusherBlockEntity.CAPACITY;
+    }
+}

@@ -1,6 +1,7 @@
 package io.lakio.krios.industry.client;
 
 import io.lakio.krios.industry.Constants;
+import io.lakio.krios.industry.client.screen.CrusherScreen;
 import io.lakio.krios.industry.client.screen.GeneratorScreen;
 import io.lakio.krios.industry.registry.ModMenus;
 import net.neoforged.api.distmarker.Dist;
@@ -17,5 +18,6 @@ public final class KriosIndustryClient {
     @SubscribeEvent
     public static void onRegisterScreens(RegisterMenuScreensEvent event) {
         event.register(ModMenus.GENERATOR.get(), GeneratorScreen::new);
+        event.register(ModMenus.CRUSHER.get(), CrusherScreen::new);
     }
 }

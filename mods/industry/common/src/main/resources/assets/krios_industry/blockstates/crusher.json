@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "lit=false": { "model": "krios_industry:block/crusher" },
+    "lit=true": { "model": "krios_industry:block/crusher" }
+  }
+}

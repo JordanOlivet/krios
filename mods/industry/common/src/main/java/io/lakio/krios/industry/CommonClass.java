@@ -6,6 +6,7 @@ import io.lakio.krios.industry.registry.ModBlocks;
 import io.lakio.krios.industry.registry.ModCreativeTabs;
 import io.lakio.krios.industry.registry.ModItems;
 import io.lakio.krios.industry.registry.ModMenus;
+import io.lakio.krios.industry.registry.ModRecipeTypes;
 
 public class CommonClass {
 
@@ -16,6 +17,7 @@ public class CommonClass {
         ModItems.init();
         ModBlockEntities.init();
         ModMenus.init();
+        ModRecipeTypes.init();
         ModCreativeTabs.init();
         Constants.LOG.info("{} initialized on {}", Constants.MOD_NAME, Services.PLATFORM.getPlatformName());
     }

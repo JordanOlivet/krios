@@ -1,0 +1,7 @@
+{
+  "type": "krios_industry:crushing",
+  "ingredient": { "item": "minecraft:cobblestone" },
+  "result": { "id": "minecraft:gravel", "count": 1 },
+  "energy": 400,
+  "time": 60
+}

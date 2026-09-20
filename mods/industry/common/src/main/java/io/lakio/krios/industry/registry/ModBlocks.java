@@ -3,6 +3,7 @@ package io.lakio.krios.industry.registry;
 import java.util.function.Supplier;
 
 import io.lakio.krios.industry.Constants;
+import io.lakio.krios.industry.machine.crusher.CrusherBlock;
 import io.lakio.krios.industry.machine.generator.GeneratorBlock;
 import io.lakio.krios.industry.platform.Services;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -31,6 +32,13 @@ public final class ModBlocks {
 
     public static final Supplier<Block> GENERATOR = registerWithItem("generator",
             () -> new GeneratorBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.METAL)
+                    .requiresCorrectToolForDrops()
+                    .strength(3.5F, 6.0F)
+                    .sound(SoundType.METAL)));
+
+    public static final Supplier<Block> CRUSHER = registerWithItem("crusher",
+            () -> new CrusherBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.METAL)
                     .requiresCorrectToolForDrops()
                     .strength(3.5F, 6.0F)
