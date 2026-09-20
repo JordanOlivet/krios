@@ -1,0 +1,7 @@
+{
+  "block.krios_industry.chronite_ore": "Minerai de chronite",
+  "block.krios_industry.neurite_ore": "Minerai de neurite",
+  "item.krios_industry.chronite_shard": "Éclat de chronite",
+  "item.krios_industry.raw_neurite": "Neurite brute",
+  "itemGroup.krios_industry": "Krios: Industry"
+}

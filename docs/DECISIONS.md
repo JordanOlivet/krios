@@ -84,6 +84,19 @@ New ores are few and theme-specific; common metals (tin, steel, titanium, …) a
 - Root `LICENSE` (LGPL-3.0) + `LICENSE.GPL` (GPL-3.0, incorporated by reference — both must ship).
 - TODO when build conventions solidify: bundle `LICENSE` into each built jar.
 
+## ADR-012 — Performance is a founding constraint
+
+**Date**: 2026-09-20 · **Status**: accepted
+
+Ultra-high performance is a product pillar, not an optimization pass. Rules applying to every mod in the ecosystem:
+
+- **No per-tick, per-item work in hot paths** — machine logic computes batches arithmetically (extends ADR-006).
+- **Idle costs nothing**: block entities never tick while idle — schedule wake-ups (next completion time) instead of polling every tick.
+- **Zero allocation in hot paths**: no boxing, no streams, no lambda captures inside tick/render loops; reuse mutable state where the JVM cannot elide it.
+- **Data-oriented where it counts**: prefer primitive arrays/flat structures over object graphs for per-machine runtime state.
+- **Network discipline**: sync deltas, throttle block entity sync, never broadcast full state per tick.
+- **Measured, not assumed**: profile with spark/JFR before each release; a feature that tanks TPS/FPS does not ship until fixed.
+
 ## Open questions
 
 *(none — next ones will come from design work)*

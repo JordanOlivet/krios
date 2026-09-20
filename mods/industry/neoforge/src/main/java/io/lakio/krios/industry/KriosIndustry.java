@@ -1,6 +1,6 @@
 package io.lakio.krios.industry;
 
-
+import io.lakio.krios.industry.platform.NeoForgeRegistrar;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 
@@ -8,14 +8,9 @@ import net.neoforged.fml.common.Mod;
 public class KriosIndustry {
 
     public KriosIndustry(IEventBus eventBus) {
-
-        // This method is invoked by the NeoForge mod loader when it is ready
-        // to load your mod. You can access NeoForge and Common code in this
-        // project.
-
-        // Use NeoForge to bootstrap the Common mod.
-        Constants.LOG.info("Hello NeoForge world!");
+        // init() fills the deferred registers; attach() hands them to the bus
+        // before registry events fire.
         CommonClass.init();
-
+        NeoForgeRegistrar.attach(eventBus);
     }
 }

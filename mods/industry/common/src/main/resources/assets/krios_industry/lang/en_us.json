@@ -1,0 +1,7 @@
+{
+  "block.krios_industry.chronite_ore": "Chronite Ore",
+  "block.krios_industry.neurite_ore": "Neurite Ore",
+  "item.krios_industry.chronite_shard": "Chronite Shard",
+  "item.krios_industry.raw_neurite": "Raw Neurite",
+  "itemGroup.krios_industry": "Krios: Industry"
+}
