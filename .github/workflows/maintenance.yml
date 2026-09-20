@@ -1,0 +1,15 @@
+name: Maintenance
+
+on:
+  schedule:
+    - cron: '0 4 * * 0' # Sunday 04:00 UTC
+  workflow_dispatch:
+
+jobs:
+  cache-cleanup:
+    permissions:
+      actions: write
+      contents: read
+    uses: JordanOlivet/ci-workflows/.github/workflows/cache-cleanup.yml@main
+    with:
+      threshold-gb: 8
