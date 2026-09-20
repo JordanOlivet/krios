@@ -1,6 +1,15 @@
 package io.lakio.krios.industry.platform.services;
 
+import net.minecraft.world.item.ItemStack;
+
 public interface IPlatformHelper {
+
+    /**
+     * Furnace-fuel burn time in ticks, 0 when the stack is not a fuel.
+     * Loader-specific: NeoForge extends fuels per-stack, Fabric feeds the
+     * vanilla fuel map.
+     */
+    int getBurnTime(ItemStack stack);
 
     /**
      * Gets the name of the current platform

@@ -1,10 +1,17 @@
 package io.lakio.krios.industry.platform;
 
 import io.lakio.krios.industry.platform.services.IPlatformHelper;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.loading.FMLLoader;
 
 public class NeoForgePlatformHelper implements IPlatformHelper {
+
+    @Override
+    public int getBurnTime(ItemStack stack) {
+        return stack.getBurnTime(RecipeType.SMELTING);
+    }
 
     @Override
     public String getPlatformName() {

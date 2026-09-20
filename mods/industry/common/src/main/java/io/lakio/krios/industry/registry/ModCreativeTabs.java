@@ -19,6 +19,7 @@ public final class ModCreativeTabs {
                     .displayItems((params, output) -> {
                         output.accept(ModBlocks.CHRONITE_ORE.get());
                         output.accept(ModBlocks.NEURITE_ORE.get());
+                        output.accept(ModBlocks.GENERATOR.get());
                         output.accept(ModItems.CHRONITE_SHARD.get());
                         output.accept(ModItems.RAW_NEURITE.get());
                     })

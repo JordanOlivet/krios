@@ -1,9 +1,11 @@
 package io.lakio.krios.industry;
 
 import io.lakio.krios.industry.platform.Services;
+import io.lakio.krios.industry.registry.ModBlockEntities;
 import io.lakio.krios.industry.registry.ModBlocks;
 import io.lakio.krios.industry.registry.ModCreativeTabs;
 import io.lakio.krios.industry.registry.ModItems;
+import io.lakio.krios.industry.registry.ModMenus;
 
 public class CommonClass {
 
@@ -12,6 +14,8 @@ public class CommonClass {
     public static void init() {
         ModBlocks.init();
         ModItems.init();
+        ModBlockEntities.init();
+        ModMenus.init();
         ModCreativeTabs.init();
         Constants.LOG.info("{} initialized on {}", Constants.MOD_NAME, Services.PLATFORM.getPlatformName());
     }

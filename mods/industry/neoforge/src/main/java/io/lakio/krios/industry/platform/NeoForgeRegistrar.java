@@ -6,10 +6,15 @@ import java.util.function.Supplier;
 
 import io.lakio.krios.industry.platform.services.IRegistrar;
 import net.minecraft.core.Registry;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.flag.FeatureFlags;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -29,6 +34,18 @@ public class NeoForgeRegistrar implements IRegistrar {
     @Override
     public CreativeModeTab.Builder createTabBuilder() {
         return CreativeModeTab.builder();
+    }
+
+    @Override
+    public <T extends BlockEntity> BlockEntityType<T> createBlockEntityType(BlockEntityFactory<T> factory, Block... blocks) {
+        // BlockEntitySupplier is made public by NeoForge's access transformers.
+        return BlockEntityType.Builder.of(factory::create, blocks).build(null);
+    }
+
+    @Override
+    public <T extends AbstractContainerMenu> MenuType<T> createMenuType(MenuFactory<T> factory) {
+        // Constructor made public by NeoForge's access transformers.
+        return new MenuType<>(factory::create, FeatureFlags.DEFAULT_FLAGS);
     }
 
     /**

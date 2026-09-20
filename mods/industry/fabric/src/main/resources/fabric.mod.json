@@ -17,6 +17,9 @@
     "entrypoints": {
         "main": [
             "io.lakio.krios.industry.KriosIndustry"
+        ],
+        "client": [
+            "io.lakio.krios.industry.client.KriosIndustryClient"
         ]
     },
     "mixins": [
