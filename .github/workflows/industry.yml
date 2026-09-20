@@ -1,0 +1,21 @@
+name: Industry CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'mods/industry/**'
+      - 'libs/core/**'
+      - '.github/workflows/industry.yml'
+  pull_request:
+    paths:
+      - 'mods/industry/**'
+      - 'libs/core/**'
+      - '.github/workflows/industry.yml'
+
+jobs:
+  build:
+    uses: JordanOlivet/ci-workflows/.github/workflows/build-gradle-mod.yml@main
+    with:
+      working-directory: mods/industry
+      artifact-name: krios_industry-jars

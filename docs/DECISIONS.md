@@ -55,9 +55,30 @@ All machine recipes are standard datapack recipe types. Progression difficulty (
 
 New ores are few and theme-specific; common metals (tin, steel, titanium, …) are consumed through `c:` convention tags so any modpack's extended ore set satisfies recipes automatically.
 
+## ADR-009 — Versioning: SemVer per mod, monorepo tags
+
+**Date**: 2026-09-20 · **Status**: accepted
+
+- Each mod versions independently (SemVer) in its own `gradle.properties`; one version number covers both loaders.
+- MAJOR bumps also cover **saved-world compat breakage** and addon-facing API breakage — what players and addon authors actually track.
+- The Minecraft version lives in file names and metadata only, never in the mod version: `krios_industry-<loader>-<mc>-<version>.jar`. Multi-version builds (Stonecutter, later) reuse the same mod version across MC targets.
+- Git tags are mod-prefixed: `industry/v0.1.0`, `core/v0.3.2`. Tags drive releases.
+- `krios_core` is versioned separately and shipped jar-in-jar inside each mod; players never download it directly.
+
+## ADR-010 — CI: reusable workflows in ci-workflows
+
+**Date**: 2026-09-20 · **Status**: accepted
+
+- GitHub Actions. Build logic lives in `JordanOlivet/ci-workflows` (public) as the reusable `build-gradle-mod.yml`; krios keeps thin per-mod callers with path filters (`mods/<mod>/**` + `libs/core/**`).
+- Gradle/Loom/NeoForm caches handled by `gradle/actions/setup-gradle`; `ubuntu-latest` runners (mod builds are cross-platform).
+- Releases: deferred until the first publishable version — planned as tag-triggered (`<mod>/v*`) workflow building both jars and publishing via `mc-publish` (Modrinth + CurseForge + GitHub Release, `MODRINTH_TOKEN`/`CURSEFORGE_TOKEN` secrets).
+- In-game testing: GameTest framework (`runGameTestServer`, headless-friendly) wired once the first machines exist; heavy client tests stay local via mc-test-harness.
+
 ## Open questions
 
-- Base Java package: `dev.krios.<mod>` vs `io.github.jordanolivet.krios.<mod>` (Maven-safe). Decide before first code.
-- License (required before public release; monorepo may need per-mod licensing).
-- CI wiring into `JordanOlivet/ci-workflows` (path-filtered per mod).
-- Git remote / repository publication timing.
+- License (required before public release; monorepo may need per-mod licensing). Placeholder "All Rights Reserved" in the meantime.
+
+## Resolved outside ADRs
+
+- Base Java package: **`io.lakio.krios.<mod>`** — user owns lakio.io (2026-09-20).
+- Remote: https://github.com/JordanOlivet/krios, private until first release (2026-09-20).
