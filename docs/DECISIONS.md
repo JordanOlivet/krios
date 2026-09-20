@@ -74,9 +74,19 @@ New ores are few and theme-specific; common metals (tin, steel, titanium, …) a
 - Releases: deferred until the first publishable version — planned as tag-triggered (`<mod>/v*`) workflow building both jars and publishing via `mc-publish` (Modrinth + CurseForge + GitHub Release, `MODRINTH_TOKEN`/`CURSEFORGE_TOKEN` secrets).
 - In-game testing: GameTest framework (`runGameTestServer`, headless-friendly) wired once the first machines exist; heavy client tests stay local via mc-test-harness.
 
+## ADR-011 — License: LGPL-3.0, code and assets alike
+
+**Date**: 2026-09-20 · **Status**: accepted
+
+- Whole ecosystem under **LGPL-3.0-or-later** (SPDX `LGPL-3.0-or-later`), one license for code and assets — no split terms to maintain.
+- Effect: modpacks redistribute freely, addons link freely, forks/derivatives must stay open source. Same choice as AE2.
+- Rejected: MIT (allows closed forks of original mechanics), GPL-3.0 (legal grey zone for third-party addons), ARR (blocks modpack redistribution).
+- Root `LICENSE` (LGPL-3.0) + `LICENSE.GPL` (GPL-3.0, incorporated by reference — both must ship).
+- TODO when build conventions solidify: bundle `LICENSE` into each built jar.
+
 ## Open questions
 
-- License (required before public release; monorepo may need per-mod licensing). Placeholder "All Rights Reserved" in the meantime.
+*(none — next ones will come from design work)*
 
 ## Resolved outside ADRs
 
