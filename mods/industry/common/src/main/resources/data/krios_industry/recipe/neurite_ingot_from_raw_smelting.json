@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:smelting",
+  "ingredient": { "item": "krios_industry:raw_neurite" },
+  "result": { "id": "krios_industry:neurite_ingot" },
+  "experience": 0.7,
+  "cookingtime": 200
+}
