@@ -2,6 +2,17 @@ plugins {
     id 'multiloader-loader'
     id 'fabric-loom'
 }
+repositories {
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'modmuss50'
+                url = 'https://maven.modmuss50.me'
+            }
+        }
+        filter { includeGroup('teamreborn') }
+    }
+}
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
     mappings loom.layered {
@@ -10,6 +21,9 @@ dependencies {
     }
     modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
+    // Team Reborn Energy: the Fabric energy interop standard, shipped jar-in-jar.
+    modImplementation "teamreborn:energy:${tre_version}"
+    include "teamreborn:energy:${tre_version}"
 }
 
 loom {

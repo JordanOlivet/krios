@@ -38,6 +38,11 @@ public final class EnergyBuffer {
         return stored;
     }
 
+    /** Direct restore, clamped to capacity — for transaction snapshot rollback. */
+    public void setStored(int value) {
+        stored = Math.max(0, Math.min(value, capacity));
+    }
+
     public int getCapacity() {
         return capacity;
     }
