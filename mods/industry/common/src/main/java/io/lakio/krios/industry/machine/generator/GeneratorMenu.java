@@ -88,15 +88,16 @@ public class GeneratorMenu extends AbstractContainerMenu {
 
     /** 0..width pixels of stored energy (gauge). */
     public int getEnergyProgress(int width) {
-        int capacity = Math.max(1, data.get(3));
-        return data.get(2) * width / capacity;
+        int progress = (int) ((long) getEnergyStored() * width / GeneratorBlockEntity.CAPACITY);
+        return Math.max(0, Math.min(width, progress));
     }
 
+    /** Reassembled from the low/high 16-bit pair (ContainerData syncs shorts). */
     public int getEnergyStored() {
-        return data.get(2);
+        return (data.get(3) << 16) | (data.get(2) & 0xFFFF);
     }
 
     public int getEnergyCapacity() {
-        return data.get(3);
+        return GeneratorBlockEntity.CAPACITY;
     }
 }

@@ -33,14 +33,17 @@ public class GeneratorBlockEntity extends BlockEntity implements Container, Menu
     private int burnTime;
     private int burnDuration;
 
+    // ContainerData values are truncated to 16-bit shorts on sync, so the
+    // energy value ships as a low/high pair. Capacity is a constant and is
+    // never synced.
     private final ContainerData dataAccess = new ContainerData() {
         @Override
         public int get(int index) {
             return switch (index) {
                 case 0 -> burnTime;
                 case 1 -> burnDuration;
-                case 2 -> energy.getStored();
-                case 3 -> energy.getCapacity();
+                case 2 -> energy.getStored() & 0xFFFF;
+                case 3 -> (energy.getStored() >> 16) & 0xFFFF;
                 default -> 0;
             };
         }
