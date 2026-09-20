@@ -52,7 +52,8 @@ Speed, Efficiency (energy cost), Yield (crusher multiplier). All gated behind KO
 
 ## Worldgen
 
-Overworld veins for both ores + small ruined **laboratory structures** containing both ores and lore-flavored loot. Structure design at implementation time.
+- MVP: overworld veins for both ores. Nothing else.
+- Post-MVP: small ruined **laboratory structures** containing both ores and lore-flavored loot.
 
 ## Configurability
 
@@ -64,7 +65,7 @@ Overworld veins for both ores + small ruined **laboratory structures** containin
 - Pipes/cables/logistics networks
 - Machine tiers 2-4 (systems must be tier-ready, content ships later)
 - Armor, tools
-- World generation beyond the two ores + laboratory structure
+- World generation beyond the two ore veins (laboratory structures are post-MVP)
 
 ## Technical constraints
 
@@ -78,5 +79,5 @@ Overworld veins for both ores + small ruined **laboratory structures** containin
 - Module slot counts per machine; module stacking rules.
 - Energy numbers: generation, buffers, per-operation costs.
 - KOIOS core multiblock shape and level/critical thresholds.
-- Laboratory structure design; ore vein placement parameters.
+- Ore vein placement parameters.
 - Ore names final check (Chronite/Neurite still placeholders-by-default).
