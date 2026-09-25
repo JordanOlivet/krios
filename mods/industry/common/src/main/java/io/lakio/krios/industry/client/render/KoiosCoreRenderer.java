@@ -34,13 +34,17 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
     private static final float ATLAS = 64F;
     // Each layer sits on its own depth plane: coplanar quads z-fight and the
     // translucent sort reorders them unpredictably (the "overlapping renders"
-    // artifact). ~3mm steps are invisible but settle depth and sort order.
+    // artifact). ~mm steps are invisible but settle depth and sort order.
+    // The translucent overlays must stay BEHIND the opaque features: the
+    // per-quad distance sort can draw a closer overlay before an eye, whose
+    // depth test then fails and the eye vanishes during pulses. Farther than
+    // the features, depth testing composites correctly in any draw order.
     private static final float Z_BG = 1.502F;
+    private static final float Z_PULSE = 1.5035F;
     private static final float Z_STATIC = 1.504F;
+    private static final float Z_FLASH = 1.5042F;
     private static final float Z_FEATURES = 1.506F;
     private static final float Z_PUPILS = 1.509F;
-    private static final float Z_PULSE = 1.512F;
-    private static final float Z_FLASH = 1.515F;
     private static final int BOOT_TICKS = 50;
     private static final int PULSE_TICKS = 12;
     private static final int LEVEL_UP_TICKS = 30;
