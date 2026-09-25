@@ -9,4 +9,10 @@ public interface EnergyPort {
 
     /** Extract up to {@code max} from this member, returns what was taken. */
     int extractNetworkEnergy(int max);
+
+    /** Current buffer content, for pool diagnostics. */
+    int storedNetworkEnergy();
+
+    /** Buffer capacity, for pool diagnostics. */
+    int networkEnergyCapacity();
 }

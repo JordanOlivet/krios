@@ -7,6 +7,7 @@ import io.lakio.krios.industry.koios.KoiosCoreMenu;
 import io.lakio.krios.industry.machine.crusher.CrusherMenu;
 import io.lakio.krios.industry.machine.generator.GeneratorMenu;
 import io.lakio.krios.industry.platform.Services;
+import io.lakio.krios.industry.tool.CalibratorMenu;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
@@ -21,6 +22,9 @@ public final class ModMenus {
 
     public static final Supplier<MenuType<KoiosCoreMenu>> KOIOS_CORE = register("koios_core",
             () -> Services.REGISTRAR.createMenuType(KoiosCoreMenu::new));
+
+    public static final Supplier<MenuType<CalibratorMenu>> CALIBRATOR = register("calibrator",
+            () -> Services.REGISTRAR.createMenuType(CalibratorMenu::new));
 
     private ModMenus() {
     }

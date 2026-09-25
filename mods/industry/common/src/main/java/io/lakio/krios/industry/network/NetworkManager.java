@@ -136,6 +136,15 @@ public final class NetworkManager {
         return recompute(level, graph(level), node.networkPos());
     }
 
+    /** The component containing {@code pos} (any conductor), or null. */
+    @Nullable
+    public static Network networkAt(Level level, BlockPos pos) {
+        if (level.isClientSide) {
+            return null;
+        }
+        return recompute(level, graph(level), pos.immutable());
+    }
+
     /** Nearest registered active controller, for admin tooling. */
     @Nullable
     public static NetworkNode closestActiveController(Level level, BlockPos pos, double maxDistSq) {
@@ -233,7 +242,7 @@ public final class NetworkManager {
                 }
             }
         }
-        Network network = new Network(members, controllers);
+        Network network = new Network(members, controllers, visited.size());
         for (BlockPos pos : visited) {
             graph.byPos.put(pos, network);
         }

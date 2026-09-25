@@ -4,6 +4,7 @@ import java.util.List;
 
 import io.lakio.krios.industry.koios.KoiosCoreBlockEntity;
 import io.lakio.krios.industry.koios.NeuralCasingBlock;
+import io.lakio.krios.industry.network.NetworkConductor;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -33,8 +34,20 @@ public class CalibratorItem extends Item {
     public InteractionResult useOn(UseOnContext context) {
         Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
-        if (!context.isSecondaryUseActive()
-                || !(level.getBlockState(pos).getBlock() instanceof NeuralCasingBlock)) {
+        if (!context.isSecondaryUseActive()) {
+            // Plain right-click on any network block: live diagnostic UI.
+            if (level.getBlockState(pos).getBlock() instanceof NetworkConductor) {
+                Player user = context.getPlayer();
+                if (!level.isClientSide && user != null) {
+                    user.openMenu(new net.minecraft.world.SimpleMenuProvider(
+                            (id, inventory, p) -> new CalibratorMenu(id, inventory, level, pos),
+                            Component.translatable("gui.krios_industry.calibrator.diagnostic")));
+                }
+                return InteractionResult.sidedSuccess(level.isClientSide);
+            }
+            return InteractionResult.PASS;
+        }
+        if (!(level.getBlockState(pos).getBlock() instanceof NeuralCasingBlock)) {
             return InteractionResult.PASS;
         }
         KoiosCoreBlockEntity core = NeuralCasingBlock.findFormedCore(level, pos);

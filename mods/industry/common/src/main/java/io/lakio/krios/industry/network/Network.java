@@ -14,15 +14,43 @@ public final class Network {
 
     private final List<NetworkNode> members;
     private final List<NetworkNode> controllers;
+    private final int size;
     private boolean dirty;
 
-    Network(List<NetworkNode> members, List<NetworkNode> controllers) {
+    Network(List<NetworkNode> members, List<NetworkNode> controllers, int size) {
         this.members = Collections.unmodifiableList(members);
         this.controllers = Collections.unmodifiableList(controllers);
+        this.size = size;
     }
 
     public List<NetworkNode> members() {
         return members;
+    }
+
+    /** Component size in blocks, conductors included (diagnostics). */
+    public int size() {
+        return size;
+    }
+
+    /** Sum of the pool's producer buffers (diagnostics). */
+    public int energyStored() {
+        int total = 0;
+        for (NetworkNode member : members) {
+            if (member instanceof EnergyPort port) {
+                total += port.storedNetworkEnergy();
+            }
+        }
+        return total;
+    }
+
+    public int energyCapacity() {
+        int total = 0;
+        for (NetworkNode member : members) {
+            if (member instanceof EnergyPort port) {
+                total += port.networkEnergyCapacity();
+            }
+        }
+        return total;
     }
 
     public List<NetworkNode> controllers() {

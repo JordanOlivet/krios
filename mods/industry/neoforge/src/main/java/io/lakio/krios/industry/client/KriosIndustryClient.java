@@ -2,6 +2,7 @@ package io.lakio.krios.industry.client;
 
 import io.lakio.krios.industry.Constants;
 import io.lakio.krios.industry.client.render.KoiosCoreRenderer;
+import io.lakio.krios.industry.client.screen.CalibratorScreen;
 import io.lakio.krios.industry.client.screen.CrusherScreen;
 import io.lakio.krios.industry.client.screen.GeneratorScreen;
 import io.lakio.krios.industry.client.screen.KoiosCoreScreen;
@@ -24,6 +25,7 @@ public final class KriosIndustryClient {
         event.register(ModMenus.GENERATOR.get(), GeneratorScreen::new);
         event.register(ModMenus.CRUSHER.get(), CrusherScreen::new);
         event.register(ModMenus.KOIOS_CORE.get(), KoiosCoreScreen::new);
+        event.register(ModMenus.CALIBRATOR.get(), CalibratorScreen::new);
     }
 
     @SubscribeEvent

@@ -141,6 +141,16 @@ public class GeneratorBlockEntity extends BlockEntity
         return pulled;
     }
 
+    @Override
+    public int storedNetworkEnergy() {
+        return energy.getStored();
+    }
+
+    @Override
+    public int networkEnergyCapacity() {
+        return energy.getCapacity();
+    }
+
     // --- Flow ports: energy source on every face ---
 
     @Override
