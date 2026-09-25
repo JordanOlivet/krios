@@ -21,6 +21,8 @@
   "gui.krios_industry.direction.west": "west",
   "gui.krios_industry.koios.critical": "Critical level 5: material breakthrough required (Tier 2 — coming soon)",
   "gui.krios_industry.koios.diversity": "Data diversity: %s%%",
+  "gui.krios_industry.koios.fault_detail": "Multiple cores on one network",
+  "gui.krios_industry.koios.fault_title": "NETWORK ERROR",
   "gui.krios_industry.koios.incomplete": "Offline — structure incomplete",
   "gui.krios_industry.koios.level": "Level %s",
   "gui.krios_industry.koios.online": "Online — learning",

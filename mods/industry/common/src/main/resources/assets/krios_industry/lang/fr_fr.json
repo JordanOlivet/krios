@@ -21,6 +21,8 @@
   "gui.krios_industry.direction.west": "ouest",
   "gui.krios_industry.koios.critical": "Niveau critique 5 : percée matérielle requise (Tier 2 — à venir)",
   "gui.krios_industry.koios.diversity": "Diversité des données : %s %%",
+  "gui.krios_industry.koios.fault_detail": "Plusieurs cœurs sur un même réseau",
+  "gui.krios_industry.koios.fault_title": "ERREUR RÉSEAU",
   "gui.krios_industry.koios.incomplete": "Hors ligne — structure incomplète",
   "gui.krios_industry.koios.level": "Niveau %s",
   "gui.krios_industry.koios.online": "En ligne — apprentissage",

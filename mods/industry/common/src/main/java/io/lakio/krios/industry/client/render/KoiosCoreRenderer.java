@@ -6,6 +6,7 @@ import com.mojang.math.Axis;
 
 import io.lakio.krios.industry.Constants;
 import io.lakio.krios.industry.koios.KoiosCoreBlockEntity;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -14,6 +15,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
@@ -44,12 +46,17 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
     private static final float Z_STATIC = 1.504F;
     private static final float Z_FLASH = 1.5042F;
     private static final float Z_FEATURES = 1.506F;
+    private static final float Z_TEXT = 1.508F;
     private static final float Z_PUPILS = 1.509F;
+    private static final float TEXT_SCALE = 0.022F;
     private static final int BOOT_TICKS = 50;
     private static final int PULSE_TICKS = 12;
     private static final int LEVEL_UP_TICKS = 30;
 
+    private final Font font;
+
     public KoiosCoreRenderer(BlockEntityRendererProvider.Context context) {
+        this.font = context.getFont();
     }
 
     @Override
@@ -86,7 +93,7 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
         if (bootT < BOOT_TICKS) {
             renderBootStatic(pose, vc, bootT);
         } else if (core.isNetworkFault()) {
-            renderFaultStatic(pose, vc, time);
+            renderFaultStatic(poseStack, buffers, pose, vc, time);
         } else {
             renderFace(core, level, side, pose, vc, time);
         }
@@ -97,7 +104,8 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
      * One core per network: a conflicted core shows old-TV static with a red
      * error panel dead center, so the fault reads in-world at a glance.
      */
-    private void renderFaultStatic(PoseStack.Pose pose, VertexConsumer vc, float time) {
+    private void renderFaultStatic(PoseStack poseStack, MultiBufferSource buffers,
+            PoseStack.Pose pose, VertexConsumer vc, float time) {
         int frame = (int) time;
         float v0 = (48 + (frame * 5) % 8) / ATLAS;
         float alpha = 0.6F + 0.3F * ((frame % 4) / 3F);
@@ -107,6 +115,18 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
                 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.85F, 0.08F, 0.08F, 0.92F);
         quad(pose, vc, -0.92F, -0.42F, 1.84F, 0.84F, Z_FEATURES,
                 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.30F, 0.01F, 0.01F, 0.95F);
+        // Error text, centered in the panel.
+        Component title = Component.translatable("gui.krios_industry.koios.fault_title");
+        Component detail = Component.translatable("gui.krios_industry.koios.fault_detail");
+        poseStack.pushPose();
+        poseStack.translate(0, 0, Z_TEXT);
+        poseStack.scale(TEXT_SCALE, -TEXT_SCALE, TEXT_SCALE);
+        var matrix = poseStack.last().pose();
+        font.drawInBatch(title, -font.width(title) / 2F, -12, 0xFFFFFFFF, false,
+                matrix, buffers, Font.DisplayMode.NORMAL, 0, LightTexture.FULL_BRIGHT);
+        font.drawInBatch(detail, -font.width(detail) / 2F, 2, 0xFFFF8080, false,
+                matrix, buffers, Font.DisplayMode.NORMAL, 0, LightTexture.FULL_BRIGHT);
+        poseStack.popPose();
     }
 
     /** Boot sequence: scrolling static noise, flickering. */
