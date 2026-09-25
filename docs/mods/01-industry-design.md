@@ -126,10 +126,14 @@ Settled (design session, 2026-09-25):
   in-world orientation/interaction: cables, and later wireless modules
   bridging two blocks. (Its dedicated diagnostic UI stays, see above.)
 - **Cable tiers follow core tiers**: each core tier brings its own cable
-  with higher transfer rates. The last tier ships both its cable *and* the
-  wireless unlock, both with effectively unlimited rates — the endgame
-  choice is aesthetic, not mechanical: organic cable runs vs clean
-  wireless, the player picks their factory's look.
+  with higher transfer rates. The **last** tier (and only it) ships both
+  its cable *and* the wireless unlock, both with effectively unlimited
+  rates — the endgame choice is aesthetic, not mechanical: organic cable
+  runs vs clean wireless, the player picks their factory's look.
+- **Tiers ship as complete slices** (2026-09-25): everything a tier
+  contains (cable, machines, unlocks, recipes) is designed and lands
+  together when that tier is implemented — no tier content drip-fed in
+  advance.
 - **Engine home**: Industry common, self-contained `network/` package under
   ADR-013 isolation (one-way dependency, graph never persisted, no balance
   in the engine); extracted to `krios_core` when a second mod consumes it.
