@@ -22,7 +22,7 @@ tools\run-client.bat [neoforge|fabric]   # from repo root: launch a dev client f
 
 No unit tests yet; verification = build green + dev-server boot (registration and datapack errors surface in `logs/latest.log`) + manual client play. GameTest is planned once machines warrant it.
 
-Windows gotcha: a backgrounded/killed gradle `runServer` orphans the child JVM. After automated smoke tests, sweep leftovers: `Get-CimInstance Win32_Process -Filter "Name = 'java.exe'" | Where-Object { $_.CommandLine -match 'krios' }`.
+Windows gotchas: a backgrounded/killed gradle `runServer` orphans the child JVM. After automated smoke tests, sweep leftovers: `Get-CimInstance Win32_Process -Filter "Name = 'java.exe'" | Where-Object { $_.CommandLine -match 'krios' }`. Also, run-dir config files (`eula.txt`, `server.properties`) must be ASCII/no-BOM — a PowerShell `>` redirect writes a UTF-8 BOM and the server then reads the first key as `﻿eula` and refuses the EULA.
 
 ## Architecture (mods/industry)
 
@@ -38,6 +38,7 @@ Machine pattern (Generator and Crusher are the references):
 - **Energy**: common `EnergyBuffer` (primitive ints) is the only thing game logic touches. Platform adapters wrap it: extract-only FE capability (neoforge entry) and TRE `SnapshotParticipant` adapter (fabric). Crusher pulls from *adjacent* generators directly — v0 transport, to be replaced by a proper network with scheduled wake-ups.
 - **GUI sync**: `ContainerData` truncates to signed 16-bit shorts. Any value that can exceed 32767 (energy!) ships as a low/high pair reassembled in the menu; constants are never synced.
 - **Recipes**: everything is datapack (`data/krios_industry/recipe/`). Custom type `krios_industry:crushing`. Material inputs use `c:` tags (ADR-008); we also provide `c:` tags for our materials.
+- **KOIOS** (`koios/` package): all balance knobs in `KoiosBalance`. The core block entity never ticks — multiblock revalidation is event-driven (placement, casing place/remove, GUI open) and machines push operations to it via `KoiosNetwork`, a v0 static per-dimension index (closest formed core ≤32 blocks; registered in `setLevel`, unregistered in `setRemoved`, lazily purged). Diversity = 64-op ring buffer + per-key counts. The core's XP survives breaking via the `krios_industry:koios_data` data component (loot `copy_components` + `applyImplicitComponents` on place, keeping max). Module gating happens at slot insertion (server-authoritative `mayPlace`), never in recipes.
 - **Worldgen**: configured/placed features are common datapack JSONs; biome injection is per-loader (neoforge `biome_modifier` JSON vs `BiomeModifications` code in the fabric entry).
 
 Client code lives in `common/.../client/` (only referenced client-side); screens are registered per loader (`RegisterMenuScreensEvent` on NeoForge, `MenuScreens.register` in the fabric client entrypoint).

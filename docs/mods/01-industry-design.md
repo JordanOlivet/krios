@@ -1,6 +1,6 @@
 # Krios: Industry — Design
 
-**Status**: core design settled (Q&A sessions 2026-09-20). Numbers, shapes and formulas stay open until implementation.
+**Status**: core design settled (Q&A sessions 2026-09-20); implementation-time choices settled (Q&A 2026-09-25, see "Settled at implementation").
 
 ## Pitch
 
@@ -73,11 +73,19 @@ Speed, Efficiency (energy cost), Yield (crusher multiplier). All gated behind KO
 - Multiloader: common-first code; platform code only for energy exposure and registration (ADR-001, ADR-005).
 - Recipes/tags data-driven from day one (ADR-007, ADR-008).
 
+## Settled at implementation (Q&A 2026-09-25)
+
+All numbers live in `KoiosBalance` (single hookup point for the future difficulty config).
+
+- **Multiblock shape**: hollow 3×3×3 frame of Neural Casing — the 12 edges + 8 corners (20 blocks), the 6 face centers unchecked (free for support blocks / reaching in). The KOIOS Core block sits at the center; it *is* the craftable item that carries the AI's progression (tier 1 only in MVP). Natural build flow: place the core on a support, build the frame around it.
+- **Data XP / diversity**: sliding window of the last 64 operations (ring buffer + counts). Per-op XP = base × factor; factor is 100% while the operation stays ≤25% of the window, then falls linearly to a 10% floor at pure repetition. Crushing ops: base 10 (key = recipe id); generator burn cycles: base 2 (key = fuel item, so varied fuels teach more).
+- **Levels (tier 1)**: 5 levels; cumulative XP 0 / 500 / 1500 / 3500 / 6500. N2 unlocks Speed, N3 Efficiency, N4 Yield. N5 is the critical level toward tier 2 (items + XP) — XP caps there and the GUI shows "coming soon" until tier 2 ships.
+- **Modules**: 2 slots per machine at tier 1 (crusher only for now — the generator stays deliberately boring), identical modules stack freely. Speed ×1.5 per module (time ×2/(2+n)), Efficiency ×0.8 energy per module, Yield +25% output per module on top of the recipe (x2 → x2.5 → x3), carried as a deterministic quarter-item accumulator (ADR-006, no RNG).
+- **Module gating**: crafting stays open (plain datapack recipes, ADR-007); the KOIOS gate applies on *insertion* — a machine only accepts a module when a formed core in range has the required level.
+- **v0 "network"**: machines report operations to the closest formed core within 32 blocks (mirrors the crusher's adjacency energy pull); both get replaced by the real network with scheduled wake-ups.
+
 ## Open questions (implementation-time)
 
-- Data XP formula: per-operation value, diversity window, diminishing-returns curve.
-- Module slot counts per machine; module stacking rules.
-- Energy numbers: generation, buffers, per-operation costs.
-- KOIOS core multiblock shape and level/critical thresholds.
-- Ore vein placement parameters.
 - Ore names final check (Chronite/Neurite still placeholders-by-default).
+- Critical level 5 cost (items + XP) — decided when tier 2 ships.
+- Furnace module slot count (when the Furnace is built).
