@@ -79,12 +79,27 @@ Settled (Q&A 2026-09-25):
   ADR-007 spirit); base capacity TBD.
 - **The Calibrator gets a dedicated diagnostic UI** for network inspection,
   not just actionbar feedback.
+- **Yield is a network benefit**: disconnected, the crusher works 1:1 at
+  furnace-grade speed; connected, x2 and full speed. Recipes without a vanilla
+  equivalent (cobble→gravel→sand) stay available disconnected, just slow.
+- **Machines are network nodes**: mod blocks propagate the network by
+  adjacency, AE2-controller style — a chain of touching mod machines is
+  networked as soon as one element reaches a formed core (the casing shell is
+  the connection surface). Energy, items, fluids and data all flow through the
+  chain; cables only bridge gaps, wireless replaces them later.
+- **Disconnected generator**: buffers energy, idles unlit when full, resumes
+  when a drain frees room, and feeds any adjacent consumer — mod machine or
+  third-party FE/TRE block.
+- **Per-face interaction config**: every machine face carries a configurable
+  set of allowed interactions (several types per face possible); defaults
+  mirror today's behavior. The storage mod adds AE2-like import/export bus
+  blocks to steer item movement.
 
 Open questions for the network design session:
 
-- Exact per-machine meaning of vanilla parity — notably whether the crusher's
-  x2 yield requires connection (proposal: yes — yield is quantum recomposition,
-  KOIOS's work), and what an unconnected generator powers.
+- Several formed cores in one connected component: error state (AE2-style),
+  nearest-core assignment, or merge rules? (Learning/XP stays per-core.)
+- Per-face config UX: through the machine UI, the Calibrator, or both.
 - Transfer rates/tiers of the universal cable; wireless unlock placement.
 - What ships in Industry (batteries likely) vs satellite mods (AE2-like
   storage = krios_storage) vs krios_core (the graph/transfer engine).
