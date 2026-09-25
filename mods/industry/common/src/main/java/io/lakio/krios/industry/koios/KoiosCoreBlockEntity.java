@@ -28,9 +28,9 @@ import net.minecraft.world.level.block.state.BlockState;
 
 public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider {
 
-    // The 20 frame positions of the 3x3x3 shell: every offset with at least
-    // two non-zero axes (12 edges + 8 corners). Face centers stay free.
-    private static final Vec3i[] FRAME_OFFSETS = buildFrameOffsets();
+    // The 26 positions of the full 3x3x3 shell. The core is fully encased so
+    // the shell faces can act as the AI's "screens" (head display, planned).
+    private static final Vec3i[] SHELL_OFFSETS = buildShellOffsets();
 
     private int xp;
     private int koiosLevel = 1;
@@ -170,16 +170,16 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider {
         if (level == null || level.isClientSide) {
             return;
         }
-        boolean formed = checkFrame();
+        boolean formed = checkShell();
         BlockState state = getBlockState();
         if (state.getValue(KoiosCoreBlock.FORMED) != formed) {
             level.setBlock(worldPosition, state.setValue(KoiosCoreBlock.FORMED, formed), 3);
         }
     }
 
-    private boolean checkFrame() {
+    private boolean checkShell() {
         BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
-        for (Vec3i offset : FRAME_OFFSETS) {
+        for (Vec3i offset : SHELL_OFFSETS) {
             cursor.setWithOffset(worldPosition, offset.getX(), offset.getY(), offset.getZ());
             if (!level.getBlockState(cursor).is(ModBlocks.NEURAL_CASING.get())) {
                 return false;
@@ -188,12 +188,12 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider {
         return true;
     }
 
-    private static Vec3i[] buildFrameOffsets() {
+    private static Vec3i[] buildShellOffsets() {
         List<Vec3i> offsets = new ArrayList<>();
         for (int x = -1; x <= 1; x++) {
             for (int y = -1; y <= 1; y++) {
                 for (int z = -1; z <= 1; z++) {
-                    if (Math.abs(x) + Math.abs(y) + Math.abs(z) >= 2) {
+                    if (x != 0 || y != 0 || z != 0) {
                         offsets.add(new Vec3i(x, y, z));
                     }
                 }

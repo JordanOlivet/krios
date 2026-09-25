@@ -5,7 +5,7 @@
   "block.krios_industry.deepslate_neurite_ore": "Deepslate Neurite Ore",
   "block.krios_industry.generator": "Generator",
   "block.krios_industry.koios_core": "K.O.I.O.S. Core",
-  "block.krios_industry.koios_core.hint": "Place at the center of a hollow 3x3x3 Neural Casing frame (edges and corners only)",
+  "block.krios_industry.koios_core.hint": "Encase in a full 3x3x3 shell of Neural Casing — right-click the shell to interface with the AI",
   "block.krios_industry.neural_casing": "Neural Casing",
   "block.krios_industry.neurite_ore": "Neurite Ore",
   "gui.krios_industry.koios.critical": "Critical level 5: material breakthrough required (Tier 2 — coming soon)",

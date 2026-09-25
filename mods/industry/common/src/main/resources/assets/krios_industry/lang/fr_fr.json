@@ -5,7 +5,7 @@
   "block.krios_industry.deepslate_neurite_ore": "Minerai de neurite des abîmes",
   "block.krios_industry.generator": "Générateur",
   "block.krios_industry.koios_core": "Cœur K.O.I.O.S.",
-  "block.krios_industry.koios_core.hint": "À placer au centre d'un cadre creux 3x3x3 de châssis neuraux (arêtes et coins uniquement)",
+  "block.krios_industry.koios_core.hint": "À enfermer dans une coque pleine 3x3x3 de châssis neuraux — clic droit sur la coque pour interfacer avec l'IA",
   "block.krios_industry.neural_casing": "Châssis neural",
   "block.krios_industry.neurite_ore": "Minerai de neurite",
   "gui.krios_industry.koios.critical": "Niveau critique 5 : percée matérielle requise (Tier 2 — à venir)",
