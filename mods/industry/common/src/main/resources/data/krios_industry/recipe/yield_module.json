@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " D ",
+    "RNR",
+    "III"
+  ],
+  "key": {
+    "D": { "tag": "c:gems/diamond" },
+    "R": { "tag": "c:dusts/redstone" },
+    "N": { "item": "krios_industry:neurite_ingot" },
+    "I": { "tag": "c:ingots/iron" }
+  },
+  "result": { "id": "krios_industry:yield_module", "count": 1 }
+}

@@ -1,5 +1,7 @@
 package io.lakio.krios.industry.machine.crusher;
 
+import io.lakio.krios.industry.koios.KoiosNetwork;
+import io.lakio.krios.industry.machine.module.ModuleItem;
 import io.lakio.krios.industry.registry.ModMenus;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -16,9 +18,13 @@ public class CrusherMenu extends AbstractContainerMenu {
     private final Container container;
     private final ContainerData data;
 
+    private static final int MODULE_SLOT_START = 2;
+    private static final int PLAYER_START = 4;
+    private static final int PLAYER_END = 40;
+
     /** Client constructor. */
     public CrusherMenu(int containerId, Inventory playerInventory) {
-        this(containerId, playerInventory, new SimpleContainer(2), new SimpleContainerData(4));
+        this(containerId, playerInventory, new SimpleContainer(4), new SimpleContainerData(4));
     }
 
     public CrusherMenu(int containerId, Inventory playerInventory, Container container, ContainerData data) {
@@ -33,6 +39,8 @@ public class CrusherMenu extends AbstractContainerMenu {
                 return false;
             }
         });
+        addSlot(new ModuleSlot(container, CrusherBlockEntity.MODULE_SLOT_FIRST, 152, 28));
+        addSlot(new ModuleSlot(container, CrusherBlockEntity.MODULE_SLOT_LAST, 152, 52));
 
         for (int row = 0; row < 3; ++row) {
             for (int col = 0; col < 9; ++col) {
@@ -53,8 +61,12 @@ public class CrusherMenu extends AbstractContainerMenu {
         if (slot.hasItem()) {
             ItemStack stack = slot.getItem();
             result = stack.copy();
-            if (index <= CrusherBlockEntity.OUTPUT_SLOT) {
-                if (!moveItemStackTo(stack, 2, 38, true)) {
+            if (index < PLAYER_START) {
+                if (!moveItemStackTo(stack, PLAYER_START, PLAYER_END, true)) {
+                    return ItemStack.EMPTY;
+                }
+            } else if (stack.getItem() instanceof ModuleItem) {
+                if (!moveItemStackTo(stack, MODULE_SLOT_START, PLAYER_START, false)) {
                     return ItemStack.EMPTY;
                 }
             } else if (!moveItemStackTo(stack, CrusherBlockEntity.INPUT_SLOT, 1, false)) {
@@ -67,6 +79,36 @@ public class CrusherMenu extends AbstractContainerMenu {
             }
         }
         return result;
+    }
+
+    /**
+     * The KOIOS gate: a module goes in only when a formed core in range has
+     * the required level. Server-authoritative — the client container is a
+     * SimpleContainer and predicts optimistically.
+     */
+    private class ModuleSlot extends Slot {
+
+        ModuleSlot(Container container, int slot, int x, int y) {
+            super(container, slot, x, y);
+        }
+
+        @Override
+        public boolean mayPlace(ItemStack stack) {
+            if (!(stack.getItem() instanceof ModuleItem module)) {
+                return false;
+            }
+            if (container instanceof CrusherBlockEntity be
+                    && be.getLevel() != null && !be.getLevel().isClientSide) {
+                return KoiosNetwork.coreLevelAt(be.getLevel(), be.getBlockPos())
+                        >= module.getType().requiredLevel();
+            }
+            return true;
+        }
+
+        @Override
+        public int getMaxStackSize() {
+            return 1;
+        }
     }
 
     @Override

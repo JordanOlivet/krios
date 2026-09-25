@@ -1,7 +1,11 @@
 package io.lakio.krios.industry.machine.crusher;
 
 import io.lakio.krios.industry.energy.EnergyBuffer;
+import io.lakio.krios.industry.koios.KoiosBalance;
+import io.lakio.krios.industry.koios.KoiosNetwork;
 import io.lakio.krios.industry.machine.generator.GeneratorBlockEntity;
+import io.lakio.krios.industry.machine.module.ModuleItem;
+import io.lakio.krios.industry.machine.module.ModuleType;
 import io.lakio.krios.industry.registry.ModBlockEntities;
 import io.lakio.krios.industry.registry.ModRecipeTypes;
 import net.minecraft.core.BlockPos;
@@ -30,18 +34,27 @@ public class CrusherBlockEntity extends BlockEntity implements WorldlyContainer,
 
     public static final int INPUT_SLOT = 0;
     public static final int OUTPUT_SLOT = 1;
+    public static final int MODULE_SLOT_FIRST = 2;
+    public static final int MODULE_SLOT_LAST = 3;
     public static final int CAPACITY = 20_000;
     public static final int PULL_PER_TICK = 400;
+
+    // Efficiency: x0.8 energy per module, as a 25ths ratio (integer math).
+    private static final int[] EFFICIENCY_NUM = {25, 20, 16};
 
     private static final int[] SLOTS_TOP_SIDES = {INPUT_SLOT};
     private static final int[] SLOTS_DOWN = {OUTPUT_SLOT};
 
     private final EnergyBuffer energy = new EnergyBuffer(CAPACITY, 0);
-    private final NonNullList<ItemStack> items = NonNullList.withSize(2, ItemStack.EMPTY);
+    private final NonNullList<ItemStack> items = NonNullList.withSize(4, ItemStack.EMPTY);
     private final RecipeManager.CachedCheck<SingleRecipeInput, CrushingRecipe> quickCheck =
             RecipeManager.createCheck(ModRecipeTypes.CRUSHING.get());
     private int progress;
     private int totalTime;
+    // Yield accumulator in quarter-items: the evolving multiplier is pure
+    // arithmetic with a deterministic remainder carry (ADR-006), never a
+    // per-item loop or a random roll.
+    private int yieldQuarters;
 
     private final ContainerData dataAccess = new ContainerData() {
         @Override
@@ -75,22 +88,37 @@ public class CrusherBlockEntity extends BlockEntity implements WorldlyContainer,
 
         RecipeHolder<CrushingRecipe> holder = be.items.get(INPUT_SLOT).isEmpty() ? null
                 : be.quickCheck.getRecipeFor(new SingleRecipeInput(be.items.get(INPUT_SLOT)), level).orElse(null);
-        if (holder == null || !be.canOutput(holder.value().result())) {
+        int yieldModules = holder == null ? 0 : be.countModules(ModuleType.YIELD);
+        if (holder == null || !be.canOutput(holder.value().result(), yieldModules)) {
             be.stopWork(level, pos, state);
             return;
         }
 
         CrushingRecipe recipe = holder.value();
-        be.totalTime = recipe.time();
-        int energyPerTick = Math.max(1, recipe.energy() / recipe.time());
+        int speedModules = be.countModules(ModuleType.SPEED);
+        int efficiencyModules = be.countModules(ModuleType.EFFICIENCY);
+        // Speed: x1.5 per module => time x2/(2+n). Efficiency: x0.8 per module.
+        be.totalTime = Math.max(1, recipe.time() * 2 / (2 + speedModules));
+        int energyPerOp = recipe.energy() * EFFICIENCY_NUM[efficiencyModules] / 25;
+        int energyPerTick = Math.max(1, energyPerOp / be.totalTime);
         if (be.energy.consume(energyPerTick)) {
-            if (++be.progress >= recipe.time()) {
-                be.craft(recipe);
+            if (++be.progress >= be.totalTime) {
+                be.craft(holder, yieldModules);
                 be.progress = 0;
             }
         }
         // No energy: stay lit and wait — neighbors may refill next tick.
         be.setChanged();
+    }
+
+    private int countModules(ModuleType type) {
+        int count = 0;
+        for (int slot = MODULE_SLOT_FIRST; slot <= MODULE_SLOT_LAST; slot++) {
+            if (items.get(slot).getItem() instanceof ModuleItem module && module.getType() == type) {
+                count++;
+            }
+        }
+        return count;
     }
 
     private void pullEnergyFromNeighbors(Level level, BlockPos pos) {
@@ -114,29 +142,36 @@ public class CrusherBlockEntity extends BlockEntity implements WorldlyContainer,
         }
     }
 
-    private boolean canOutput(ItemStack result) {
+    private boolean canOutput(ItemStack result, int yieldModules) {
+        int prospective = (yieldQuarters + result.getCount() * (4 + yieldModules)) / 4;
         ItemStack current = items.get(OUTPUT_SLOT);
         if (current.isEmpty()) {
-            return true;
+            return prospective <= result.getMaxStackSize();
         }
         return ItemStack.isSameItemSameComponents(current, result)
-                && current.getCount() + result.getCount() <= current.getMaxStackSize();
+                && current.getCount() + prospective <= current.getMaxStackSize();
     }
 
     /**
-     * Yield-multiplier hook (evolving multiplier, ADR/design): when modules
-     * exist, the crafted count becomes result.getCount() scaled by the
-     * machine's multiplier. Base machine crafts the recipe as written.
+     * Evolving yield multiplier (design): +25% per yield module on top of the
+     * recipe result (x2 recipe -> x2.5 -> x3), carried in quarter-items.
      */
-    private void craft(CrushingRecipe recipe) {
-        ItemStack result = recipe.result();
+    private void craft(RecipeHolder<CrushingRecipe> holder, int yieldModules) {
+        ItemStack result = holder.value().result();
+        yieldQuarters += result.getCount() * (4 + yieldModules);
+        int crafted = yieldQuarters / 4;
+        yieldQuarters %= 4;
         items.get(INPUT_SLOT).shrink(1);
         ItemStack current = items.get(OUTPUT_SLOT);
         if (current.isEmpty()) {
-            items.set(OUTPUT_SLOT, result.copy());
+            ItemStack out = result.copy();
+            out.setCount(crafted);
+            items.set(OUTPUT_SLOT, out);
         } else {
-            current.grow(result.getCount());
+            current.grow(crafted);
         }
+        KoiosNetwork.reportOperations(level, worldPosition,
+                holder.id().toString(), 1, KoiosBalance.CRUSH_BASE_XP);
     }
 
     private void stopWork(Level level, BlockPos pos, BlockState state) {
@@ -189,12 +224,17 @@ public class CrusherBlockEntity extends BlockEntity implements WorldlyContainer,
 
     @Override
     public int getContainerSize() {
-        return 2;
+        return items.size();
     }
 
     @Override
     public boolean isEmpty() {
-        return items.get(INPUT_SLOT).isEmpty() && items.get(OUTPUT_SLOT).isEmpty();
+        for (ItemStack stack : items) {
+            if (!stack.isEmpty()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
@@ -218,7 +258,9 @@ public class CrusherBlockEntity extends BlockEntity implements WorldlyContainer,
     public void setItem(int slot, ItemStack stack) {
         items.set(slot, stack);
         setChanged();
-        if (slot == INPUT_SLOT) {
+        // Module swaps re-wake too: a yield module can unblock an output
+        // check, and totalTime/energy change with the loadout.
+        if (slot == INPUT_SLOT || slot >= MODULE_SLOT_FIRST) {
             tryWake();
         }
     }
@@ -246,6 +288,7 @@ public class CrusherBlockEntity extends BlockEntity implements WorldlyContainer,
         ContainerHelper.saveAllItems(tag, items, registries);
         energy.save(tag);
         tag.putInt("Progress", progress);
+        tag.putInt("YieldQuarters", yieldQuarters);
     }
 
     @Override
@@ -254,5 +297,6 @@ public class CrusherBlockEntity extends BlockEntity implements WorldlyContainer,
         ContainerHelper.loadAllItems(tag, items, registries);
         energy.load(tag);
         progress = tag.getInt("Progress");
+        yieldQuarters = tag.getInt("YieldQuarters");
     }
 }

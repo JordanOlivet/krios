@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " G ",
+    "RNR",
+    "III"
+  ],
+  "key": {
+    "G": { "tag": "c:ingots/gold" },
+    "R": { "tag": "c:dusts/redstone" },
+    "N": { "item": "krios_industry:neurite_ingot" },
+    "I": { "tag": "c:ingots/iron" }
+  },
+  "result": { "id": "krios_industry:efficiency_module", "count": 1 }
+}

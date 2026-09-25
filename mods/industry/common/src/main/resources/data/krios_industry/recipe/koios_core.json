@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "NCN",
+    "CDC",
+    "NCN"
+  ],
+  "key": {
+    "N": { "item": "krios_industry:neurite_ingot" },
+    "C": { "item": "krios_industry:chronite_shard" },
+    "D": { "tag": "c:gems/diamond" }
+  },
+  "result": { "id": "krios_industry:koios_core", "count": 1 }
+}

@@ -1,0 +1,5 @@
+{
+  "variants": {
+    "": { "model": "krios_industry:block/neural_casing" }
+  }
+}

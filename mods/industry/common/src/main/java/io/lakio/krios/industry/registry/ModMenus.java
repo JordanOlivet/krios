@@ -3,6 +3,7 @@ package io.lakio.krios.industry.registry;
 import java.util.function.Supplier;
 
 import io.lakio.krios.industry.Constants;
+import io.lakio.krios.industry.koios.KoiosCoreMenu;
 import io.lakio.krios.industry.machine.crusher.CrusherMenu;
 import io.lakio.krios.industry.machine.generator.GeneratorMenu;
 import io.lakio.krios.industry.platform.Services;
@@ -17,6 +18,9 @@ public final class ModMenus {
 
     public static final Supplier<MenuType<CrusherMenu>> CRUSHER = register("crusher",
             () -> Services.REGISTRAR.createMenuType(CrusherMenu::new));
+
+    public static final Supplier<MenuType<KoiosCoreMenu>> KOIOS_CORE = register("koios_core",
+            () -> Services.REGISTRAR.createMenuType(KoiosCoreMenu::new));
 
     private ModMenus() {
     }

@@ -23,10 +23,15 @@ public final class ModCreativeTabs {
                         output.accept(ModBlocks.DEEPSLATE_NEURITE_ORE.get());
                         output.accept(ModBlocks.GENERATOR.get());
                         output.accept(ModBlocks.CRUSHER.get());
+                        output.accept(ModBlocks.NEURAL_CASING.get());
+                        output.accept(ModBlocks.KOIOS_CORE.get());
                         output.accept(ModItems.CHRONITE_SHARD.get());
                         output.accept(ModItems.RAW_NEURITE.get());
                         output.accept(ModItems.NEURITE_DUST.get());
                         output.accept(ModItems.NEURITE_INGOT.get());
+                        output.accept(ModItems.SPEED_MODULE.get());
+                        output.accept(ModItems.EFFICIENCY_MODULE.get());
+                        output.accept(ModItems.YIELD_MODULE.get());
                     })
                     .build());
 

@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " C ",
+    "RNR",
+    "III"
+  ],
+  "key": {
+    "C": { "item": "krios_industry:chronite_shard" },
+    "R": { "tag": "c:dusts/redstone" },
+    "N": { "item": "krios_industry:neurite_ingot" },
+    "I": { "tag": "c:ingots/iron" }
+  },
+  "result": { "id": "krios_industry:speed_module", "count": 1 }
+}

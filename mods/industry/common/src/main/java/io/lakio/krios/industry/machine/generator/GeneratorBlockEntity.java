@@ -1,9 +1,12 @@
 package io.lakio.krios.industry.machine.generator;
 
 import io.lakio.krios.industry.energy.EnergyBuffer;
+import io.lakio.krios.industry.koios.KoiosBalance;
+import io.lakio.krios.industry.koios.KoiosNetwork;
 import io.lakio.krios.industry.platform.Services;
 import io.lakio.krios.industry.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -81,6 +84,12 @@ public class GeneratorBlockEntity extends BlockEntity implements Container, Menu
         int time = Services.PLATFORM.getBurnTime(fuel);
         if (time <= 0) {
             return false;
+        }
+        // Burn cycles feed the KOIOS diversity window keyed by fuel item, so
+        // varied fuels teach more than a coal monoculture.
+        if (level != null) {
+            KoiosNetwork.reportOperations(level, worldPosition,
+                    "burn:" + BuiltInRegistries.ITEM.getKey(fuel.getItem()), 1, KoiosBalance.BURN_BASE_XP);
         }
         fuel.shrink(1);
         burnTime = time;
