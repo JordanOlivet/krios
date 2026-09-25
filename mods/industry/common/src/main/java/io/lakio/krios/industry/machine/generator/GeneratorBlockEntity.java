@@ -106,6 +106,15 @@ public class GeneratorBlockEntity extends BlockEntity implements Container, Menu
         }
     }
 
+    /**
+     * A full generator idles unlit and resumes when a drain frees room —
+     * consumers poke it after pulling (v0 adjacency; the network's scheduled
+     * wake-ups take over later).
+     */
+    public void tryResume() {
+        tryIgnite();
+    }
+
     public EnergyBuffer getEnergy() {
         return energy;
     }

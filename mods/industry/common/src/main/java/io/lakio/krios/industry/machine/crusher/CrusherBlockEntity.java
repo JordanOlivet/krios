@@ -134,6 +134,7 @@ public class CrusherBlockEntity extends BlockEntity implements WorldlyContainer,
                 if (pulled > 0) {
                     energy.insert(pulled);
                     generator.setChanged();
+                    generator.tryResume();
                 }
                 if (energy.isFull()) {
                     return;
