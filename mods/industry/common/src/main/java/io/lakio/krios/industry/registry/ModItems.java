@@ -6,6 +6,7 @@ import io.lakio.krios.industry.Constants;
 import io.lakio.krios.industry.machine.module.ModuleItem;
 import io.lakio.krios.industry.machine.module.ModuleType;
 import io.lakio.krios.industry.platform.Services;
+import io.lakio.krios.industry.tool.CalibratorItem;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.Item;
 
@@ -31,6 +32,9 @@ public final class ModItems {
 
     public static final Supplier<Item> YIELD_MODULE = register("yield_module",
             () -> new ModuleItem(ModuleType.YIELD, new Item.Properties().stacksTo(16)));
+
+    public static final Supplier<Item> CALIBRATOR = register("calibrator",
+            () -> new CalibratorItem(new Item.Properties().stacksTo(1)));
 
     private ModItems() {
     }

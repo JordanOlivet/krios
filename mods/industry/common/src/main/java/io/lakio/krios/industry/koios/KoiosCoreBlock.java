@@ -71,4 +71,13 @@ public class KoiosCoreBlock extends BaseEntityBlock {
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
     }
+
+    @Override
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        if (!state.is(newState.getBlock()) && state.getValue(FORMED)
+                && level.getBlockEntity(pos) instanceof KoiosCoreBlockEntity core) {
+            core.releaseShell();
+        }
+        super.onRemove(state, level, pos, newState, movedByPiston);
+    }
 }
