@@ -1,5 +1,7 @@
 package io.lakio.krios.industry.koios;
 
+import io.lakio.krios.industry.network.NetworkConductor;
+import io.lakio.krios.industry.network.NetworkManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -20,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
  * all 26 casings (seamless texture, the shell reads as a single big block)
  * and right-clicking any of them opens the core's UI.
  */
-public class NeuralCasingBlock extends Block {
+public class NeuralCasingBlock extends Block implements NetworkConductor {
 
     public static final BooleanProperty FORMED = BooleanProperty.create("formed");
 
@@ -53,6 +55,7 @@ public class NeuralCasingBlock extends Block {
         // re-trigger validation, only real placements.
         if (!oldState.is(this)) {
             notifyCores(level, pos);
+            NetworkManager.conductorChanged(level, pos);
         }
     }
 
@@ -62,6 +65,7 @@ public class NeuralCasingBlock extends Block {
         super.onRemove(state, level, pos, newState, movedByPiston);
         if (gone) {
             notifyCores(level, pos);
+            NetworkManager.conductorChanged(level, pos);
         }
     }
 

@@ -2,6 +2,7 @@ package io.lakio.krios.industry.machine.crusher;
 
 import com.mojang.serialization.MapCodec;
 
+import io.lakio.krios.industry.network.NetworkConductor;
 import io.lakio.krios.industry.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.Containers;
@@ -19,7 +20,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
-public class CrusherBlock extends BaseEntityBlock {
+public class CrusherBlock extends BaseEntityBlock implements NetworkConductor {
 
     private static final MapCodec<CrusherBlock> CODEC = simpleCodec(CrusherBlock::new);
 

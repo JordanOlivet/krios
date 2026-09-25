@@ -5,6 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.lakio.krios.industry.network.Network;
+import io.lakio.krios.industry.network.NetworkManager;
+import io.lakio.krios.industry.network.NetworkNode;
 import io.lakio.krios.industry.registry.ModBlockEntities;
 import io.lakio.krios.industry.registry.ModBlocks;
 import io.lakio.krios.industry.registry.ModDataComponents;
@@ -33,7 +36,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
-public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider {
+public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, NetworkNode {
 
     // The 26 positions of the full 3x3x3 shell. The core is fully encased so
     // the shell faces can act as the AI's "screens" (head display).
@@ -52,6 +55,12 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider {
     @Nullable
     private Direction screenSide;
     private long lastPulseGameTime;
+    /**
+     * Derived from the graph, never saved: true while this core shares a
+     * component with another active controller (one core per network). The
+     * client renders TV static + a red error panel over the face.
+     */
+    private boolean networkFault;
 
     // Client-side animation clocks, set by triggerEvent (gameTime values).
     private long clientBootStart;
@@ -94,13 +103,13 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider {
         super(ModBlockEntities.KOIOS_CORE.get(), pos, state);
     }
 
-    // --- Core index registration (see KoiosNetwork) ---
+    // --- Network node: the core is the network's controller ---
 
     @Override
     public void setLevel(Level level) {
         super.setLevel(level);
         if (!level.isClientSide) {
-            KoiosNetwork.add(this);
+            NetworkManager.addNode(this);
         }
     }
 
@@ -108,8 +117,41 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider {
     public void setRemoved() {
         super.setRemoved();
         if (level != null && !level.isClientSide) {
-            KoiosNetwork.remove(this);
+            NetworkManager.removeNode(this);
         }
+    }
+
+    @Override
+    public BlockPos networkPos() {
+        return worldPosition;
+    }
+
+    @Override
+    public Level networkLevel() {
+        return level;
+    }
+
+    @Override
+    public boolean isController() {
+        return true;
+    }
+
+    @Override
+    public boolean isActiveController() {
+        return isFormed();
+    }
+
+    @Override
+    public void onNetworkChanged(Network network) {
+        boolean fault = network.isFault();
+        if (fault != networkFault) {
+            networkFault = fault;
+            syncToClients();
+        }
+    }
+
+    public boolean isNetworkFault() {
+        return networkFault;
     }
 
     // --- Learning ---
@@ -240,6 +282,8 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider {
         // The structure becomes one entity: flip all casings with it (their
         // seamless "formed" texture makes the 3x3x3 read as one big block).
         updateShell(formed);
+        // Controller activity follows FORMED — recompute the component.
+        NetworkManager.nodeChanged(this);
         if (formed) {
             if (screenSide == null) {
                 screenSide = pickScreenSideTowardBuilder();
@@ -399,6 +443,9 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider {
         super.loadAdditional(tag, registries);
         xp = Math.min(KoiosBalance.xpCap(), tag.getInt("DataXp"));
         screenSide = tag.contains("ScreenSide") ? Direction.from3DDataValue(tag.getInt("ScreenSide")) : null;
+        // Client-only in practice: the update tag carries the fault flag; on
+        // the server the graph rederives it after load (never persisted).
+        networkFault = tag.getBoolean("Fault");
         resetWindow();
         ListTag list = tag.getList("Window", Tag.TAG_STRING);
         for (int i = 0; i < list.size(); i++) {
@@ -414,6 +461,9 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider {
         tag.putInt("DataXp", xp);
         if (screenSide != null) {
             tag.putInt("ScreenSide", screenSide.get3DDataValue());
+        }
+        if (networkFault) {
+            tag.putBoolean("Fault", true);
         }
         return tag;
     }

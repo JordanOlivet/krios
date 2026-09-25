@@ -2,7 +2,10 @@ package io.lakio.krios.industry.machine.generator;
 
 import io.lakio.krios.industry.energy.EnergyBuffer;
 import io.lakio.krios.industry.koios.KoiosBalance;
-import io.lakio.krios.industry.koios.KoiosNetwork;
+import io.lakio.krios.industry.koios.KoiosCoreBlockEntity;
+import io.lakio.krios.industry.network.Network;
+import io.lakio.krios.industry.network.NetworkManager;
+import io.lakio.krios.industry.network.NetworkNode;
 import io.lakio.krios.industry.platform.Services;
 import io.lakio.krios.industry.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
@@ -24,7 +27,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
-public class GeneratorBlockEntity extends BlockEntity implements Container, MenuProvider {
+public class GeneratorBlockEntity extends BlockEntity implements Container, MenuProvider, NetworkNode {
 
     public static final int CAPACITY = 100_000;
     public static final int GENERATION_PER_TICK = 40;
@@ -66,6 +69,34 @@ public class GeneratorBlockEntity extends BlockEntity implements Container, Menu
         super(ModBlockEntities.GENERATOR.get(), pos, state);
     }
 
+    // --- Network node ---
+
+    @Override
+    public void setLevel(Level level) {
+        super.setLevel(level);
+        if (!level.isClientSide) {
+            NetworkManager.addNode(this);
+        }
+    }
+
+    @Override
+    public void setRemoved() {
+        super.setRemoved();
+        if (level != null && !level.isClientSide) {
+            NetworkManager.removeNode(this);
+        }
+    }
+
+    @Override
+    public BlockPos networkPos() {
+        return worldPosition;
+    }
+
+    @Override
+    public Level networkLevel() {
+        return level;
+    }
+
     public static void serverTick(Level level, BlockPos pos, BlockState state, GeneratorBlockEntity be) {
         // Only reachable while LIT (the block registers no ticker otherwise).
         be.energy.insert(GENERATION_PER_TICK);
@@ -86,9 +117,11 @@ public class GeneratorBlockEntity extends BlockEntity implements Container, Menu
             return false;
         }
         // Burn cycles feed the KOIOS diversity window keyed by fuel item, so
-        // varied fuels teach more than a coal monoculture.
-        if (level != null) {
-            KoiosNetwork.reportOperations(level, worldPosition,
+        // varied fuels teach more than a coal monoculture. Reported to this
+        // machine's network controller — no controller, no learning.
+        Network network = NetworkManager.networkOf(this);
+        if (network != null && network.controller() instanceof KoiosCoreBlockEntity core) {
+            core.reportOperations(
                     "burn:" + BuiltInRegistries.ITEM.getKey(fuel.getItem()), 1, KoiosBalance.BURN_BASE_XP);
         }
         fuel.shrink(1);

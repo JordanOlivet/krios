@@ -3,6 +3,7 @@ package io.lakio.krios.industry.koios;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 
+import io.lakio.krios.industry.network.NetworkManager;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
@@ -71,7 +72,9 @@ public final class KoiosCommand {
 
     @Nullable
     private static KoiosCoreBlockEntity target(CommandSourceStack source) {
-        return KoiosNetwork.closestFormed(source.getLevel(), BlockPos.containing(source.getPosition()));
+        return NetworkManager.closestActiveController(source.getLevel(),
+                BlockPos.containing(source.getPosition()),
+                KoiosBalance.CORE_RANGE_SQ) instanceof KoiosCoreBlockEntity core ? core : null;
     }
 
     private static int noCore(CommandSourceStack source) {

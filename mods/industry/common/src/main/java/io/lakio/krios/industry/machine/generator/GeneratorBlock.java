@@ -2,6 +2,7 @@ package io.lakio.krios.industry.machine.generator;
 
 import com.mojang.serialization.MapCodec;
 
+import io.lakio.krios.industry.network.NetworkConductor;
 import io.lakio.krios.industry.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionResult;
@@ -19,7 +20,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.Containers;
 import org.jetbrains.annotations.Nullable;
 
-public class GeneratorBlock extends BaseEntityBlock {
+public class GeneratorBlock extends BaseEntityBlock implements NetworkConductor {
 
     private static final MapCodec<GeneratorBlock> CODEC = simpleCodec(GeneratorBlock::new);
 

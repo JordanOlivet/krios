@@ -2,8 +2,11 @@ package io.lakio.krios.industry.machine.crusher;
 
 import io.lakio.krios.industry.energy.EnergyBuffer;
 import io.lakio.krios.industry.koios.KoiosBalance;
-import io.lakio.krios.industry.koios.KoiosNetwork;
+import io.lakio.krios.industry.koios.KoiosCoreBlockEntity;
 import io.lakio.krios.industry.machine.generator.GeneratorBlockEntity;
+import io.lakio.krios.industry.network.Network;
+import io.lakio.krios.industry.network.NetworkManager;
+import io.lakio.krios.industry.network.NetworkNode;
 import io.lakio.krios.industry.machine.module.ModuleItem;
 import io.lakio.krios.industry.machine.module.ModuleType;
 import io.lakio.krios.industry.registry.ModBlockEntities;
@@ -30,7 +33,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
-public class CrusherBlockEntity extends BlockEntity implements WorldlyContainer, MenuProvider {
+public class CrusherBlockEntity extends BlockEntity implements WorldlyContainer, MenuProvider, NetworkNode {
 
     public static final int INPUT_SLOT = 0;
     public static final int OUTPUT_SLOT = 1;
@@ -81,6 +84,41 @@ public class CrusherBlockEntity extends BlockEntity implements WorldlyContainer,
 
     public CrusherBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.CRUSHER.get(), pos, state);
+    }
+
+    // --- Network node ---
+
+    @Override
+    public void setLevel(Level level) {
+        super.setLevel(level);
+        if (!level.isClientSide) {
+            NetworkManager.addNode(this);
+        }
+    }
+
+    @Override
+    public void setRemoved() {
+        super.setRemoved();
+        if (level != null && !level.isClientSide) {
+            NetworkManager.removeNode(this);
+        }
+    }
+
+    @Override
+    public BlockPos networkPos() {
+        return worldPosition;
+    }
+
+    @Override
+    public Level networkLevel() {
+        return level;
+    }
+
+    /** KOIOS level of this machine's network controller; 0 while offline. */
+    public int networkKoiosLevel() {
+        Network network = NetworkManager.networkOf(this);
+        return network != null && network.controller() instanceof KoiosCoreBlockEntity core
+                ? core.getKoiosLevel() : 0;
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, CrusherBlockEntity be) {
@@ -171,8 +209,10 @@ public class CrusherBlockEntity extends BlockEntity implements WorldlyContainer,
         } else {
             current.grow(crafted);
         }
-        KoiosNetwork.reportOperations(level, worldPosition,
-                holder.id().toString(), 1, KoiosBalance.CRUSH_BASE_XP);
+        Network network = NetworkManager.networkOf(this);
+        if (network != null && network.controller() instanceof KoiosCoreBlockEntity core) {
+            core.reportOperations(holder.id().toString(), 1, KoiosBalance.CRUSH_BASE_XP);
+        }
     }
 
     private void stopWork(Level level, BlockPos pos, BlockState state) {

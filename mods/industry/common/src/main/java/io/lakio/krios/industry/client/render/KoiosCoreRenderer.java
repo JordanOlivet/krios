@@ -85,10 +85,28 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
                 ? time - core.getClientBootStart() : Float.MAX_VALUE;
         if (bootT < BOOT_TICKS) {
             renderBootStatic(pose, vc, bootT);
+        } else if (core.isNetworkFault()) {
+            renderFaultStatic(pose, vc, time);
         } else {
             renderFace(core, level, side, pose, vc, time);
         }
         poseStack.popPose();
+    }
+
+    /**
+     * One core per network: a conflicted core shows old-TV static with a red
+     * error panel dead center, so the fault reads in-world at a glance.
+     */
+    private void renderFaultStatic(PoseStack.Pose pose, VertexConsumer vc, float time) {
+        int frame = (int) time;
+        float v0 = (48 + (frame * 5) % 8) / ATLAS;
+        float alpha = 0.6F + 0.3F * ((frame % 4) / 3F);
+        quad(pose, vc, -1.5F, -1.5F, 3F, 3F, Z_STATIC, 0, v0, 48 / ATLAS, v0 + 8 / ATLAS, 1, 1, 1, alpha);
+        // Red panel: bright border quad below a darker inner quad.
+        quad(pose, vc, -1.0F, -0.5F, 2.0F, 1.0F, Z_FLASH,
+                56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.85F, 0.08F, 0.08F, 0.92F);
+        quad(pose, vc, -0.92F, -0.42F, 1.84F, 0.84F, Z_FEATURES,
+                56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.30F, 0.01F, 0.01F, 0.95F);
     }
 
     /** Boot sequence: scrolling static noise, flickering. */

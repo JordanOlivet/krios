@@ -1,6 +1,5 @@
 package io.lakio.krios.industry.machine.crusher;
 
-import io.lakio.krios.industry.koios.KoiosNetwork;
 import io.lakio.krios.industry.machine.module.ModuleItem;
 import io.lakio.krios.industry.registry.ModMenus;
 import net.minecraft.world.Container;
@@ -99,8 +98,7 @@ public class CrusherMenu extends AbstractContainerMenu {
             }
             if (container instanceof CrusherBlockEntity be
                     && be.getLevel() != null && !be.getLevel().isClientSide) {
-                return KoiosNetwork.coreLevelAt(be.getLevel(), be.getBlockPos())
-                        >= module.getType().requiredLevel();
+                return be.networkKoiosLevel() >= module.getType().requiredLevel();
             }
             return true;
         }

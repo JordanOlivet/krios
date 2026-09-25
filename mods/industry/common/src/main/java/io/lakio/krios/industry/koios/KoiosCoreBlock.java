@@ -2,6 +2,7 @@ package io.lakio.krios.industry.koios;
 
 import com.mojang.serialization.MapCodec;
 
+import io.lakio.krios.industry.network.NetworkConductor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
@@ -23,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
  * Never ticks (ADR-012) — it only reacts to reported operations and to frame
  * changes. FORMED gates XP accrual and drives the visual/light state.
  */
-public class KoiosCoreBlock extends BaseEntityBlock {
+public class KoiosCoreBlock extends BaseEntityBlock implements NetworkConductor {
 
     public static final BooleanProperty FORMED = BooleanProperty.create("formed");
 

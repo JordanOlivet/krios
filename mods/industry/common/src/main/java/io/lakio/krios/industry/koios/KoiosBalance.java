@@ -34,9 +34,8 @@ public final class KoiosBalance {
     public static final int YIELD_UNLOCK_LEVEL = 4;
 
     /**
-     * v0 "network": machines report operations to the closest formed core
-     * within this range, mirroring the crusher's adjacency energy pull. Both
-     * get replaced by the real network with scheduled wake-ups.
+     * Search radius of the /koios admin command (nearest active core). XP
+     * reporting itself goes through the network graph, not a radius.
      */
     public static final int CORE_RANGE = 32;
     public static final int CORE_RANGE_SQ = CORE_RANGE * CORE_RANGE;
