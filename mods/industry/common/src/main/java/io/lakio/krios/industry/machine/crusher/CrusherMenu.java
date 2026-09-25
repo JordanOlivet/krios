@@ -14,6 +14,9 @@ import net.minecraft.world.item.ItemStack;
 
 public class CrusherMenu extends AbstractContainerMenu {
 
+    /** 0..3 machine values + 6 raw face-config shorts. */
+    public static final int DATA_COUNT = 10;
+
     private final Container container;
     private final ContainerData data;
 
@@ -23,7 +26,7 @@ public class CrusherMenu extends AbstractContainerMenu {
 
     /** Client constructor. */
     public CrusherMenu(int containerId, Inventory playerInventory) {
-        this(containerId, playerInventory, new SimpleContainer(4), new SimpleContainerData(4));
+        this(containerId, playerInventory, new SimpleContainer(4), new SimpleContainerData(DATA_COUNT));
     }
 
     public CrusherMenu(int containerId, Inventory playerInventory, Container container, ContainerData data) {
@@ -112,6 +115,19 @@ public class CrusherMenu extends AbstractContainerMenu {
     @Override
     public boolean stillValid(Player player) {
         return container.stillValid(player);
+    }
+
+    /** Raw face-config bits for face 0..5 (decode via FaceConfig statics). */
+    public int faceBits(int face) {
+        return data.get(4 + face);
+    }
+
+    @Override
+    public boolean clickMenuButton(Player player, int id) {
+        if (container instanceof CrusherBlockEntity be && !player.level().isClientSide) {
+            return be.handleFaceButton(id);
+        }
+        return false;
     }
 
     /** 0..width pixels of crushing progress (arrow). */

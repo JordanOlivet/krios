@@ -73,7 +73,9 @@ public class CrusherBlockEntity extends BlockEntity
                 case 1 -> totalTime;
                 case 2 -> energy.getStored() & 0xFFFF;
                 case 3 -> (energy.getStored() >> 16) & 0xFFFF;
-                default -> 0;
+                // 4..9: raw face-config shorts (11 bits, short-safe).
+                default -> index < CrusherMenu.DATA_COUNT
+                        ? faceConfig.bits(Direction.from3DDataValue(index - 4)) : 0;
             };
         }
 
@@ -84,9 +86,40 @@ public class CrusherBlockEntity extends BlockEntity
 
         @Override
         public int getCount() {
-            return 4;
+            return CrusherMenu.DATA_COUNT;
         }
     };
+
+    /**
+     * Face-config edits arrive through the vanilla menu button channel
+     * (no custom packets): id = face*16 + sub, sub 15 = toggle mode,
+     * sub 0..7 = flip flow bit (flow = sub/2, out = sub%2 == 1).
+     */
+    public boolean handleFaceButton(int id) {
+        int faceIndex = id / 16;
+        int sub = id % 16;
+        if (faceIndex < 0 || faceIndex > 5) {
+            return false;
+        }
+        Direction face = Direction.from3DDataValue(faceIndex);
+        if (sub == 15) {
+            if (faceConfig.isManual(face)) {
+                faceConfig.resetToVirgin(face);
+            } else {
+                // Seed with the vanilla-equivalent contract so entering
+                // manual mode alone changes nothing.
+                faceConfig.enterManual(face, (short) (FaceConfig.flowBits(Flow.ENERGY, false)
+                        | FaceConfig.flowBits(Flow.ITEM, false)
+                        | FaceConfig.flowBits(Flow.ITEM, true)));
+            }
+        } else if (sub < 8 && faceConfig.isManual(face)) {
+            faceConfig.toggleManual(face, Flow.VALUES[sub / 2], sub % 2 == 1);
+        } else {
+            return false;
+        }
+        setChanged();
+        return true;
+    }
 
     public CrusherBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.CRUSHER.get(), pos, state);

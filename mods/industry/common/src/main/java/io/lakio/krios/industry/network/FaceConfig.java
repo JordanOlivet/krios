@@ -72,6 +72,52 @@ public final class FaceConfig {
         }
     }
 
+    // --- UI/sync access: faces sync to menus as raw shorts (they fit the
+    // 16-bit ContainerData budget) and the client decodes them with the
+    // static helpers below. ---
+
+    public short bits(Direction face) {
+        return faces[face.get3DDataValue()];
+    }
+
+    /** Back to vanilla: unconditional, this is the player's own reset. */
+    public void resetToVirgin(Direction face) {
+        faces[face.get3DDataValue()] = 0;
+    }
+
+    /** Enters manual mode with the given flow bits as the full contract. */
+    public void enterManual(Direction face, short flowBits) {
+        faces[face.get3DDataValue()] = (short) (flowBits | CONFIGURED | MANUAL);
+    }
+
+    /** Flips one manual flow bit, keeping the face manual. */
+    public void toggleManual(Direction face, Flow flow, boolean out) {
+        int index = face.get3DDataValue();
+        faces[index] ^= (short) flowBit(flow, out);
+        faces[index] |= CONFIGURED | MANUAL;
+        faces[index] &= (short) ~HINT;
+    }
+
+    public static short flowBits(Flow flow, boolean out) {
+        return (short) flowBit(flow, out);
+    }
+
+    public static boolean isManualBits(int bits) {
+        return (bits & MANUAL) != 0;
+    }
+
+    public static boolean hasHintBits(int bits) {
+        return (bits & HINT) != 0;
+    }
+
+    public static boolean isConfiguredBits(int bits) {
+        return (bits & CONFIGURED) != 0;
+    }
+
+    public static boolean allowsBits(int bits, Flow flow, boolean out) {
+        return (bits & flowBit(flow, out)) != 0;
+    }
+
     public void setManual(Direction face, Flow flow, boolean out, boolean allowed) {
         int index = face.get3DDataValue();
         if (allowed) {
