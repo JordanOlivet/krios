@@ -1,8 +1,10 @@
 package io.lakio.krios.industry;
 
 import io.lakio.krios.industry.energy.ExtractOnlyEnergyAdapter;
+import io.lakio.krios.industry.koios.KoiosCommand;
 import io.lakio.krios.industry.registry.ModBlockEntities;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
 import net.minecraft.core.registries.Registries;
@@ -25,6 +27,8 @@ public class KriosIndustry implements ModInitializer {
         // biome_modifier JSON instead).
         addOre("chronite_ore");
         addOre("neurite_ore");
+        CommandRegistrationCallback.EVENT.register(
+                (dispatcher, registryAccess, environment) -> KoiosCommand.register(dispatcher));
     }
 
     private static void addOre(String name) {

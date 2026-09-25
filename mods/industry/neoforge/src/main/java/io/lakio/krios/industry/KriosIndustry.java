@@ -1,6 +1,7 @@
 package io.lakio.krios.industry;
 
 import io.lakio.krios.industry.energy.EnergyBuffer;
+import io.lakio.krios.industry.koios.KoiosCommand;
 import io.lakio.krios.industry.machine.generator.GeneratorBlockEntity;
 import io.lakio.krios.industry.platform.NeoForgeRegistrar;
 import io.lakio.krios.industry.registry.ModBlockEntities;
@@ -8,7 +9,9 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.energy.IEnergyStorage;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
 @Mod(Constants.MOD_ID)
 public class KriosIndustry {
@@ -19,6 +22,12 @@ public class KriosIndustry {
         CommonClass.init();
         NeoForgeRegistrar.attach(eventBus);
         eventBus.addListener(KriosIndustry::registerCapabilities);
+        // Commands ride the game bus, not the mod bus.
+        NeoForge.EVENT_BUS.addListener(KriosIndustry::registerCommands);
+    }
+
+    private static void registerCommands(RegisterCommandsEvent event) {
+        KoiosCommand.register(event.getDispatcher());
     }
 
     private static void registerCapabilities(RegisterCapabilitiesEvent event) {

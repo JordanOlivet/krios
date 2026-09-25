@@ -150,6 +150,30 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider {
         return koiosLevel;
     }
 
+    public int getXp() {
+        return xp;
+    }
+
+    /**
+     * Admin entry point (/koios command): sets data XP directly, bypassing
+     * the diversity window. Lowering XP is allowed (re-testing gates).
+     */
+    public void setXpAdmin(int newXp) {
+        int clamped = Math.max(0, Math.min(KoiosBalance.xpCap(), newXp));
+        if (clamped == xp) {
+            return;
+        }
+        int previousLevel = koiosLevel;
+        xp = clamped;
+        koiosLevel = KoiosBalance.levelForXp(xp);
+        setChanged();
+        if (level != null && koiosLevel > previousLevel) {
+            level.playSound(null, worldPosition, SoundEvents.PLAYER_LEVELUP, SoundSource.BLOCKS, 0.7F, 1.3F);
+            level.blockEvent(worldPosition, getBlockState().getBlock(), EVENT_LEVEL_UP, koiosLevel);
+        }
+        syncToClients();
+    }
+
     public boolean isFormed() {
         return getBlockState().getValue(KoiosCoreBlock.FORMED);
     }
@@ -168,7 +192,7 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider {
     }
 
     /** Distinct operations over window fill, per-mille — the GUI's diversity gauge. */
-    private int diversityPermille() {
+    public int diversityPermille() {
         return windowFill == 0 ? 1000 : windowCounts.size() * 1000 / windowFill;
     }
 
