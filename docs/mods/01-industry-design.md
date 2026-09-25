@@ -42,7 +42,7 @@ Naming: sober, no prefix (the Krios brand carries the identity; short names stay
 
 ## Modules (MVP)
 
-Speed, Efficiency (energy cost), Yield (crusher multiplier). All gated behind KOIOS classic levels — machines work bare from minute one, the upgrade game opens through the core.
+Speed, Efficiency (energy cost), Yield (crusher multiplier). All gated behind KOIOS classic levels, and inert while the machine is not connected to a KOIOS network (see Network).
 
 ## Materials
 
@@ -63,13 +63,28 @@ single universal cable (energy + items + fluids + data in one conduit), later
 wirelessly as the progression advances. One network per core; the network
 replaces both v0 stopgaps (crusher adjacency energy pull, 32-block XP radius).
 
+Settled (Q&A 2026-09-25):
+
+- **Bootstrap through vanilla**: both ores smelt 1:1 in a vanilla furnace and
+  the tier 1 core recipe only needs furnace-obtainable materials (the current
+  recipe already complies) — no mod machine is required before the first core.
+- **Vanilla parity when disconnected**: mod machines still run without a
+  network, but only as well as their vanilla equivalent (furnace-grade
+  speed/efficiency — same baseline as vanilla), and modules are inert.
+  Connecting to a KOIOS network unlocks the machine's real performance and
+  its upgrades.
+- **Network capacity, if any, is a config**: the "KOIOS attention" idea
+  (machine count capped per level) risks AE2-channel frustration, so if it
+  ships it sits behind a config multiplier up to infinite (AE2-style x2/x4/x8/∞,
+  ADR-007 spirit); base capacity TBD.
+- **The Calibrator gets a dedicated diagnostic UI** for network inspection,
+  not just actionbar feedback.
+
 Open questions for the network design session:
 
-- Early-game gating: hard "no core, no machine" vs degraded standalone mode
-  (machines run slower/dumber uncalibrated) — interacts with the current
-  "machines work bare from minute one" principle.
-- Does KOIOS "attention" cap network size per level (software axis gating
-  machine count, generously tuned), or is the network unlimited?
+- Exact per-machine meaning of vanilla parity — notably whether the crusher's
+  x2 yield requires connection (proposal: yes — yield is quantum recomposition,
+  KOIOS's work), and what an unconnected generator powers.
 - Transfer rates/tiers of the universal cable; wireless unlock placement.
 - What ships in Industry (batteries likely) vs satellite mods (AE2-like
   storage = krios_storage) vs krios_core (the graph/transfer engine).

@@ -23,7 +23,7 @@ The fiction: machines do not merely process matter — they compress time around
 
 ## The network (vision, 2026-09-25)
 
-- The KOIOS core multiblock is the **central controller** of every Krios system: the mod's machines and functional blocks must be connected to a core to operate (exact early-game gating — hard requirement vs degraded standalone mode — still open).
+- The KOIOS core multiblock is the **central controller** of every Krios system: the mod's machines and functional blocks need a core connection to reach their real performance. Disconnected, they run at **vanilla parity** (as efficient as the vanilla baseline, upgrades inert); and the first core is craftable through vanilla means (furnace-smelted ores), so nothing hard-blocks the early game.
 - **One universal conduit**: a single cable carries everything — energy, items, fluids, data. No per-type cable zoo. Wireless connectivity arrives later in the progression (software-axis unlock and/or relay hardware); cables are the early answer, the AI outgrows them.
 - Connected machines share what they hold across the network; storage (batteries, AE2-like item storage) plugs into the same network, some of it as satellite mods.
 - The graph/transfer engine is ecosystem infrastructure and belongs in `krios_core`, per-tick-free by construction (event-driven graph updates, scheduled wake-ups, batch transfers — pillar 2). It replaces Industry's v0 stopgaps (adjacent-block energy pull, radius-based XP reporting).
