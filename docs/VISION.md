@@ -21,6 +21,13 @@ The fiction: machines do not merely process matter — they compress time around
 4. **Modpack-first configurability** — all recipes are datapack-driven, progression difficulty is configurable. The mod must work as light vanilla+ solo content *and* as the industrial backbone of an expert modpack, with pack makers fully autonomous.
 5. **Interoperability by default** — energy is exposed as Forge Energy (NeoForge) / Team Reborn Energy (Fabric); materials use `c:` convention tags so the extended modpack ore set (tin, steel, titanium, …) plugs in automatically.
 
+## The network (vision, 2026-09-25)
+
+- The KOIOS core multiblock is the **central controller** of every Krios system: the mod's machines and functional blocks must be connected to a core to operate (exact early-game gating — hard requirement vs degraded standalone mode — still open).
+- **One universal conduit**: a single cable carries everything — energy, items, fluids, data. No per-type cable zoo. Wireless connectivity arrives later in the progression (software-axis unlock and/or relay hardware); cables are the early answer, the AI outgrows them.
+- Connected machines share what they hold across the network; storage (batteries, AE2-like item storage) plugs into the same network, some of it as satellite mods.
+- The graph/transfer engine is ecosystem infrastructure and belongs in `krios_core`, per-tick-free by construction (event-driven graph updates, scheduled wake-ups, batch transfers — pillar 2). It replaces Industry's v0 stopgaps (adjacent-block energy pull, radius-based XP reporting).
+
 ## Ecosystem map
 
 | Mod | Working name | Scope | Status |

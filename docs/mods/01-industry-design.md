@@ -55,6 +55,25 @@ Speed, Efficiency (energy cost), Yield (crusher multiplier). All gated behind KO
 - MVP: overworld veins for both ores. Nothing else.
 - Post-MVP: small ruined **laboratory structures** containing both ores and lore-flavored loot.
 
+## Network (vision, 2026-09-25 — post-MVP)
+
+The KOIOS core is the **controller of the whole factory** (see VISION.md "The
+network"): machines must be connected to a core to operate, first through a
+single universal cable (energy + items + fluids + data in one conduit), later
+wirelessly as the progression advances. One network per core; the network
+replaces both v0 stopgaps (crusher adjacency energy pull, 32-block XP radius).
+
+Open questions for the network design session:
+
+- Early-game gating: hard "no core, no machine" vs degraded standalone mode
+  (machines run slower/dumber uncalibrated) — interacts with the current
+  "machines work bare from minute one" principle.
+- Does KOIOS "attention" cap network size per level (software axis gating
+  machine count, generously tuned), or is the network unlimited?
+- Transfer rates/tiers of the universal cable; wireless unlock placement.
+- What ships in Industry (batteries likely) vs satellite mods (AE2-like
+  storage = krios_storage) vs krios_core (the graph/transfer engine).
+
 ## Configurability
 
 - Every recipe (machines, cores, modules) = datapack recipe types.
