@@ -45,6 +45,27 @@ public final class Network {
         return isValid() ? controllers.get(0) : null;
     }
 
+    /**
+     * Pooled energy transfer: gathers up to {@code amount} from members
+     * implementing {@link EnergyPort}. Only a valid network transfers —
+     * orphan or faulted components move nothing.
+     */
+    public int requestEnergy(int amount, NetworkNode requester) {
+        if (!isValid() || amount <= 0) {
+            return 0;
+        }
+        int gathered = 0;
+        for (NetworkNode member : members) {
+            if (member != requester && member instanceof EnergyPort port) {
+                gathered += port.extractNetworkEnergy(amount - gathered);
+                if (gathered >= amount) {
+                    break;
+                }
+            }
+        }
+        return gathered;
+    }
+
     void markDirty() {
         dirty = true;
     }

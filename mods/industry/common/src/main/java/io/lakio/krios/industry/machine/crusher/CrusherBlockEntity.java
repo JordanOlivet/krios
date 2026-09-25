@@ -4,6 +4,9 @@ import io.lakio.krios.industry.energy.EnergyBuffer;
 import io.lakio.krios.industry.koios.KoiosBalance;
 import io.lakio.krios.industry.koios.KoiosCoreBlockEntity;
 import io.lakio.krios.industry.machine.generator.GeneratorBlockEntity;
+import io.lakio.krios.industry.network.FaceConfig;
+import io.lakio.krios.industry.network.Flow;
+import io.lakio.krios.industry.network.FlowPorts;
 import io.lakio.krios.industry.network.Network;
 import io.lakio.krios.industry.network.NetworkManager;
 import io.lakio.krios.industry.network.NetworkNode;
@@ -33,7 +36,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
-public class CrusherBlockEntity extends BlockEntity implements WorldlyContainer, MenuProvider, NetworkNode {
+public class CrusherBlockEntity extends BlockEntity
+        implements WorldlyContainer, MenuProvider, NetworkNode, FlowPorts {
 
     public static final int INPUT_SLOT = 0;
     public static final int OUTPUT_SLOT = 1;
@@ -47,9 +51,11 @@ public class CrusherBlockEntity extends BlockEntity implements WorldlyContainer,
 
     private static final int[] SLOTS_TOP_SIDES = {INPUT_SLOT};
     private static final int[] SLOTS_DOWN = {OUTPUT_SLOT};
+    private static final int[] NO_SLOTS = {};
 
     private final EnergyBuffer energy = new EnergyBuffer(CAPACITY, 0);
     private final NonNullList<ItemStack> items = NonNullList.withSize(4, ItemStack.EMPTY);
+    private final FaceConfig faceConfig = new FaceConfig();
     private final RecipeManager.CachedCheck<SingleRecipeInput, CrushingRecipe> quickCheck =
             RecipeManager.createCheck(ModRecipeTypes.CRUSHING.get());
     private int progress;
@@ -121,27 +127,61 @@ public class CrusherBlockEntity extends BlockEntity implements WorldlyContainer,
                 ? core.getKoiosLevel() : 0;
     }
 
+    // --- Flow ports: energy sink on every face; items stay out of
+    // auto-config (no sensible complementary pair yet) ---
+
+    @Override
+    public boolean canOffer(Direction face, Flow flow) {
+        return false;
+    }
+
+    @Override
+    public boolean canAccept(Direction face, Flow flow) {
+        return flow == Flow.ENERGY;
+    }
+
+    @Override
+    public FaceConfig faceConfig() {
+        return faceConfig;
+    }
+
+    @Override
+    public void faceConfigDirty() {
+        setChanged();
+    }
+
     public static void serverTick(Level level, BlockPos pos, BlockState state, CrusherBlockEntity be) {
-        be.pullEnergyFromNeighbors(level, pos);
+        // Online = member of a valid network (one formed core). Offline —
+        // orphan or faulted component — falls back to vanilla parity:
+        // furnace-grade time, half yield, modules inert (design).
+        Network network = NetworkManager.networkOf(be);
+        boolean online = network != null && network.isValid();
+        if (online) {
+            be.pullNetworkEnergy(network);
+        } else {
+            be.pullEnergyFromContacts(level, pos);
+        }
 
         RecipeHolder<CrushingRecipe> holder = be.items.get(INPUT_SLOT).isEmpty() ? null
                 : be.quickCheck.getRecipeFor(new SingleRecipeInput(be.items.get(INPUT_SLOT)), level).orElse(null);
-        int yieldModules = holder == null ? 0 : be.countModules(ModuleType.YIELD);
-        if (holder == null || !be.canOutput(holder.value().result(), yieldModules)) {
+        int yieldModules = holder == null || !online ? 0 : be.countModules(ModuleType.YIELD);
+        if (holder == null || !be.canOutput(holder.value().result(), online, yieldModules)) {
             be.stopWork(level, pos, state);
             return;
         }
 
         CrushingRecipe recipe = holder.value();
-        int speedModules = be.countModules(ModuleType.SPEED);
-        int efficiencyModules = be.countModules(ModuleType.EFFICIENCY);
+        int speedModules = online ? be.countModules(ModuleType.SPEED) : 0;
+        int efficiencyModules = online ? be.countModules(ModuleType.EFFICIENCY) : 0;
         // Speed: x1.5 per module => time x2/(2+n). Efficiency: x0.8 per module.
-        be.totalTime = Math.max(1, recipe.time() * 2 / (2 + speedModules));
+        be.totalTime = online
+                ? Math.max(1, recipe.time() * 2 / (2 + speedModules))
+                : Math.max(recipe.time(), KoiosBalance.DISCONNECTED_TIME_TICKS);
         int energyPerOp = recipe.energy() * EFFICIENCY_NUM[efficiencyModules] / 25;
         int energyPerTick = Math.max(1, energyPerOp / be.totalTime);
         if (be.energy.consume(energyPerTick)) {
             if (++be.progress >= be.totalTime) {
-                be.craft(holder, yieldModules);
+                be.craft(holder, online, yieldModules);
                 be.progress = 0;
             }
         }
@@ -159,20 +199,37 @@ public class CrusherBlockEntity extends BlockEntity implements WorldlyContainer,
         return count;
     }
 
-    private void pullEnergyFromNeighbors(Level level, BlockPos pos) {
+    /** Pooled transfer from the machine's own (valid) network. */
+    private void pullNetworkEnergy(Network network) {
         if (energy.isFull()) {
             return;
         }
-        // Direct adjacency pull, v0 energy transport. Replaced by a proper
-        // network (with scheduled wake-ups) later.
+        int pulled = network.requestEnergy(
+                Math.min(PULL_PER_TICK, energy.getCapacity() - energy.getStored()), this);
+        if (pulled > 0) {
+            energy.insert(pulled);
+        }
+    }
+
+    /**
+     * Offline contact transfer: an adjacent generator still feeds a touching
+     * consumer at vanilla parity (design: "feeds any adjacent consumer").
+     * Face contracts apply on both sides; virgin faces keep the old behavior.
+     */
+    private void pullEnergyFromContacts(Level level, BlockPos pos) {
+        if (energy.isFull()) {
+            return;
+        }
         for (Direction direction : Direction.values()) {
-            if (level.getBlockEntity(pos.relative(direction)) instanceof GeneratorBlockEntity generator) {
-                int pulled = generator.getEnergy().extract(
+            if (!allowsEnergyIn(direction)) {
+                continue;
+            }
+            if (level.getBlockEntity(pos.relative(direction)) instanceof GeneratorBlockEntity generator
+                    && generator.allowsEnergyExtract(direction.getOpposite())) {
+                int pulled = generator.extractNetworkEnergy(
                         Math.min(PULL_PER_TICK, energy.getCapacity() - energy.getStored()));
                 if (pulled > 0) {
                     energy.insert(pulled);
-                    generator.setChanged();
-                    generator.tryResume();
                 }
                 if (energy.isFull()) {
                     return;
@@ -181,8 +238,19 @@ public class CrusherBlockEntity extends BlockEntity implements WorldlyContainer,
         }
     }
 
-    private boolean canOutput(ItemStack result, int yieldModules) {
-        int prospective = (yieldQuarters + result.getCount() * (4 + yieldModules)) / 4;
+    private boolean allowsEnergyIn(Direction face) {
+        return faceConfig.isVirgin(face) || faceConfig.allows(face, Flow.ENERGY, false);
+    }
+
+    /** Quarter-items produced per operation: x2 recipes fall back to 1:1 offline. */
+    private static int craftQuarters(ItemStack result, boolean online, int yieldModules) {
+        return online
+                ? result.getCount() * (4 + yieldModules)
+                : Math.max(1, result.getCount() / 2) * 4;
+    }
+
+    private boolean canOutput(ItemStack result, boolean online, int yieldModules) {
+        int prospective = (yieldQuarters + craftQuarters(result, online, yieldModules)) / 4;
         ItemStack current = items.get(OUTPUT_SLOT);
         if (current.isEmpty()) {
             return prospective <= result.getMaxStackSize();
@@ -195,9 +263,9 @@ public class CrusherBlockEntity extends BlockEntity implements WorldlyContainer,
      * Evolving yield multiplier (design): +25% per yield module on top of the
      * recipe result (x2 recipe -> x2.5 -> x3), carried in quarter-items.
      */
-    private void craft(RecipeHolder<CrushingRecipe> holder, int yieldModules) {
+    private void craft(RecipeHolder<CrushingRecipe> holder, boolean online, int yieldModules) {
         ItemStack result = holder.value().result();
-        yieldQuarters += result.getCount() * (4 + yieldModules);
+        yieldQuarters += craftQuarters(result, online, yieldModules);
         int crafted = yieldQuarters / 4;
         yieldQuarters %= 4;
         items.get(INPUT_SLOT).shrink(1);
@@ -246,21 +314,30 @@ public class CrusherBlockEntity extends BlockEntity implements WorldlyContainer,
         return new CrusherMenu(containerId, playerInventory, this, dataAccess);
     }
 
-    // --- WorldlyContainer (hoppers: input top/sides, output bottom) ---
+    // --- WorldlyContainer (hoppers: input top/sides, output bottom). A
+    // configured face is a complete contract (design): it also gates
+    // third-party item access; virgin faces keep the vanilla behavior. ---
+
+    private boolean allowsItem(Direction face, boolean out) {
+        return faceConfig.isVirgin(face) || faceConfig.allows(face, Flow.ITEM, out);
+    }
 
     @Override
     public int[] getSlotsForFace(Direction side) {
-        return side == Direction.DOWN ? SLOTS_DOWN : SLOTS_TOP_SIDES;
+        if (side == Direction.DOWN) {
+            return allowsItem(side, true) ? SLOTS_DOWN : NO_SLOTS;
+        }
+        return allowsItem(side, false) ? SLOTS_TOP_SIDES : NO_SLOTS;
     }
 
     @Override
     public boolean canPlaceItemThroughFace(int slot, ItemStack stack, Direction side) {
-        return slot == INPUT_SLOT;
+        return slot == INPUT_SLOT && allowsItem(side, false);
     }
 
     @Override
     public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
-        return slot == OUTPUT_SLOT;
+        return slot == OUTPUT_SLOT && allowsItem(side, true);
     }
 
     @Override
@@ -328,6 +405,7 @@ public class CrusherBlockEntity extends BlockEntity implements WorldlyContainer,
         super.saveAdditional(tag, registries);
         ContainerHelper.saveAllItems(tag, items, registries);
         energy.save(tag);
+        faceConfig.save(tag);
         tag.putInt("Progress", progress);
         tag.putInt("YieldQuarters", yieldQuarters);
     }
@@ -337,6 +415,7 @@ public class CrusherBlockEntity extends BlockEntity implements WorldlyContainer,
         super.loadAdditional(tag, registries);
         ContainerHelper.loadAllItems(tag, items, registries);
         energy.load(tag);
+        faceConfig.load(tag);
         progress = tag.getInt("Progress");
         yieldQuarters = tag.getInt("YieldQuarters");
     }

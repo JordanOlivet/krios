@@ -31,8 +31,11 @@ public class KriosIndustry {
     }
 
     private static void registerCapabilities(RegisterCapabilitiesEvent event) {
+        // A configured face is a complete contract (design): it also gates
+        // third-party FE access. Virgin faces stay exposed (vanilla behavior).
         event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ModBlockEntities.GENERATOR.get(),
-                (generator, side) -> new ExtractOnlyEnergyStorage(generator.getEnergy()));
+                (generator, side) -> side == null || generator.allowsEnergyExtract(side)
+                        ? new ExtractOnlyEnergyStorage(generator.getEnergy()) : null);
     }
 
     /** FE view of the internal buffer: neighbors may pull, never push. */

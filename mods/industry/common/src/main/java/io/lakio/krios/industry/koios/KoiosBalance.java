@@ -34,6 +34,14 @@ public final class KoiosBalance {
     public static final int YIELD_UNLOCK_LEVEL = 4;
 
     /**
+     * Vanilla parity while disconnected from a valid network (design):
+     * furnace-grade operation time (a furnace smelt is 200 ticks), half the
+     * connected recipe yield (x2 recipes fall back to 1:1, never below one
+     * item), and modules inert.
+     */
+    public static final int DISCONNECTED_TIME_TICKS = 200;
+
+    /**
      * Search radius of the /koios admin command (nearest active core). XP
      * reporting itself goes through the network graph, not a radius.
      */

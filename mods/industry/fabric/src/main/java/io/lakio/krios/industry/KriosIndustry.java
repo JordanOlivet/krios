@@ -18,9 +18,11 @@ public class KriosIndustry implements ModInitializer {
     public void onInitialize() {
         CommonClass.init();
         // Adapter allocated per external query only; our own machines use the
-        // internal buffer directly.
+        // internal buffer directly. A configured face gates third-party TRE
+        // access (complete contract); virgin faces stay exposed.
         EnergyStorage.SIDED.registerForBlockEntity(
-                (generator, direction) -> new ExtractOnlyEnergyAdapter(generator),
+                (generator, direction) -> direction == null || generator.allowsEnergyExtract(direction)
+                        ? new ExtractOnlyEnergyAdapter(generator) : null,
                 ModBlockEntities.GENERATOR.get());
         // Ore veins: features/placements are datapack JSONs in common; only
         // the biome injection is loader code (NeoForge does it via a

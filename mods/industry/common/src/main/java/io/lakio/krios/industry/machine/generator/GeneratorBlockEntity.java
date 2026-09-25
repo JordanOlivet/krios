@@ -3,10 +3,15 @@ package io.lakio.krios.industry.machine.generator;
 import io.lakio.krios.industry.energy.EnergyBuffer;
 import io.lakio.krios.industry.koios.KoiosBalance;
 import io.lakio.krios.industry.koios.KoiosCoreBlockEntity;
+import io.lakio.krios.industry.network.EnergyPort;
+import io.lakio.krios.industry.network.FaceConfig;
+import io.lakio.krios.industry.network.Flow;
+import io.lakio.krios.industry.network.FlowPorts;
 import io.lakio.krios.industry.network.Network;
 import io.lakio.krios.industry.network.NetworkManager;
 import io.lakio.krios.industry.network.NetworkNode;
 import io.lakio.krios.industry.platform.Services;
+import net.minecraft.core.Direction;
 import io.lakio.krios.industry.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -27,7 +32,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
-public class GeneratorBlockEntity extends BlockEntity implements Container, MenuProvider, NetworkNode {
+public class GeneratorBlockEntity extends BlockEntity
+        implements Container, MenuProvider, NetworkNode, EnergyPort, FlowPorts {
 
     public static final int CAPACITY = 100_000;
     public static final int GENERATION_PER_TICK = 40;
@@ -36,6 +42,7 @@ public class GeneratorBlockEntity extends BlockEntity implements Container, Menu
     // Primitive runtime state (ADR-012). No object allocation on the tick path.
     private final EnergyBuffer energy = new EnergyBuffer(CAPACITY, MAX_EXTRACT_PER_TICK);
     private final NonNullList<ItemStack> items = NonNullList.withSize(1, ItemStack.EMPTY);
+    private final FaceConfig faceConfig = new FaceConfig();
     private int burnTime;
     private int burnDuration;
 
@@ -95,6 +102,48 @@ public class GeneratorBlockEntity extends BlockEntity implements Container, Menu
     @Override
     public Level networkLevel() {
         return level;
+    }
+
+    /** Pool contribution: rate-capped by the buffer, wakes the burner. */
+    @Override
+    public int extractNetworkEnergy(int max) {
+        int pulled = energy.extract(max);
+        if (pulled > 0) {
+            setChanged();
+            tryResume();
+        }
+        return pulled;
+    }
+
+    // --- Flow ports: energy source on every face ---
+
+    @Override
+    public boolean canOffer(Direction face, Flow flow) {
+        return flow == Flow.ENERGY;
+    }
+
+    @Override
+    public boolean canAccept(Direction face, Flow flow) {
+        return false;
+    }
+
+    @Override
+    public FaceConfig faceConfig() {
+        return faceConfig;
+    }
+
+    @Override
+    public void faceConfigDirty() {
+        setChanged();
+    }
+
+    /**
+     * Face contract for external energy extraction (FE/TRE adapters and the
+     * disconnected contact transfer): virgin face = vanilla behavior
+     * (exposed), configured face = what it allows.
+     */
+    public boolean allowsEnergyExtract(Direction side) {
+        return faceConfig.isVirgin(side) || faceConfig.allows(side, Flow.ENERGY, true);
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, GeneratorBlockEntity be) {
@@ -222,6 +271,7 @@ public class GeneratorBlockEntity extends BlockEntity implements Container, Menu
         super.saveAdditional(tag, registries);
         ContainerHelper.saveAllItems(tag, items, registries);
         energy.save(tag);
+        faceConfig.save(tag);
         tag.putInt("BurnTime", burnTime);
         tag.putInt("BurnDuration", burnDuration);
     }
@@ -231,6 +281,7 @@ public class GeneratorBlockEntity extends BlockEntity implements Container, Menu
         super.loadAdditional(tag, registries);
         ContainerHelper.loadAllItems(tag, items, registries);
         energy.load(tag);
+        faceConfig.load(tag);
         burnTime = tag.getInt("BurnTime");
         burnDuration = tag.getInt("BurnDuration");
     }

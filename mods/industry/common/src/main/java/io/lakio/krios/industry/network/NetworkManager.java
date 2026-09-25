@@ -54,6 +54,15 @@ public final class NetworkManager {
         DimensionGraph graph = graph(level);
         BlockPos pos = node.networkPos().immutable();
         graph.nodes.put(pos, node);
+        // Contact auto-config runs on node placement, before the graph
+        // recompute — it only touches the two touching faces.
+        if (node instanceof FlowPorts self) {
+            for (Direction direction : DIRECTIONS) {
+                if (graph.nodes.get(pos.relative(direction)) instanceof FlowPorts other) {
+                    AutoConfig.onContact(self, other, direction);
+                }
+            }
+        }
         invalidateAround(graph, pos);
         recompute(level, graph, pos);
     }
