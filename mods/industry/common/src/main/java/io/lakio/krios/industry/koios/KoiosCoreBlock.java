@@ -3,8 +3,11 @@ package io.lakio.krios.industry.koios;
 import com.mojang.serialization.MapCodec;
 
 import io.lakio.krios.industry.network.NetworkConductor;
+import io.lakio.krios.industry.tool.CalibratorItem;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -61,6 +64,16 @@ public class KoiosCoreBlock extends BaseEntityBlock implements NetworkConductor 
         if (!level.isClientSide && level.getBlockEntity(pos) instanceof KoiosCoreBlockEntity core) {
             core.revalidateStructure();
         }
+    }
+
+    /** The Calibrator overrides the block's own right-click (diagnostic). */
+    @Override
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level,
+            BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        if (stack.getItem() instanceof CalibratorItem) {
+            return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
+        }
+        return super.useItemOn(stack, state, level, pos, player, hand, hit);
     }
 
     @Override
