@@ -104,16 +104,30 @@ Settled (Q&A 2026-09-25):
   switches to old-TV static with a red error panel dead center, so the fault
   is visible in-world at a glance. Fixing the topology recomputes and reboots.
 
-Open questions for the network design session:
+Settled (design session, 2026-09-25):
 
-- Auto-config ambiguity: symmetric pairs (both sides can send and receive the
-  same type) — open both directions, or nothing + a Calibrator hint?
-- Does per-face config also gate the vanilla/FE/TRE exposure to third-party
-  neighbors (hopper compat today), or only intra-network flows?
-- Per-face config UX: through the machine UI, the Calibrator, or both.
-- Transfer rates/tiers of the universal cable; wireless unlock placement.
-- What ships in Industry (batteries likely) vs satellite mods (AE2-like
-  storage = krios_storage) vs krios_core (the graph/transfer engine).
+- **Symmetric auto-config pairs resolve to nothing**: when both touching
+  faces could send *and* receive the same type, no auto-config happens —
+  both faces stay virgin and the Calibrator hints at the pair to configure
+  manually. Explicit beats magic; no surprise loops or backflow.
+- **Per-face config gates everything**: a face's config is its complete
+  contract — intra-network flows *and* third-party exposure (vanilla
+  hoppers, FE/TRE neighbors). A virgin face keeps today's vanilla behavior
+  (hoppers work, energy exposed), so nothing regresses until the player
+  configures it. One mental model: what a face allows is what anyone gets.
+- **Per-face config UX = the machine UI** (a 6-face view in each machine's
+  screen). The Calibrator handles what has no UI of its own or needs
+  in-world orientation/interaction: cables, and later wireless modules
+  bridging two blocks. (Its dedicated diagnostic UI stays, see above.)
+- **Cable tiers follow core tiers**: each core tier brings its own cable
+  with higher transfer rates. The last tier ships both its cable *and* the
+  wireless unlock, both with effectively unlimited rates — the endgame
+  choice is aesthetic, not mechanical: organic cable runs vs clean
+  wireless, the player picks their factory's look.
+- **Engine home**: Industry common, self-contained `network/` package under
+  ADR-013 isolation (one-way dependency, graph never persisted, no balance
+  in the engine); extracted to `krios_core` when a second mod consumes it.
+  Batteries ship in Industry; AE2-like item storage stays `krios_storage`.
 
 ## Configurability
 

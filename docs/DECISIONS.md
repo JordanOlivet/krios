@@ -97,6 +97,20 @@ Ultra-high performance is a product pillar, not an optimization pass. Rules appl
 - **Network discipline**: sync deltas, throttle block entity sync, never broadcast full state per tick.
 - **Measured, not assumed**: profile with spark/JFR before each release; a feature that tanks TPS/FPS does not ship until fixed.
 
+## ADR-013 — Network engine lives in Industry behind strict isolation
+
+**Date**: 2026-09-25 · **Status**: accepted
+
+The network engine (connectivity graph + transfers — the ecosystem's future backbone) is implemented inside `mods/industry` common as a self-contained `network/` package, instead of bootstrapping `krios_core` now. Extraction to `krios_core` happens when a second mod needs it: by then the API has a real consumer instead of guesses, and `templates/multiloader` makes the bootstrap cheap.
+
+Three rules keep that extraction mechanical (a package move, not a refactor), enforced from the first commit:
+
+1. **One-way dependency**: `network/` never imports Industry code (machines, registries, KOIOS, `KoiosBalance`). Machines implement the engine's interfaces (node and flow contracts); the KOIOS core is just a registered node type like any other.
+2. **The graph is never persisted**: it rebuilds from world state, event-driven (same philosophy as the multiblock revalidation). Blocks save only their own state (e.g. per-face config in their block entity) — so extraction implies zero save-format migration.
+3. **No balance in the engine**: rates, caps and unlocks are supplied by the consuming mod, never hardcoded in the engine.
+
+- Rejected: creating `krios_core` immediately (freezes a public API with zero consumers; adds build/CI/version dance before any second client exists).
+
 ## Open questions
 
 *(none — next ones will come from design work)*

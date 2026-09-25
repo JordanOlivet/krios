@@ -27,7 +27,7 @@ The fiction: machines do not merely process matter — they compress time around
 - **One universal conduit**: a single cable carries everything — energy, items, fluids, data. No per-type cable zoo. Wireless connectivity arrives later in the progression (software-axis unlock and/or relay hardware); cables are the early answer, the AI outgrows them.
 - **Machines are network nodes**: touching mod blocks propagate the network by adjacency (AE2-controller style) — a chain of glued machines is networked as soon as one element reaches a core. Cables only bridge gaps.
 - Connected machines share what they hold across the network; storage (batteries, AE2-like item storage) plugs into the same network, some of it as satellite mods.
-- The graph/transfer engine is ecosystem infrastructure and belongs in `krios_core`, per-tick-free by construction (event-driven graph updates, scheduled wake-ups, batch transfers — pillar 2). It replaces Industry's v0 stopgaps (adjacent-block energy pull, radius-based XP reporting).
+- The graph/transfer engine is ecosystem infrastructure destined for `krios_core`, per-tick-free by construction (event-driven graph updates, scheduled wake-ups, batch transfers — pillar 2). It replaces Industry's v0 stopgaps (adjacent-block energy pull, radius-based XP reporting). It is first implemented inside Industry as an isolated `network/` package and extracted once a second mod consumes it (ADR-013).
 
 ## Ecosystem map
 
