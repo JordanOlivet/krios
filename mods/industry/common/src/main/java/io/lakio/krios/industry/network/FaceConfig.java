@@ -4,12 +4,14 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 
 /**
- * Per-face interaction contract of a machine (design: one mental model — a
- * configured face's rules apply to network flows and third-party neighbors
- * alike; a virgin face keeps vanilla behavior, the caller supplies that
- * default). Bit layout per face: two bits per {@link Flow} (in/out), then
- * CONFIGURED, MANUAL and HINT. Owned and persisted by the block entity —
- * the engine never saves anything itself (ADR-013).
+ * Per-face interaction contract of a machine. Two regimes (design):
+ * MANUAL config is the face's complete contract — it gates network flows
+ * and third-party neighbors alike and is never touched by auto-config.
+ * AUTO config only records the flow direction negotiated on contact; it
+ * keeps vanilla third-party behavior and is renegotiated from scratch on
+ * every new contact. Bit layout per face: two bits per {@link Flow}
+ * (in/out), then CONFIGURED, MANUAL and HINT. Owned and persisted by the
+ * block entity — the engine never saves anything itself (ADR-013).
  */
 public final class FaceConfig {
 
@@ -42,7 +44,7 @@ public final class FaceConfig {
         return (faces[face.get3DDataValue()] & flowBit(flow, out)) != 0;
     }
 
-    /** Contact auto-config: first contact only, never over manual config. */
+    /** Contact auto-config: never over manual config. */
     public void setAuto(Direction face, Flow flow, boolean out) {
         int index = face.get3DDataValue();
         if ((faces[index] & MANUAL) == 0) {
@@ -53,8 +55,20 @@ public final class FaceConfig {
     /** Flags a symmetric pair; the face stays virgin (explicit beats magic). */
     public void setHint(Direction face) {
         int index = face.get3DDataValue();
-        if ((faces[index] & (CONFIGURED | MANUAL)) == 0) {
+        if ((faces[index] & MANUAL) == 0) {
             faces[index] |= HINT;
+        }
+    }
+
+    /**
+     * Clears auto state ahead of a renegotiation (new contact = fresh
+     * negotiation, the player never configured anything). Manual faces are
+     * untouched.
+     */
+    public void resetAuto(Direction face) {
+        int index = face.get3DDataValue();
+        if ((faces[index] & MANUAL) == 0) {
+            faces[index] = 0;
         }
     }
 

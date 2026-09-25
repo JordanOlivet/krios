@@ -110,11 +110,17 @@ Settled (design session, 2026-09-25):
   faces could send *and* receive the same type, no auto-config happens —
   both faces stay virgin and the Calibrator hints at the pair to configure
   manually. Explicit beats magic; no surprise loops or backflow.
-- **Per-face config gates everything**: a face's config is its complete
+- **Per-face config gates everything — manual config, that is** (refined
+  2026-09-25 evening): a *manually* configured face is its complete
   contract — intra-network flows *and* third-party exposure (vanilla
-  hoppers, FE/TRE neighbors). A virgin face keeps today's vanilla behavior
-  (hoppers work, energy exposed), so nothing regresses until the player
-  configures it. One mental model: what a face allows is what anyone gets.
+  hoppers, FE/TRE neighbors). Virgin *and auto-configured* faces keep
+  vanilla behavior: auto-config only records the negotiated flow
+  direction, it never restricts third parties. One mental model: what the
+  player wrote on a face is what anyone gets; what the machines agreed on
+  is just routing. Face config (manual included) does **not** survive
+  break/re-place — a re-placed machine is factory-new. A new contact
+  between two non-manual faces renegotiates them from scratch (a
+  different neighbor gets a fresh negotiation).
 - **Per-face config UX = the machine UI** (a 6-face view in each machine's
   screen). The Calibrator handles what has no UI of its own or needs
   in-world orientation/interaction: cables, and later wireless modules

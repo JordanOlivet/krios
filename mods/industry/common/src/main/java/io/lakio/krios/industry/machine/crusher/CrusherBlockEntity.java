@@ -239,7 +239,7 @@ public class CrusherBlockEntity extends BlockEntity
     }
 
     private boolean allowsEnergyIn(Direction face) {
-        return faceConfig.isVirgin(face) || faceConfig.allows(face, Flow.ENERGY, false);
+        return !faceConfig.isManual(face) || faceConfig.allows(face, Flow.ENERGY, false);
     }
 
     /** Quarter-items produced per operation: x2 recipes fall back to 1:1 offline. */
@@ -315,11 +315,12 @@ public class CrusherBlockEntity extends BlockEntity
     }
 
     // --- WorldlyContainer (hoppers: input top/sides, output bottom). A
-    // configured face is a complete contract (design): it also gates
-    // third-party item access; virgin faces keep the vanilla behavior. ---
+    // MANUAL face config is a complete contract (design): it also gates
+    // third-party item access; virgin and auto-configured faces keep the
+    // vanilla behavior. ---
 
     private boolean allowsItem(Direction face, boolean out) {
-        return faceConfig.isVirgin(face) || faceConfig.allows(face, Flow.ITEM, out);
+        return !faceConfig.isManual(face) || faceConfig.allows(face, Flow.ITEM, out);
     }
 
     @Override

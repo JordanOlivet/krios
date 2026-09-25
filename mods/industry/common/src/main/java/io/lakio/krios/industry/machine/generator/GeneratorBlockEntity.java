@@ -139,11 +139,11 @@ public class GeneratorBlockEntity extends BlockEntity
 
     /**
      * Face contract for external energy extraction (FE/TRE adapters and the
-     * disconnected contact transfer): virgin face = vanilla behavior
-     * (exposed), configured face = what it allows.
+     * disconnected contact transfer). Only a MANUAL config restricts —
+     * virgin and auto-configured faces keep vanilla behavior (exposed).
      */
     public boolean allowsEnergyExtract(Direction side) {
-        return faceConfig.isVirgin(side) || faceConfig.allows(side, Flow.ENERGY, true);
+        return !faceConfig.isManual(side) || faceConfig.allows(side, Flow.ENERGY, true);
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, GeneratorBlockEntity be) {
