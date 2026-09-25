@@ -180,7 +180,11 @@ public class CrusherBlockEntity extends BlockEntity
 
     @Override
     public void faceConfigDirty() {
-        setChanged();
+        // Never setChanged() here: auto-config can run during chunk load
+        // and the comparator scan would sync-load chunks (deadlock).
+        if (level != null) {
+            NetworkManager.markUnsaved(level, worldPosition);
+        }
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, CrusherBlockEntity be) {

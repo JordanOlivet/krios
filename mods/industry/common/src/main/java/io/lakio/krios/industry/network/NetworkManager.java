@@ -243,6 +243,21 @@ public final class NetworkManager {
         return network;
     }
 
+    /**
+     * Persistence-only dirty marking for engine-driven state changes
+     * (auto-config). BlockEntity.setChanged is forbidden here: its
+     * comparator neighbor scan sync-loads chunks and deadlocks when the
+     * change happens during chunk load (both loaders, reproduced twice).
+     */
+    public static void markUnsaved(Level level, BlockPos pos) {
+        var chunk = level.getChunkSource().getChunkNow(
+                SectionPos.blockToSectionCoord(pos.getX()),
+                SectionPos.blockToSectionCoord(pos.getZ()));
+        if (chunk != null) {
+            chunk.setUnsaved(true);
+        }
+    }
+
     private static boolean isConductor(Level level, BlockPos pos) {
         return level.getBlockState(pos).getBlock() instanceof NetworkConductor;
     }
