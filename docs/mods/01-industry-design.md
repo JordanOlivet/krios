@@ -91,14 +91,25 @@ Settled (Q&A 2026-09-25):
   when a drain frees room, and feeds any adjacent consumer — mod machine or
   third-party FE/TRE block.
 - **Per-face interaction config**: every machine face carries a configurable
-  set of allowed interactions (several types per face possible); defaults
-  mirror today's behavior. The storage mod adds AE2-like import/export bus
-  blocks to steer item movement.
+  set of allowed interactions (several types per face possible). The storage
+  mod adds AE2-like import/export bus blocks to steer item movement.
+- **Contact auto-configuration**: a face that was never configured manually
+  configures itself on first contact — when a block lands next to it, both
+  touching faces are set to the complementary channels that make the pair
+  work (generator beside crusher → energy out / energy in). Manual
+  configuration is sacred: autoconfig never overrides it.
+- **One core per network**: a connected component may hold a single formed
+  core (for now). Connecting a second one brings the network *down* —
+  machines drop to vanilla parity, and every conflicted core's screen
+  switches to old-TV static with a red error panel dead center, so the fault
+  is visible in-world at a glance. Fixing the topology recomputes and reboots.
 
 Open questions for the network design session:
 
-- Several formed cores in one connected component: error state (AE2-style),
-  nearest-core assignment, or merge rules? (Learning/XP stays per-core.)
+- Auto-config ambiguity: symmetric pairs (both sides can send and receive the
+  same type) — open both directions, or nothing + a Calibrator hint?
+- Does per-face config also gate the vanilla/FE/TRE exposure to third-party
+  neighbors (hopper compat today), or only intra-network flows?
 - Per-face config UX: through the machine UI, the Calibrator, or both.
 - Transfer rates/tiers of the universal cable; wireless unlock placement.
 - What ships in Industry (batteries likely) vs satellite mods (AE2-like
