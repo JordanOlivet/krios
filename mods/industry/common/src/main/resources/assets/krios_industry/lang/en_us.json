@@ -7,6 +7,7 @@
   "block.krios_industry.koios_core": "K.O.I.O.S. Core",
   "block.krios_industry.koios_core.hint": "Encase in a full 3x3x3 shell of Neural Casing — right-click the shell to interface with the AI",
   "block.krios_industry.neural_casing": "Neural Casing",
+  "block.krios_industry.neural_conduit": "Neural Conduit",
   "block.krios_industry.neurite_ore": "Neurite Ore",
   "commands.krios_industry.koios.info": "K.O.I.O.S. core at [%1$s]: level %2$s, %3$s/%4$s data XP, diversity %5$s%%",
   "commands.krios_industry.koios.level_set": "Core at [%1$s] set to level %2$s (%3$s data XP)",

@@ -7,6 +7,7 @@
   "block.krios_industry.koios_core": "Cœur K.O.I.O.S.",
   "block.krios_industry.koios_core.hint": "À enfermer dans une coque pleine 3x3x3 de châssis neuraux — clic droit sur la coque pour interfacer avec l'IA",
   "block.krios_industry.neural_casing": "Châssis neural",
+  "block.krios_industry.neural_conduit": "Conduit neural",
   "block.krios_industry.neurite_ore": "Minerai de neurite",
   "commands.krios_industry.koios.info": "Cœur K.O.I.O.S. en [%1$s] : niveau %2$s, %3$s/%4$s XP de données, diversité %5$s %%",
   "commands.krios_industry.koios.level_set": "Cœur en [%1$s] calé au niveau %2$s (%3$s XP de données)",

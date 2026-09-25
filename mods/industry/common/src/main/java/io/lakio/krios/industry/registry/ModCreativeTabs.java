@@ -24,6 +24,7 @@ public final class ModCreativeTabs {
                         output.accept(ModBlocks.GENERATOR.get());
                         output.accept(ModBlocks.CRUSHER.get());
                         output.accept(ModBlocks.NEURAL_CASING.get());
+                        output.accept(ModBlocks.NEURAL_CONDUIT.get());
                         output.accept(ModBlocks.KOIOS_CORE.get());
                         output.accept(ModItems.CHRONITE_SHARD.get());
                         output.accept(ModItems.RAW_NEURITE.get());

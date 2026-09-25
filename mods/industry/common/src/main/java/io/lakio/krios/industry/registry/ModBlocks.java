@@ -5,6 +5,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import io.lakio.krios.industry.Constants;
+import io.lakio.krios.industry.cable.NeuralConduitBlock;
 import io.lakio.krios.industry.koios.KoiosCoreBlock;
 import io.lakio.krios.industry.koios.NeuralCasingBlock;
 import io.lakio.krios.industry.machine.crusher.CrusherBlock;
@@ -72,6 +73,13 @@ public final class ModBlocks {
                     .requiresCorrectToolForDrops()
                     .strength(3.5F, 6.0F)
                     .sound(SoundType.METAL)));
+
+    public static final Supplier<Block> NEURAL_CONDUIT = registerWithItem("neural_conduit",
+            () -> new NeuralConduitBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.METAL)
+                    .strength(0.8F)
+                    .sound(SoundType.METAL)
+                    .noOcclusion()));
 
     public static final Supplier<Block> KOIOS_CORE = registerWithItem("koios_core",
             () -> new KoiosCoreBlock(BlockBehaviour.Properties.of()

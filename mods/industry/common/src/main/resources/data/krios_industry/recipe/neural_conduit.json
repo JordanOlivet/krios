@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CCC",
+    "DDD",
+    "CCC"
+  ],
+  "key": {
+    "C": { "tag": "c:ingots/copper" },
+    "D": { "tag": "c:dusts/neurite" }
+  },
+  "result": { "id": "krios_industry:neural_conduit", "count": 12 }
+}

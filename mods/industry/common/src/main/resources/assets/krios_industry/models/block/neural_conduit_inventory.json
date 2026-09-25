@@ -1,0 +1,21 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "conduit": "krios_industry:block/neural_conduit",
+    "particle": "krios_industry:block/neural_conduit"
+  },
+  "elements": [
+    {
+      "from": [5, 5, 0],
+      "to": [11, 11, 16],
+      "faces": {
+        "down": { "uv": [5, 0, 11, 16], "texture": "#conduit" },
+        "up": { "uv": [5, 0, 11, 16], "texture": "#conduit" },
+        "north": { "uv": [5, 5, 11, 11], "texture": "#conduit" },
+        "south": { "uv": [5, 5, 11, 11], "texture": "#conduit" },
+        "west": { "uv": [0, 5, 16, 11], "texture": "#conduit" },
+        "east": { "uv": [0, 5, 16, 11], "texture": "#conduit" }
+      }
+    }
+  ]
+}
