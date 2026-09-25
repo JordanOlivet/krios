@@ -32,7 +32,15 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
 
     // Atlas regions (64x64 texture): screen bg, eye sprite, white patch, noise strip.
     private static final float ATLAS = 64F;
-    private static final float SCREEN_Z = 1.505F;
+    // Each layer sits on its own depth plane: coplanar quads z-fight and the
+    // translucent sort reorders them unpredictably (the "overlapping renders"
+    // artifact). ~3mm steps are invisible but settle depth and sort order.
+    private static final float Z_BG = 1.502F;
+    private static final float Z_STATIC = 1.504F;
+    private static final float Z_FEATURES = 1.506F;
+    private static final float Z_PUPILS = 1.509F;
+    private static final float Z_PULSE = 1.512F;
+    private static final float Z_FLASH = 1.515F;
     private static final int BOOT_TICKS = 50;
     private static final int PULSE_TICKS = 12;
     private static final int LEVEL_UP_TICKS = 30;
@@ -84,13 +92,13 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
         int frame = (int) bootT;
         float v0 = (48 + (frame * 3) % 8) / ATLAS;
         float alpha = 0.55F + 0.35F * ((frame % 3) / 2F);
-        quad(pose, vc, -1.5F, -1.5F, 3F, 3F, 0 / ATLAS, v0, 48 / ATLAS, v0 + 8 / ATLAS, 1, 1, 1, alpha);
+        quad(pose, vc, -1.5F, -1.5F, 3F, 3F, Z_STATIC, 0 / ATLAS, v0, 48 / ATLAS, v0 + 8 / ATLAS, 1, 1, 1, alpha);
     }
 
     private void renderFace(KoiosCoreBlockEntity core, Level level, Direction side,
             PoseStack.Pose pose, VertexConsumer vc, float time) {
         // Screen background.
-        quad(pose, vc, -1.5F, -1.5F, 3F, 3F, 0, 0, 48 / ATLAS, 48 / ATLAS, 1, 1, 1, 1);
+        quad(pose, vc, -1.5F, -1.5F, 3F, 3F, Z_BG, 0, 0, 48 / ATLAS, 48 / ATLAS, 1, 1, 1, 1);
 
         float levelUpT = core.getClientLevelUpStart() > 0
                 ? time - core.getClientLevelUpStart() : Float.MAX_VALUE;
@@ -125,41 +133,41 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
         for (int i = -1; i <= 1; i += 2) {
             float ex = i * 0.55F - eyeW / 2 + lookU;
             float ey = 0.35F - eyeH / 2 + lookV;
-            quad(pose, vc, ex, ey, eyeW, eyeH, 48 / ATLAS, 0, 56 / ATLAS, 8 / ATLAS, 1, 1, 1, 1);
+            quad(pose, vc, ex, ey, eyeW, eyeH, Z_FEATURES, 48 / ATLAS, 0, 56 / ATLAS, 8 / ATLAS, 1, 1, 1, 1);
             if (eyeScale > 0.5F) {
                 // Pupil: dark tinted white patch, pushed further by the look.
                 quad(pose, vc, ex + eyeW / 2 - 0.09F + lookU * 0.8F, ey + eyeH / 2 - 0.09F + lookV * 0.8F,
-                        0.18F, 0.18F, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.02F, 0.12F, 0.14F, 1);
+                        0.18F, 0.18F, Z_PUPILS, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.02F, 0.12F, 0.14F, 1);
             }
         }
 
         // Mouth: a thin cyan line, wider while celebrating.
         float mouthW = celebrating ? 1.3F : 0.9F;
-        quad(pose, vc, -mouthW / 2, -0.6F, mouthW, 0.09F,
+        quad(pose, vc, -mouthW / 2, -0.6F, mouthW, 0.09F, Z_FEATURES,
                 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.27F, 0.91F, 0.94F, 0.95F);
 
         // Learning pulse and level-up flash overlays.
         if (pulseT < PULSE_TICKS) {
             float a = (1F - pulseT / PULSE_TICKS) * 0.25F;
-            quad(pose, vc, -1.5F, -1.5F, 3F, 3F, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.27F, 0.91F, 0.94F, a);
+            quad(pose, vc, -1.5F, -1.5F, 3F, 3F, Z_PULSE, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.27F, 0.91F, 0.94F, a);
         }
         if (celebrating) {
             float a = (1F - levelUpT / LEVEL_UP_TICKS) * 0.35F;
-            quad(pose, vc, -1.5F, -1.5F, 3F, 3F, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 1F, 1F, 1F, a);
+            quad(pose, vc, -1.5F, -1.5F, 3F, 3F, Z_FLASH, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 1F, 1F, 1F, a);
         }
     }
 
-    private static void quad(PoseStack.Pose pose, VertexConsumer vc, float x, float y, float w, float h,
+    private static void quad(PoseStack.Pose pose, VertexConsumer vc, float x, float y, float w, float h, float z,
             float u0, float v0, float u1, float v1, float r, float g, float b, float a) {
-        vertex(pose, vc, x, y, u0, v1, r, g, b, a);
-        vertex(pose, vc, x + w, y, u1, v1, r, g, b, a);
-        vertex(pose, vc, x + w, y + h, u1, v0, r, g, b, a);
-        vertex(pose, vc, x, y + h, u0, v0, r, g, b, a);
+        vertex(pose, vc, x, y, z, u0, v1, r, g, b, a);
+        vertex(pose, vc, x + w, y, z, u1, v1, r, g, b, a);
+        vertex(pose, vc, x + w, y + h, z, u1, v0, r, g, b, a);
+        vertex(pose, vc, x, y + h, z, u0, v0, r, g, b, a);
     }
 
-    private static void vertex(PoseStack.Pose pose, VertexConsumer vc, float x, float y,
+    private static void vertex(PoseStack.Pose pose, VertexConsumer vc, float x, float y, float z,
             float u, float v, float r, float g, float b, float a) {
-        vc.addVertex(pose, x, y, SCREEN_Z)
+        vc.addVertex(pose, x, y, z)
                 .setColor(r, g, b, a)
                 .setUv(u, v)
                 .setOverlay(OverlayTexture.NO_OVERLAY)
