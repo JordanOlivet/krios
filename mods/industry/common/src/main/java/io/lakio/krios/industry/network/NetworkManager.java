@@ -55,10 +55,15 @@ public final class NetworkManager {
         BlockPos pos = node.networkPos().immutable();
         graph.nodes.put(pos, node);
         // Contact auto-config runs on node placement, before the graph
-        // recompute — it only touches the two touching faces.
-        if (node instanceof FlowPorts self) {
+        // recompute — it only touches the two touching faces. Never during
+        // chunk load (isLoaded guards): it calls setChanged, and
+        // Level.blockEntityChanged sync-loads the chunk — deadlock while
+        // that very chunk is still loading.
+        if (node instanceof FlowPorts self && isLoaded(level, pos)) {
             for (Direction direction : DIRECTIONS) {
-                if (graph.nodes.get(pos.relative(direction)) instanceof FlowPorts other) {
+                BlockPos neighborPos = pos.relative(direction);
+                if (isLoaded(level, neighborPos)
+                        && graph.nodes.get(neighborPos) instanceof FlowPorts other) {
                     AutoConfig.onContact(self, other, direction);
                 }
             }
