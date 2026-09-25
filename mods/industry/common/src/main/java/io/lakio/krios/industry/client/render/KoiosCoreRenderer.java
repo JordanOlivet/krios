@@ -13,10 +13,13 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import java.util.List;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -49,6 +52,8 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
     private static final float Z_TEXT = 1.508F;
     private static final float Z_PUPILS = 1.509F;
     private static final float TEXT_SCALE = 0.022F;
+    /** Wrap width in font pixels, matching the panel's inner width. */
+    private static final int TEXT_WRAP_PX = (int) (2.3F / TEXT_SCALE);
     private static final int BOOT_TICKS = 50;
     private static final int PULSE_TICKS = 12;
     private static final int LEVEL_UP_TICKS = 30;
@@ -111,21 +116,28 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
         float alpha = 0.6F + 0.3F * ((frame % 4) / 3F);
         quad(pose, vc, -1.5F, -1.5F, 3F, 3F, Z_STATIC, 0, v0, 48 / ATLAS, v0 + 8 / ATLAS, 1, 1, 1, alpha);
         // Red panel: bright border quad below a darker inner quad.
-        quad(pose, vc, -1.0F, -0.5F, 2.0F, 1.0F, Z_FLASH,
+        quad(pose, vc, -1.35F, -0.7F, 2.7F, 1.4F, Z_FLASH,
                 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.85F, 0.08F, 0.08F, 0.92F);
-        quad(pose, vc, -0.92F, -0.42F, 1.84F, 0.84F, Z_FEATURES,
+        quad(pose, vc, -1.27F, -0.62F, 2.54F, 1.24F, Z_FEATURES,
                 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.30F, 0.01F, 0.01F, 0.95F);
-        // Error text, centered in the panel.
+        // Error text: title plus detail wrapped to the panel width, the
+        // whole block vertically centered.
         Component title = Component.translatable("gui.krios_industry.koios.fault_title");
-        Component detail = Component.translatable("gui.krios_industry.koios.fault_detail");
+        List<FormattedCharSequence> detail = font.split(
+                Component.translatable("gui.krios_industry.koios.fault_detail"), TEXT_WRAP_PX);
         poseStack.pushPose();
         poseStack.translate(0, 0, Z_TEXT);
         poseStack.scale(TEXT_SCALE, -TEXT_SCALE, TEXT_SCALE);
         var matrix = poseStack.last().pose();
-        font.drawInBatch(title, -font.width(title) / 2F, -12, 0xFFFFFFFF, false,
+        float y = -(10 + 4 + detail.size() * 10) / 2F;
+        font.drawInBatch(title, -font.width(title) / 2F, y, 0xFFFFFFFF, false,
                 matrix, buffers, Font.DisplayMode.NORMAL, 0, LightTexture.FULL_BRIGHT);
-        font.drawInBatch(detail, -font.width(detail) / 2F, 2, 0xFFFF8080, false,
-                matrix, buffers, Font.DisplayMode.NORMAL, 0, LightTexture.FULL_BRIGHT);
+        y += 14;
+        for (FormattedCharSequence line : detail) {
+            font.drawInBatch(line, -font.width(line) / 2F, y, 0xFFFF8080, false,
+                    matrix, buffers, Font.DisplayMode.NORMAL, 0, LightTexture.FULL_BRIGHT);
+            y += 10;
+        }
         poseStack.popPose();
     }
 
