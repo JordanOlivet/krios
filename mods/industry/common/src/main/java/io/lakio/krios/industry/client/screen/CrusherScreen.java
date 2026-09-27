@@ -24,9 +24,9 @@ public class CrusherScreen extends KriosTerminalScreen<CrusherMenu> {
     private static final int FACES_BUTTON_SIZE = 12;
 
     private final HologramFacePanel facePanel = new HologramFacePanel(
-            new HologramFacePanel.Column("gui.krios_industry.flow.energy_in", Flow.ENERGY, false),
-            new HologramFacePanel.Column("gui.krios_industry.flow.item_in", Flow.ITEM, false),
-            new HologramFacePanel.Column("gui.krios_industry.flow.item_out", Flow.ITEM, true));
+            new HologramFacePanel.Column(Flow.ENERGY, false),
+            new HologramFacePanel.Column(Flow.ITEM, false),
+            new HologramFacePanel.Column(Flow.ITEM, true));
 
     // Module effects are visible container slots — no extra sync needed.
     private final StatsPanel statsPanel = new StatsPanel(

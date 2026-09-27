@@ -19,8 +19,8 @@ public class GeneratorScreen extends KriosTerminalScreen<GeneratorMenu> {
     private static final int FACES_BUTTON_SIZE = 12;
 
     private final HologramFacePanel facePanel = new HologramFacePanel(
-            new HologramFacePanel.Column("gui.krios_industry.flow.energy_out", Flow.ENERGY, true),
-            new HologramFacePanel.Column("gui.krios_industry.flow.item_in", Flow.ITEM, false));
+            new HologramFacePanel.Column(Flow.ENERGY, true),
+            new HologramFacePanel.Column(Flow.ITEM, false));
 
     private final StatsPanel statsPanel = new StatsPanel(
             new StatsPanel.Row(StatsPanel.Icon.OUTPUT,

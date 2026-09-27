@@ -32,10 +32,6 @@
   "gui.krios_industry.faces.manual": "Manual",
   "gui.krios_industry.faces.title": "Face configuration",
   "gui.krios_industry.faces.vanilla": "Default",
-  "gui.krios_industry.flow.energy_in": "E-in",
-  "gui.krios_industry.flow.energy_out": "E-out",
-  "gui.krios_industry.flow.item_in": "I-in",
-  "gui.krios_industry.flow.item_out": "I-out",
   "gui.krios_industry.koios.critical": "Critical level 5: material breakthrough required (Tier 2 — coming soon)",
   "gui.krios_industry.koios.diversity": "Data diversity: %s%%",
   "gui.krios_industry.koios.fault_detail": "Multiple cores on one network",
@@ -68,5 +64,9 @@
   "gui.krios_industry.stats.yield": "Bonus yield (Yield modules)",
   "gui.krios_industry.stats.output": "Energy output",
   "gui.krios_industry.stats.stored": "Stored energy",
-  "gui.krios_industry.faces.hint": "Left-click: select a face. Right-drag: rotate."
+  "gui.krios_industry.faces.hint": "Left-click: select a face. Right-drag: rotate.",
+  "gui.krios_industry.flowtype.energy": "Energy",
+  "gui.krios_industry.flowtype.item": "Items",
+  "gui.krios_industry.faces.in": "Input",
+  "gui.krios_industry.faces.out": "Output"
 }

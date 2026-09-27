@@ -32,10 +32,6 @@
   "gui.krios_industry.faces.manual": "Manuel",
   "gui.krios_industry.faces.title": "Configuration des faces",
   "gui.krios_industry.faces.vanilla": "Défaut",
-  "gui.krios_industry.flow.energy_in": "E-in",
-  "gui.krios_industry.flow.energy_out": "E-out",
-  "gui.krios_industry.flow.item_in": "I-in",
-  "gui.krios_industry.flow.item_out": "I-out",
   "gui.krios_industry.koios.critical": "Niveau critique 5 : percée matérielle requise (Tier 2 — à venir)",
   "gui.krios_industry.koios.diversity": "Diversité des données : %s %%",
   "gui.krios_industry.koios.fault_detail": "Plusieurs cœurs sur un même réseau",
@@ -68,5 +64,9 @@
   "gui.krios_industry.stats.yield": "Rendement bonus (modules Rendement)",
   "gui.krios_industry.stats.output": "Production d'énergie",
   "gui.krios_industry.stats.stored": "Énergie stockée",
-  "gui.krios_industry.faces.hint": "Clic gauche : choisir une face. Clic droit + glisser : pivoter."
+  "gui.krios_industry.faces.hint": "Clic gauche : choisir une face. Clic droit + glisser : pivoter.",
+  "gui.krios_industry.flowtype.energy": "Énergie",
+  "gui.krios_industry.flowtype.item": "Objets",
+  "gui.krios_industry.faces.in": "Entrée",
+  "gui.krios_industry.faces.out": "Sortie"
 }

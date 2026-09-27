@@ -34,8 +34,8 @@ import org.joml.Vector4f;
  */
 public class HologramFacePanel {
 
-    /** A flow-direction column: label key + encoded sub id (flow*2 + out). */
-    public record Column(String labelKey, Flow flow, boolean out) {
+    /** A supported flow direction; sub id encodes it as flow*2 + out. */
+    public record Column(Flow flow, boolean out) {
         int sub() {
             return flow.ordinal() * 2 + (out ? 1 : 0);
         }
@@ -49,15 +49,16 @@ public class HologramFacePanel {
             "gui.krios_industry.direction.north", "gui.krios_industry.direction.south",
             "gui.krios_industry.direction.west", "gui.krios_industry.direction.east"};
 
-    private static final int PANEL_W = 132;
+    private static final int PANEL_W = 140;
     private static final int VP_X = 6;
     private static final int VP_Y = 16;
-    private static final int VP_W = 120;
+    private static final int VP_W = 128;
     private static final int VP_H = 100;
     private static final float SCALE = 24;
     private static final int MODE_ROW_Y = VP_Y + VP_H + 4;
-    private static final int CELL_ROW_Y = MODE_ROW_Y + 15;
     private static final int ROW_H = 13;
+    private static final int ROW_STEP = 15;
+    private static final int PILL_W = 40;
 
     /** Cube face corners in [-0.5, 0.5] model space, seen from outside. */
     private static final float[][][] FACE_CORNERS = new float[6][][];
@@ -82,6 +83,8 @@ public class HologramFacePanel {
     }
 
     private final Column[] columns;
+    /** Column order grouped by flow type, one UI row per flow. */
+    private final java.util.List<Flow> flowRows;
     private boolean open;
     private Direction selected;
     private Direction hovered;
@@ -91,6 +94,12 @@ public class HologramFacePanel {
 
     public HologramFacePanel(Column... columns) {
         this.columns = columns;
+        this.flowRows = new java.util.ArrayList<>();
+        for (Column column : columns) {
+            if (!flowRows.contains(column.flow())) {
+                flowRows.add(column.flow());
+            }
+        }
     }
 
     public boolean isOpen() {
@@ -106,7 +115,7 @@ public class HologramFacePanel {
     }
 
     public int height() {
-        return CELL_ROW_Y + ROW_H + 6;
+        return MODE_ROW_Y + ROW_STEP + flowRows.size() * ROW_STEP + 6;
     }
 
     public void render(GuiGraphics gui, Font font, int x, int y, IntUnaryOperator bits, BlockPos machinePos) {
@@ -148,7 +157,13 @@ public class HologramFacePanel {
         pose.mulPose(new Quaternionf().rotationX(pitch).rotateY(yaw));
 
         MultiBufferSource.BufferSource buffers = minecraft.renderBuffers().bufferSource();
-        // Ghost neighbors first (translucent), then the machine.
+        // Machine first, then the ghosts blend over it.
+        pose.pushPose();
+        pose.translate(-0.5F, -0.5F, -0.5F);
+        minecraft.getBlockRenderer().renderSingleBlock(state, pose, buffers,
+                0xF000F0, OverlayTexture.NO_OVERLAY);
+        pose.popPose();
+        buffers.endBatch();
         for (Direction dir : Direction.values()) {
             BlockState neighbor = minecraft.level.getBlockState(machinePos.relative(dir));
             if (neighbor.isAir() || neighbor.getRenderShape() != RenderShape.MODEL) {
@@ -157,26 +172,21 @@ public class HologramFacePanel {
             pose.pushPose();
             pose.translate(dir.getStepX() - 0.5F, dir.getStepY() - 0.5F, dir.getStepZ() - 0.5F);
             MultiBufferSource ghost = type -> new GhostVertexConsumer(
-                    buffers.getBuffer(RenderType.translucentMovingBlock()), 90);
+                    buffers.getBuffer(RenderType.translucentMovingBlock()), 55);
             minecraft.getBlockRenderer().renderSingleBlock(neighbor, pose, ghost,
                     0xF000F0, OverlayTexture.NO_OVERLAY);
             pose.popPose();
+            buffers.endBatch();
         }
-        buffers.endBatch();
-        pose.pushPose();
-        pose.translate(-0.5F, -0.5F, -0.5F);
-        minecraft.getBlockRenderer().renderSingleBlock(state, pose, buffers,
-                0xF000F0, OverlayTexture.NO_OVERLAY);
-        pose.popPose();
-        buffers.endBatch();
 
-        // Face highlights: hovered (faint) and selected (strong).
-        VertexConsumer quads = buffers.getBuffer(RenderType.gui());
+        // Face highlights: hovered (faint) and selected (strong). guiOverlay
+        // skips the depth test so the selection reads through the ghosts.
+        VertexConsumer quads = buffers.getBuffer(RenderType.guiOverlay());
         if (hovered != null && hovered != selected) {
             faceQuad(pose, quads, hovered, 0x4031D8FF);
         }
         if (selected != null) {
-            faceQuad(pose, quads, selected, 0x8031D8FF);
+            faceQuad(pose, quads, selected, 0x9031D8FF);
         }
         buffers.endBatch();
         pose.popPose();
@@ -186,12 +196,11 @@ public class HologramFacePanel {
     }
 
     private void renderControls(GuiGraphics gui, Font font, int x, int y, IntUnaryOperator bits) {
-        Font font1 = font;
         if (selected == null) {
             int textY = y + MODE_ROW_Y + 2;
-            for (FormattedCharSequence line : font1.split(
+            for (FormattedCharSequence line : font.split(
                     Component.translatable("gui.krios_industry.faces.hint"), PANEL_W - 12)) {
-                gui.drawString(font1, line, x + 6, textY, 0xFF5A6170, false);
+                gui.drawString(font, line, x + 6, textY, 0xFF5A6170, false);
                 textY += 10;
             }
             return;
@@ -199,36 +208,49 @@ public class HologramFacePanel {
         int faceBits = bits.applyAsInt(selected.get3DDataValue());
         boolean manual = FaceConfig.isManualBits(faceBits);
 
-        gui.drawString(font1, Component.translatable(FACE_KEYS[selected.get3DDataValue()]),
+        gui.drawString(font, Component.translatable(FACE_KEYS[selected.get3DDataValue()]),
                 x + 6, y + MODE_ROW_Y + 3, 0xFFE8EAF0, false);
         int modeX = x + PANEL_W - 60;
         gui.fill(modeX, y + MODE_ROW_Y, modeX + 54, y + MODE_ROW_Y + ROW_H,
                 manual ? 0xFF0A6E87 : 0xFF262B35);
-        gui.drawCenteredString(font1, Component.translatable(manual
+        gui.drawCenteredString(font, Component.translatable(manual
                         ? "gui.krios_industry.faces.manual"
                         : FaceConfig.isConfiguredBits(faceBits)
                                 ? "gui.krios_industry.faces.auto"
                                 : "gui.krios_industry.faces.vanilla"),
                 modeX + 27, y + MODE_ROW_Y + 3, manual ? 0xFFE8EAF0 : 0xFF9FA6AA);
 
-        int cellW = (PANEL_W - 12) / columns.length;
-        int cellX = x + 6;
-        for (Column column : columns) {
-            if (manual) {
+        // One row per flow type, a labelled Input/Output pill per direction
+        // the machine supports. Filled cyan = allowed, dark = blocked; in
+        // non-manual modes the pills are informational (auto routing).
+        for (int row = 0; row < flowRows.size(); row++) {
+            Flow flow = flowRows.get(row);
+            int rowY = y + MODE_ROW_Y + ROW_STEP + row * ROW_STEP;
+            gui.drawString(font, Component.translatable(
+                    "gui.krios_industry.flowtype." + flow.name().toLowerCase()),
+                    x + 6, rowY + 3, 0xFFA9AFBD, false);
+            int pillX = x + PANEL_W - 6 - PILL_W;
+            for (int i = columns.length - 1; i >= 0; i--) {
+                Column column = columns[i];
+                if (column.flow() != flow) {
+                    continue;
+                }
                 boolean allowed = FaceConfig.allowsBits(faceBits, column.flow(), column.out());
-                gui.fill(cellX, y + CELL_ROW_Y, cellX + cellW - 2, y + CELL_ROW_Y + ROW_H,
-                        allowed ? 0xFF2F6B3A : 0xFF6B2F2F);
-                gui.drawCenteredString(font1, Component.translatable(column.labelKey()),
-                        cellX + (cellW - 2) / 2, y + CELL_ROW_Y + 3, 0xFFE8EAF0);
-            } else {
-                boolean routed = FaceConfig.isConfiguredBits(faceBits)
-                        && FaceConfig.allowsBits(faceBits, column.flow(), column.out());
-                gui.fill(cellX, y + CELL_ROW_Y, cellX + cellW - 2, y + CELL_ROW_Y + ROW_H, 0xFF171B22);
-                gui.drawCenteredString(font1, Component.translatable(column.labelKey()),
-                        cellX + (cellW - 2) / 2, y + CELL_ROW_Y + 3,
-                        routed ? 0xFF9AD9E0 : 0xFF5A6170);
+                int bg;
+                int fg;
+                if (manual) {
+                    bg = allowed ? 0xFF0A6E87 : 0xFF262B35;
+                    fg = allowed ? 0xFFE8EAF0 : 0xFF5A6170;
+                } else {
+                    bg = 0xFF171B22;
+                    fg = FaceConfig.isConfiguredBits(faceBits) && allowed ? 0xFF9AD9E0 : 0xFF5A6170;
+                }
+                gui.fill(pillX, rowY, pillX + PILL_W, rowY + ROW_H, bg);
+                gui.drawCenteredString(font, Component.translatable(column.out()
+                        ? "gui.krios_industry.faces.out" : "gui.krios_industry.faces.in"),
+                        pillX + PILL_W / 2, rowY + 3, fg);
+                pillX -= PILL_W + 4;
             }
-            cellX += cellW;
         }
     }
 
@@ -258,16 +280,25 @@ public class HologramFacePanel {
                 && mouseY >= y + MODE_ROW_Y && mouseY < y + MODE_ROW_Y + ROW_H) {
             return face * 16 + 15;
         }
-        // Flow cells (manual mode only).
-        if (FaceConfig.isManualBits(bits.applyAsInt(face))
-                && mouseY >= y + CELL_ROW_Y && mouseY < y + CELL_ROW_Y + ROW_H) {
-            int cellW = (PANEL_W - 12) / columns.length;
-            int cellX = x + 6;
-            for (Column column : columns) {
-                if (mouseX >= cellX && mouseX < cellX + cellW - 2) {
-                    return face * 16 + column.sub();
+        // Flow pills (manual mode only), same layout as renderControls.
+        if (FaceConfig.isManualBits(bits.applyAsInt(face))) {
+            for (int row = 0; row < flowRows.size(); row++) {
+                Flow flow = flowRows.get(row);
+                int rowY = y + MODE_ROW_Y + ROW_STEP + row * ROW_STEP;
+                if (mouseY < rowY || mouseY >= rowY + ROW_H) {
+                    continue;
                 }
-                cellX += cellW;
+                int pillX = x + PANEL_W - 6 - PILL_W;
+                for (int i = columns.length - 1; i >= 0; i--) {
+                    Column column = columns[i];
+                    if (column.flow() != flow) {
+                        continue;
+                    }
+                    if (mouseX >= pillX && mouseX < pillX + PILL_W) {
+                        return face * 16 + column.sub();
+                    }
+                    pillX -= PILL_W + 4;
+                }
             }
         }
         return CLICK_CONSUMED;
