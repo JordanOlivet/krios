@@ -1,6 +1,12 @@
 {
   "variants": {
-    "lit=false": { "model": "krios_industry:block/crusher" },
-    "lit=true": { "model": "krios_industry:block/crusher" }
+    "facing=north,lit=false": { "model": "krios_industry:block/crusher" },
+    "facing=east,lit=false": { "model": "krios_industry:block/crusher", "y": 90 },
+    "facing=south,lit=false": { "model": "krios_industry:block/crusher", "y": 180 },
+    "facing=west,lit=false": { "model": "krios_industry:block/crusher", "y": 270 },
+    "facing=north,lit=true": { "model": "krios_industry:block/crusher_lit" },
+    "facing=east,lit=true": { "model": "krios_industry:block/crusher_lit", "y": 90 },
+    "facing=south,lit=true": { "model": "krios_industry:block/crusher_lit", "y": 180 },
+    "facing=west,lit=true": { "model": "krios_industry:block/crusher_lit", "y": 270 }
   }
 }

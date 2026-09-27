@@ -6,14 +6,18 @@ import io.lakio.krios.industry.network.NetworkConductor;
 import io.lakio.krios.industry.registry.ModBlockEntities;
 import io.lakio.krios.industry.tool.CalibratorItem;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -30,7 +34,9 @@ public class GeneratorBlock extends BaseEntityBlock implements NetworkConductor 
 
     public GeneratorBlock(Properties properties) {
         super(properties);
-        registerDefaultState(getStateDefinition().any().setValue(BlockStateProperties.LIT, false));
+        registerDefaultState(getStateDefinition().any()
+                .setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH)
+                .setValue(BlockStateProperties.LIT, false));
     }
 
     @Override
@@ -40,7 +46,25 @@ public class GeneratorBlock extends BaseEntityBlock implements NetworkConductor 
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<net.minecraft.world.level.block.Block, BlockState> builder) {
-        builder.add(BlockStateProperties.LIT);
+        builder.add(BlockStateProperties.HORIZONTAL_FACING, BlockStateProperties.LIT);
+    }
+
+    @Override
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
+        // Front (screen side) toward the player.
+        return defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING,
+                context.getHorizontalDirection().getOpposite());
+    }
+
+    @Override
+    protected BlockState rotate(BlockState state, Rotation rotation) {
+        return state.setValue(BlockStateProperties.HORIZONTAL_FACING,
+                rotation.rotate(state.getValue(BlockStateProperties.HORIZONTAL_FACING)));
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, Mirror mirror) {
+        return state.rotate(mirror.getRotation(state.getValue(BlockStateProperties.HORIZONTAL_FACING)));
     }
 
     @Override

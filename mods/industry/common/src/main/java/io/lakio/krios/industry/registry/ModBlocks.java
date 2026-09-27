@@ -58,14 +58,18 @@ public final class ModBlocks {
                     .mapColor(MapColor.METAL)
                     .requiresCorrectToolForDrops()
                     .strength(3.5F, 6.0F)
-                    .sound(SoundType.METAL)));
+                    .sound(SoundType.METAL)
+                    // Sculpted model (graphics pass): not a full cube.
+                    .noOcclusion()));
 
     public static final Supplier<Block> CRUSHER = registerWithItem("crusher",
             () -> new CrusherBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.METAL)
                     .requiresCorrectToolForDrops()
                     .strength(3.5F, 6.0F)
-                    .sound(SoundType.METAL)));
+                    .sound(SoundType.METAL)
+                    // Sculpted model (graphics pass): not a full cube.
+                    .noOcclusion()));
 
     public static final Supplier<Block> NEURAL_CASING = registerWithItem("neural_casing",
             () -> new NeuralCasingBlock(BlockBehaviour.Properties.of()
@@ -87,6 +91,8 @@ public final class ModBlocks {
                     .requiresCorrectToolForDrops()
                     .strength(5.0F, 6.0F)
                     .sound(SoundType.METAL)
+                    // Sculpted model (graphics pass): crystal in an open frame.
+                    .noOcclusion()
                     .lightLevel(state -> state.getValue(KoiosCoreBlock.FORMED) ? 7 : 0)),
             block -> new BlockItem(block, new Item.Properties()) {
                 @Override

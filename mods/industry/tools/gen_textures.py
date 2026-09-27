@@ -146,19 +146,6 @@ def neural_casing_formed():
     return img
 
 
-def koios_core():
-    img = Img(16, 16)
-    img.noise_rect(0, 0, 16, 16, METAL, 5, 37)
-    bevel(img)
-    img.outline(2, 2, 12, 12, JOINT)
-    img.rect(6, 6, 4, 4, CYAN_DIM)
-    img.rect(7, 7, 2, 2, CYAN)
-    img.set(7, 7, CYAN_HI)
-    for dx, dy in [(5, 7), (10, 7), (7, 5), (7, 10)]:
-        img.set(dx, dy, CYAN_DIM)
-    return img
-
-
 def koios_core_formed():
     img = Img(16, 16)
     img.noise_rect(0, 0, 16, 16, SCREEN, 3, 41)
@@ -172,59 +159,173 @@ def koios_core_formed():
     return img
 
 
-def generator():
+def generator_side():
+    """Bands match generator_base.json: 0-2 chimney/vents, 2-4 deck, 4-12 body, 12-16 skirt."""
     img = Img(16, 16)
-    img.noise_rect(0, 0, 16, 16, METAL, 5, 53)
-    bevel(img)
-    img.outline(2, 2, 12, 12, COPPER)
-    img.outline(3, 3, 10, 10, COPPER_D)
-    img.rect(5, 5, 6, 6, JOINT)
-    img.rect(7, 7, 2, 2, ENERGY)
-    img.set(7, 7, ENERGY_HI)
-    img.outline(6, 6, 4, 4, AMBER_D)
-    for x in range(5, 11, 2):
-        img.set(x, 13, JOINT)
+    img.rect(0, 0, 16, 2, METAL_EDGE)
+    for x in range(0, 16, 2):
+        img.set(x, 1, JOINT)
+    img.noise_rect(0, 2, 16, 2, METAL, 4, 51)
+    img.rect(0, 2, 16, 1, METAL_EDGE)
+    img.noise_rect(0, 4, 16, 8, METAL, 5, 53)
+    for x in (2, 13):
+        img.rect(x, 4, 1, 8, COPPER_D)
+        img.set(x, 5, COPPER)
+    for y in (9, 10):
+        img.rect(4, y, 8, 1, JOINT)
+    img.rect(0, 12, 16, 4, JOINT)
+    img.rect(0, 12, 16, 1, METAL_EDGE)
+    for x in (2, 13):
+        img.set(x, 14, METAL_EDGE)
     return img
 
 
-def crusher():
+def generator_front(lit):
+    img = generator_side()
+    # Window (4,5)-(12,11): copper frame, amber core inside.
+    img.rect(4, 5, 8, 6, COPPER)
+    img.rect(5, 6, 6, 4, JOINT)
+    if lit:
+        img.rect(6, 7, 4, 2, ENERGY)
+        img.set(7, 7, ENERGY_HI)
+        img.set(8, 7, ENERGY_HI)
+        img.outline(5, 6, 6, 4, AMBER_D)
+    else:
+        img.rect(6, 7, 4, 2, COPPER_D)
+        img.set(7, 7, AMBER_D)
+        img.set(8, 8, AMBER_D)
+    return img
+
+
+def generator_top():
     img = Img(16, 16)
-    img.noise_rect(0, 0, 16, 16, METAL, 5, 67)
-    bevel(img)
-    img.rect(2, 2, 12, 3, COPPER)
-    img.rect(2, 4, 12, 1, COPPER_D)
-    img.rect(2, 11, 12, 3, COPPER)
-    img.rect(2, 11, 12, 1, COPPER_D)
-    img.rect(2, 6, 12, 4, JOINT)
-    for x in range(2, 14, 2):
-        img.set(x, 6, METAL_EDGE)
-        img.set(x + 1, 9, METAL_EDGE)
+    img.noise_rect(0, 0, 16, 16, METAL, 4, 57)
+    img.outline(0, 0, 16, 16, METAL_EDGE)
+    img.outline(2, 2, 12, 12, JOINT)
+    # Chimney mouth (9,9)-(13,13).
+    img.rect(9, 9, 4, 4, JOINT)
+    img.outline(9, 9, 4, 4, METAL_EDGE)
+    img.rect(10, 10, 2, 2, (0, 0, 0))
+    # Vent grid (3,3)-(7,7).
+    for y in range(3, 7):
+        for x in range(3, 7):
+            img.set(x, y, JOINT if (x + y) % 2 == 0 else METAL_EDGE)
+    return img
+
+
+def crusher_side():
+    """Bands match crusher_base.json: 0-4 jaw zone, 4-5 collar, 5-16 body."""
+    img = Img(16, 16)
+    img.rect(0, 0, 16, 4, METAL_EDGE)
+    img.rect(0, 4, 16, 1, METAL_EDGE)
+    img.noise_rect(0, 5, 16, 11, METAL, 5, 67)
+    for x in (2, 3, 12, 13):
+        img.rect(x, 5, 1, 11, COPPER_D if x in (2, 13) else COPPER)
+    # Hazard strip near the ground.
+    for x in range(4, 12):
+        img.set(x, 14, ENERGY if x % 2 == 0 else JOINT)
+    img.rect(0, 15, 16, 1, JOINT)
+    return img
+
+
+def crusher_front():
+    img = crusher_side()
+    # Status screen (5,7)-(11,12): dark panel, cyan readout.
+    img.rect(5, 7, 6, 5, JOINT)
+    img.outline(5, 7, 6, 5, METAL_EDGE)
+    img.rect(6, 8, 3, 1, CYAN_DIM)
+    img.rect(6, 10, 4, 1, CYAN_DIM)
+    img.set(9, 8, CYAN)
+    return img
+
+
+def crusher_top():
+    img = Img(16, 16)
+    img.noise_rect(0, 0, 16, 16, METAL, 4, 69)
+    img.outline(0, 0, 16, 16, METAL_EDGE)
+    img.rect(4, 4, 8, 8, JOINT)
+    return img
+
+
+def crusher_jaw():
+    img = Img(16, 16)
+    img.noise_rect(0, 0, 16, 16, METAL, 5, 71)
+    img.outline(0, 0, 16, 16, METAL_EDGE)
+    for y in (5, 10):
+        img.rect(1, y, 14, 1, JOINT)
+    # Teeth edge.
+    for x in range(0, 16, 2):
+        img.set(x, 14, METAL_EDGE)
+        img.set(x + 1, 14, JOINT)
+        img.set(x, 15, JOINT)
+        img.set(x + 1, 15, METAL_EDGE)
+    return img
+
+
+def crusher_maw(lit):
+    img = Img(16, 16)
+    img.noise_rect(0, 0, 16, 16, METAL, 4, 73)
+    img.outline(0, 0, 16, 16, METAL_EDGE)
+    img.rect(3, 3, 10, 10, JOINT)
+    for y in range(4, 12, 2):
+        for x in range(4, 12, 2):
+            img.set(x, y, METAL_EDGE)
+            if lit:
+                img.set(x + 1, y + 1, ENERGY)
+    if lit:
+        img.rect(7, 7, 2, 2, ENERGY_HI)
+    return img
+
+
+def koios_core_frame():
+    img = Img(16, 16)
+    img.noise_rect(0, 0, 16, 16, METAL, 4, 77)
+    img.outline(0, 0, 16, 16, METAL_EDGE)
+    img.outline(2, 2, 12, 12, JOINT)
+    for x, y in [(1, 1), (14, 1), (1, 14), (14, 14)]:
+        img.set(x, y, CYAN_DIM)
+    return img
+
+
+def koios_core_crystal():
+    img = Img(16, 16)
+    for x in range(16):
+        if x in (7, 8):
+            c = mix(CYAN, CYAN_HI, 0.5)
+        elif x in (6, 9):
+            c = CYAN
+        else:
+            c = CYAN_DIM
+        for y in range(16):
+            n = (noise(x, y, 79) - 0.5) * 14
+            img.set(x, y, tuple(max(0, min(255, round(v + n))) for v in c))
+    for y in range(5, 10):
+        img.set(7, y, CYAN_HI)
+        img.set(8, y, CYAN_HI)
+    img.rect(0, 0, 16, 1, CYAN_DIM)
+    img.rect(0, 15, 16, 1, CYAN_DIM)
     return img
 
 
 def neural_conduit():
+    """4 px profile: strips x6..9 / y6..9 (sheath 6 and 9, cyan core 7-8)."""
     img = Img(16, 16)
-    # Vertical strip x5..10 (arm UV 5,0..11,y) — along-length pattern.
+    # Vertical strip (arm UV 6,0..10,y) — along-length pattern.
     for y in range(16):
-        img.set(5, y, COPPER_D)
-        img.set(10, y, COPPER_D)
-        for x in (6, 9):
-            img.set(x, y, COPPER)
+        img.set(6, y, COPPER_D)
+        img.set(9, y, COPPER_D)
         for x in (7, 8):
             img.set(x, y, CYAN if noise(x, y, 71) > 0.25 else CYAN_HI)
-    # Horizontal strip y5..10 (arm UV 0,5..x,11).
+    # Horizontal strip (arm side UV 0,6..x,10).
     for x in range(16):
-        if 5 <= x <= 10:
+        if 6 <= x <= 9:
             continue
-        img.set(x, 5, COPPER_D)
-        img.set(x, 10, COPPER_D)
-        for y in (6, 9):
-            img.set(x, y, COPPER)
+        img.set(x, 6, COPPER_D)
+        img.set(x, 9, COPPER_D)
         for y in (7, 8):
             img.set(x, y, CYAN if noise(x, y, 71) > 0.25 else CYAN_HI)
-    # Core box 5..10 (core UV 5,5..11,11): junction block.
-    img.noise_rect(5, 5, 6, 6, METAL, 4, 73)
-    img.outline(5, 5, 6, 6, METAL_EDGE)
+    # Core box 6..9 (core UV 6,6..10,10): junction node.
+    img.outline(6, 6, 4, 4, METAL_EDGE)
     img.rect(7, 7, 2, 2, CYAN)
     img.set(7, 7, CYAN_HI)
     return img
@@ -527,10 +628,19 @@ def main():
     out = {
         "block/neural_casing.png": neural_casing(),
         "block/neural_casing_formed.png": neural_casing_formed(),
-        "block/koios_core.png": koios_core(),
+        "block/koios_core_frame.png": koios_core_frame(),
+        "block/koios_core_crystal.png": koios_core_crystal(),
         "block/koios_core_formed.png": koios_core_formed(),
-        "block/generator.png": generator(),
-        "block/crusher.png": crusher(),
+        "block/generator_side.png": generator_side(),
+        "block/generator_front.png": generator_front(False),
+        "block/generator_front_lit.png": generator_front(True),
+        "block/generator_top.png": generator_top(),
+        "block/crusher_side.png": crusher_side(),
+        "block/crusher_front.png": crusher_front(),
+        "block/crusher_top.png": crusher_top(),
+        "block/crusher_jaw.png": crusher_jaw(),
+        "block/crusher_maw.png": crusher_maw(False),
+        "block/crusher_maw_lit.png": crusher_maw(True),
         "block/neural_conduit.png": neural_conduit(),
         "block/neurite_ore.png": ore(STONE, CYAN, CYAN_HI, CYAN_DIM, 101),
         "block/deepslate_neurite_ore.png": ore(DEEPSLATE, CYAN, CYAN_HI, CYAN_DIM, 103),

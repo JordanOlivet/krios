@@ -30,15 +30,16 @@ public class NeuralConduitBlock extends Block implements NetworkConductor {
 
     public static final Map<Direction, BooleanProperty> CONNECTIONS = PipeBlock.PROPERTY_BY_DIRECTION;
 
-    private static final VoxelShape CORE_SHAPE = Block.box(5, 5, 5, 11, 11, 11);
+    // 4 px profile (graphics pass): 6 px read too bulky in-world.
+    private static final VoxelShape CORE_SHAPE = Block.box(6, 6, 6, 10, 10, 10);
     /** Indexed by Direction.get3DDataValue(): D, U, N, S, W, E. */
     private static final VoxelShape[] ARM_SHAPES = {
-            Block.box(5, 0, 5, 11, 5, 11),
-            Block.box(5, 11, 5, 11, 16, 11),
-            Block.box(5, 5, 0, 11, 11, 5),
-            Block.box(5, 5, 11, 11, 11, 16),
-            Block.box(0, 5, 5, 5, 11, 11),
-            Block.box(11, 5, 5, 16, 11, 11)};
+            Block.box(6, 0, 6, 10, 6, 10),
+            Block.box(6, 10, 6, 10, 16, 10),
+            Block.box(6, 6, 0, 10, 10, 6),
+            Block.box(6, 6, 10, 10, 10, 16),
+            Block.box(0, 6, 6, 6, 10, 10),
+            Block.box(10, 6, 6, 16, 10, 10)};
     private final VoxelShape[] shapes = new VoxelShape[64];
 
     public NeuralConduitBlock(Properties properties) {

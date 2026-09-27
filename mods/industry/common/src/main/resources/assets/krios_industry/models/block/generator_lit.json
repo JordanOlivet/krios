@@ -1,0 +1,8 @@
+{
+  "parent": "krios_industry:block/generator_base",
+  "textures": {
+    "front": "krios_industry:block/generator_front_lit",
+    "side": "krios_industry:block/generator_side",
+    "top": "krios_industry:block/generator_top"
+  }
+}

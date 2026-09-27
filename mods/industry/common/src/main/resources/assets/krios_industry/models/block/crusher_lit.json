@@ -1,0 +1,10 @@
+{
+  "parent": "krios_industry:block/crusher_base",
+  "textures": {
+    "front": "krios_industry:block/crusher_front",
+    "side": "krios_industry:block/crusher_side",
+    "top": "krios_industry:block/crusher_top",
+    "jaw": "krios_industry:block/crusher_jaw",
+    "maw": "krios_industry:block/crusher_maw_lit"
+  }
+}
