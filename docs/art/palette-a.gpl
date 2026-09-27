@@ -1,0 +1,21 @@
+GIMP Palette
+Name: Krios Industry - Palette A (Signal froid / metal chaud)
+Columns: 8
+# Direction A frozen 2026-09-27. Cyan = software/AI, amber+copper = hardware/heat.
+# Load in Aseprite: Palette menu > Load Palette.
+ 58  65  78	metal-edge
+ 38  43  53	metal-base
+ 23  27  34	joint-shadow
+ 16  20  27	screen-black
+159 240 255	ai-bright-flash
+ 49 216 255	ai-glow
+ 10 110 135	cyan-dim
+255 176  58	energy
+232 132  59	amber-dark
+201 117  46	copper
+122  67  28	copper-shadow
+229  72  77	error
+ 27  32  42	gui-bg
+ 18  21  27	gui-slot
+232 234 240	text-bright
+ 90  97 112	text-dim

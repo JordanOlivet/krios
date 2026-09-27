@@ -17,12 +17,13 @@ public class KoiosCoreScreen extends AbstractContainerScreen<KoiosCoreMenu> {
     private static final int XP_BAR_WIDTH = 160;
     private static final int XP_BAR_HEIGHT = 10;
 
-    private static final int COLOR_TEXT = 0x404040;
-    private static final int COLOR_ONLINE = 0x2E7D32;
-    private static final int COLOR_OFFLINE = 0xB02E26;
-    private static final int COLOR_UNLOCKED = 0x2E7D32;
-    private static final int COLOR_LOCKED = 0x808080;
-    private static final int COLOR_CRITICAL = 0xB8860B;
+    // Palette A (graphics pass): light text on the dark GUI panel.
+    private static final int COLOR_TEXT = 0xE8EAF0;
+    private static final int COLOR_ONLINE = 0x31D8FF;
+    private static final int COLOR_OFFLINE = 0xE5484D;
+    private static final int COLOR_UNLOCKED = 0x31D8FF;
+    private static final int COLOR_LOCKED = 0x5A6170;
+    private static final int COLOR_CRITICAL = 0xFFB03A;
 
     public KoiosCoreScreen(KoiosCoreMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);

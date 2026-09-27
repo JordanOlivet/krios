@@ -78,7 +78,7 @@ public class FaceConfigPanel {
                     x + 4, rowY + 3, 0xFFE0E6E8, false);
             int modeX = x + 4 + LABEL_WIDTH;
             gui.fill(modeX, rowY + 1, modeX + MODE_WIDTH - 2, rowY + ROW_HEIGHT - 1,
-                    manual ? 0xFF2E4A6B : 0xFF2A2F33);
+                    manual ? 0xFF0A6E87 : 0xFF262B35);
             gui.drawString(font, Component.translatable(manual
                             ? "gui.krios_industry.faces.manual"
                             : FaceConfig.isConfiguredBits(faceBits)

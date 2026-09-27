@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Krios Industry — Visual Identity (Direction A)</title>
+<style>
+  :root {
+    --metal-edge: #3A414E; --metal: #262B35; --joint: #171B22; --screen: #10141B;
+    --ai-hi: #9FF0FF; --ai: #31D8FF; --cyan-dim: #0A6E87;
+    --energy: #FFB03A; --amber-d: #E8843B; --copper: #C9752E; --copper-d: #7A431C;
+    --error: #E5484D; --gui-bg: #1B202A; --gui-slot: #12151B;
+    --text-hi: #E8EAF0; --text-dim: #5A6170;
+  }
+  body { margin: 0; background: var(--screen); color: var(--text-hi);
+         font: 14px/1.55 system-ui, sans-serif; padding: 40px 24px; }
+  main { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+  h1 { margin: 0; font-family: ui-monospace, monospace; font-size: 24px; color: var(--ai); letter-spacing: 1px; }
+  h2 { margin: 0 0 10px; font-size: 15px; text-transform: uppercase; letter-spacing: 1px; color: #A9AFBD; }
+  p { margin: 0; color: #A9AFBD; }
+  .swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+  .sw { width: 116px; font-size: 11px; }
+  .sw .c { height: 56px; border-radius: 6px; border: 1px solid var(--metal-edge); }
+  .sw b { display: block; margin-top: 4px; }
+  .sw span { color: #A9AFBD; }
+  .apps { display: flex; flex-wrap: wrap; gap: 24px; }
+  .panel-label { font-size: 12px; font-weight: 700; color: #A9AFBD; text-transform: uppercase;
+                 letter-spacing: 1px; margin-bottom: 8px; }
+  .face { width: 240px; height: 240px; box-sizing: border-box; background: var(--screen);
+          border: 12px solid var(--metal); outline: 2px solid var(--joint); border-radius: 4px;
+          position: relative; }
+  .eye { position: absolute; top: 70px; width: 36px; height: 52px; border-radius: 10px;
+         background: var(--ai); box-shadow: 0 0 26px var(--ai); }
+  .mouth { position: absolute; left: 50%; bottom: 56px; width: 60px; height: 8px;
+           margin-left: -30px; border-radius: 4px; background: var(--cyan-dim); }
+  .xp { position: absolute; left: 18px; right: 18px; bottom: 20px; height: 8px;
+        background: var(--joint); border-radius: 4px; }
+  .xp div { width: 62%; height: 8px; border-radius: 4px; background: var(--ai);
+            box-shadow: 0 0 10px var(--ai); }
+  .block { width: 96px; height: 96px; box-sizing: border-box; background: var(--metal);
+           border-style: solid; border-width: 6px; position: relative;
+           border-color: var(--metal-edge) var(--joint) var(--joint) var(--metal-edge); }
+  .dot { position: absolute; left: 50%; top: 50%; width: 13px; height: 13px;
+         margin: -7px 0 0 -7px; background: var(--ai); box-shadow: 0 0 14px var(--ai); }
+  .caption { font-size: 11.5px; color: #A9AFBD; margin-top: 6px; text-align: center; }
+  .gui { width: 320px; box-sizing: border-box; background: var(--gui-bg);
+         border: 3px solid var(--metal-edge); border-radius: 4px; padding: 14px;
+         display: flex; flex-direction: column; gap: 12px; }
+  .gui .title { font-family: ui-monospace, monospace; font-size: 13px; color: var(--ai); }
+  .slot { width: 38px; height: 38px; box-sizing: border-box; background: var(--gui-slot);
+          border-style: solid; border-width: 2px;
+          border-color: #0C0E13 var(--metal-edge) var(--metal-edge) #0C0E13; }
+  .bar { width: 16px; height: 104px; box-sizing: border-box; background: var(--gui-slot);
+         border: 2px solid #0C0E13; display: flex; flex-direction: column; justify-content: flex-end; }
+  .bar div { height: 65%; background: var(--energy); box-shadow: 0 0 8px var(--energy); }
+  .note { padding: 12px 16px; background: var(--joint); border-left: 3px solid var(--ai);
+          border-radius: 4px; font-size: 12.5px; color: #A9AFBD; }
+  .note b { color: var(--text-hi); }
+  table { border-collapse: collapse; font-size: 12.5px; }
+  td, th { padding: 4px 12px 4px 0; text-align: left; color: #A9AFBD; vertical-align: top; }
+  th { color: var(--text-hi); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>KRIOS: INDUSTRY · DIRECTION A — COLD SIGNAL / WARM METAL</h1>
+    <p>Visual identity frozen 2026-09-27. Cyan = software (everything KOIOS touches), amber &amp; copper =
+       hardware (everything that heats or carries), blue-grey gunmetal blocks, near-black screens.
+       Aseprite palette: <code>palette-a.gpl</code>. Draft textures: <code>mods/industry/tools/gen_textures.py</code>.</p>
+  </header>
+
+  <section>
+    <h2>Palette</h2>
+    <div class="swatches">
+      <div class="sw"><div class="c" style="background:#3A414E"></div><b>#3A414E</b><span>metal edge</span></div>
+      <div class="sw"><div class="c" style="background:#262B35"></div><b>#262B35</b><span>metal base</span></div>
+      <div class="sw"><div class="c" style="background:#171B22"></div><b>#171B22</b><span>joint / shadow</span></div>
+      <div class="sw"><div class="c" style="background:#10141B"></div><b>#10141B</b><span>screen black</span></div>
+      <div class="sw"><div class="c" style="background:#9FF0FF"></div><b>#9FF0FF</b><span>AI bright / level flash</span></div>
+      <div class="sw"><div class="c" style="background:#31D8FF"></div><b>#31D8FF</b><span>AI glow (eyes, XP, modules)</span></div>
+      <div class="sw"><div class="c" style="background:#0A6E87"></div><b>#0A6E87</b><span>cyan dim (idle)</span></div>
+      <div class="sw"><div class="c" style="background:#FFB03A"></div><b>#FFB03A</b><span>energy (FE, burn)</span></div>
+      <div class="sw"><div class="c" style="background:#E8843B"></div><b>#E8843B</b><span>amber dark</span></div>
+      <div class="sw"><div class="c" style="background:#C9752E"></div><b>#C9752E</b><span>copper hardware</span></div>
+      <div class="sw"><div class="c" style="background:#7A431C"></div><b>#7A431C</b><span>copper shadow</span></div>
+      <div class="sw"><div class="c" style="background:#E5484D"></div><b>#E5484D</b><span>error / network fault</span></div>
+      <div class="sw"><div class="c" style="background:#1B202A"></div><b>#1B202A</b><span>GUI background</span></div>
+      <div class="sw"><div class="c" style="background:#12151B"></div><b>#12151B</b><span>GUI slot</span></div>
+      <div class="sw"><div class="c" style="background:#E8EAF0"></div><b>#E8EAF0</b><span>text bright</span></div>
+      <div class="sw"><div class="c" style="background:#5A6170"></div><b>#5A6170</b><span>text dim</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Applied</h2>
+    <div class="apps">
+      <div>
+        <div class="panel-label">KOIOS face</div>
+        <div class="face">
+          <div class="eye" style="left: 50px"></div>
+          <div class="eye" style="right: 50px"></div>
+          <div class="mouth"></div>
+          <div class="xp"><div></div></div>
+        </div>
+        <div class="caption">Emissive cyan eyes + XP bar, dim-cyan mouth, casing-metal frame</div>
+      </div>
+      <div>
+        <div class="panel-label">Blocks</div>
+        <div style="display: flex; gap: 16px">
+          <div>
+            <div class="block"><div class="dot"></div></div>
+            <div class="caption">Neural Casing (formed)</div>
+          </div>
+          <div>
+            <div class="block">
+              <div style="position: absolute; inset: 9px; border: 4px solid var(--copper); background: var(--joint)"></div>
+              <div style="position: absolute; left: 50%; top: 50%; width: 26px; height: 16px; margin: -8px 0 0 -13px; background: var(--energy); box-shadow: 0 0 12px var(--energy)"></div>
+            </div>
+            <div class="caption">Machine (generator)</div>
+          </div>
+        </div>
+        <div style="margin-top: 16px">
+          <div style="width: 208px; height: 40px; box-sizing: border-box; background: var(--joint); border: 3px solid var(--metal); position: relative">
+            <div style="position: absolute; left: 0; right: 0; top: 50%; height: 13px; margin-top: -6px; background: var(--copper)"></div>
+            <div style="position: absolute; left: 0; right: 0; top: 50%; height: 4px; margin-top: -2px; background: var(--ai); box-shadow: 0 0 8px var(--ai)"></div>
+          </div>
+          <div class="caption">Neural Conduit: copper sheath, cyan core</div>
+        </div>
+      </div>
+      <div>
+        <div class="panel-label">GUI</div>
+        <div class="gui">
+          <div class="title">CRUSHER</div>
+          <div style="display: flex; gap: 14px; align-items: center">
+            <div class="slot"></div>
+            <svg width="26" height="16" viewBox="0 0 26 16" fill="none" aria-hidden="true"><path d="M2 8h18M14 2l6 6-6 6" stroke="#5A6170" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            <div class="slot"></div>
+            <div class="bar"><div></div></div>
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <div class="slot" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center">
+                <div style="width: 15px; height: 15px; background: var(--ai); border-radius: 3px"></div>
+              </div>
+              <div class="slot" style="width: 32px; height: 32px"></div>
+            </div>
+          </div>
+          <div style="font-size: 11px; color: var(--text-dim)">Dark custom GUI · amber FE bar · cyan module slots</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Color roles</h2>
+    <table>
+      <tr><th>Cyan #31D8FF</th><td>Reserved for intelligence: KOIOS eyes and pulses, XP, module glyphs, conduit data core, FORMED status.</td></tr>
+      <tr><th>Amber #FFB03A</th><td>Reserved for heat/power: FE bars, generator burn, energy flow.</td></tr>
+      <tr><th>Copper #C9752E</th><td>Passive hardware: machine frames, conduit sheaths, Calibrator handle.</td></tr>
+      <tr><th>Error #E5484D</th><td>Network fault only (2+ controllers, TV static red panel). Distinct from amber in lightness, not hue alone.</td></tr>
+      <tr><th>Metal ramp</th><td>#3A414E / #262B35 / #171B22 — every structural block; 3–4 values max per 16×16 material.</td></tr>
+    </table>
+  </section>
+
+  <div class="note">
+    <b>Constraints:</b> readable in dark caves (emissive glows on dark metal, never the reverse) ·
+    16×16 textures, no fine gradients · energy vs error differ in lightness, not hue alone (color-blind safe) ·
+    two accents max sharing chroma so everything reads as one system · GUI must coexist with vanilla inventory and JEI.
+    <br><b>Full design exploration</b> (3 directions compared): claude.ai artifact "Krios Industry — Identité visuelle".
+  </div>
+</main>
+</body>
+</html>

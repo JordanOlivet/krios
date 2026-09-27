@@ -198,12 +198,12 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
         // Mouth: a thin cyan line, wider while celebrating.
         float mouthW = celebrating ? 1.3F : 0.9F;
         quad(pose, vc, -mouthW / 2, -0.6F, mouthW, 0.09F, Z_FEATURES,
-                56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.27F, 0.91F, 0.94F, 0.95F);
+                56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.19F, 0.85F, 1F, 0.95F);
 
         // Learning pulse and level-up flash overlays.
         if (pulseT < PULSE_TICKS) {
             float a = (1F - pulseT / PULSE_TICKS) * 0.25F;
-            quad(pose, vc, -1.5F, -1.5F, 3F, 3F, Z_PULSE, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.27F, 0.91F, 0.94F, a);
+            quad(pose, vc, -1.5F, -1.5F, 3F, 3F, Z_PULSE, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.19F, 0.85F, 1F, a);
         }
         if (celebrating) {
             float a = (1F - levelUpT / LEVEL_UP_TICKS) * 0.35F;

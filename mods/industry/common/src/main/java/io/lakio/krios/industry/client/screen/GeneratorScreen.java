@@ -39,9 +39,9 @@ public class GeneratorScreen extends AbstractContainerScreen<GeneratorMenu> {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         guiGraphics.fill(facesButtonX(), facesButtonY(),
                 facesButtonX() + FACES_BUTTON_SIZE, facesButtonY() + FACES_BUTTON_SIZE,
-                facePanel.isOpen() ? 0xFF2E4A6B : 0xFF2A2F33);
+                facePanel.isOpen() ? 0xFF0A6E87 : 0xFF262B35);
         guiGraphics.drawCenteredString(font, "F",
-                facesButtonX() + FACES_BUTTON_SIZE / 2, facesButtonY() + 2, 0xFFFFFFFF);
+                facesButtonX() + FACES_BUTTON_SIZE / 2, facesButtonY() + 2, 0xFFE8EAF0);
         facePanel.render(guiGraphics, font, leftPos + imageWidth + 2, topPos, menu::faceBits);
         renderTooltip(guiGraphics, mouseX, mouseY);
         if (mouseX >= facesButtonX() && mouseX < facesButtonX() + FACES_BUTTON_SIZE
@@ -71,6 +71,13 @@ public class GeneratorScreen extends AbstractContainerScreen<GeneratorMenu> {
             return true;
         }
         return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
+    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        // Palette A: light labels on the dark GUI panel.
+        guiGraphics.drawString(font, title, titleLabelX, titleLabelY, 0xE8EAF0, false);
+        guiGraphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, 0x5A6170, false);
     }
 
     @Override
