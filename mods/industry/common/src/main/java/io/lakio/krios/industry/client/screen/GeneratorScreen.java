@@ -18,9 +18,9 @@ public class GeneratorScreen extends KriosTerminalScreen<GeneratorMenu> {
     private static final int ENERGY_BAR_HEIGHT = 8;
     private static final int FACES_BUTTON_SIZE = 12;
 
-    private final FaceConfigPanel facePanel = new FaceConfigPanel(
-            new FaceConfigPanel.Column("gui.krios_industry.flow.energy_out", Flow.ENERGY, true),
-            new FaceConfigPanel.Column("gui.krios_industry.flow.item_in", Flow.ITEM, false));
+    private final HologramFacePanel facePanel = new HologramFacePanel(
+            new HologramFacePanel.Column("gui.krios_industry.flow.energy_out", Flow.ENERGY, true),
+            new HologramFacePanel.Column("gui.krios_industry.flow.item_in", Flow.ITEM, false));
 
     private final StatsPanel statsPanel = new StatsPanel(
             new StatsPanel.Row(StatsPanel.Icon.OUTPUT,
@@ -62,7 +62,8 @@ public class GeneratorScreen extends KriosTerminalScreen<GeneratorMenu> {
                 facePanel.isOpen() ? 0xFF0A6E87 : 0xFF262B35);
         guiGraphics.drawCenteredString(font, "F",
                 facesButtonX() + FACES_BUTTON_SIZE / 2, facesButtonY() + 2, 0xFFE8EAF0);
-        facePanel.render(guiGraphics, font, leftPos + imageWidth + 2, topPos, menu::faceBits);
+        facePanel.updateHover(leftPos + imageWidth + 2, topPos, mouseX, mouseY);
+        facePanel.render(guiGraphics, font, leftPos + imageWidth + 2, topPos, menu::faceBits, menu.machinePos());
         statsPanel.render(guiGraphics, font, leftPos, topPos, mouseX, mouseY);
         renderTooltip(guiGraphics, mouseX, mouseY);
         if (mouseX >= facesButtonX() && mouseX < facesButtonX() + FACES_BUTTON_SIZE
@@ -90,12 +91,23 @@ public class GeneratorScreen extends KriosTerminalScreen<GeneratorMenu> {
             facePanel.toggleOpen();
             return true;
         }
-        int id = facePanel.click(leftPos + imageWidth + 2, topPos, mouseX, mouseY, menu::faceBits);
+        int id = facePanel.click(leftPos + imageWidth + 2, topPos, mouseX, mouseY, button, menu::faceBits);
         if (id >= 0) {
             minecraft.gameMode.handleInventoryButtonClick(menu.containerId, id);
             return true;
         }
+        if (id == HologramFacePanel.CLICK_CONSUMED) {
+            return true;
+        }
         return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        if (facePanel.mouseDragged(leftPos + imageWidth + 2, topPos, mouseX, mouseY, button, dragX, dragY)) {
+            return true;
+        }
+        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
     }
 
     @Override

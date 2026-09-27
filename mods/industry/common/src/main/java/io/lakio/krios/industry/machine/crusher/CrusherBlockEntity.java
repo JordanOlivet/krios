@@ -74,6 +74,13 @@ public class CrusherBlockEntity extends BlockEntity
                 case 2 -> energy.getStored() & 0xFFFF;
                 case 3 -> (energy.getStored() >> 16) & 0xFFFF;
                 case 10 -> networkKoiosLevel();
+                // 11..15: machine pos for the hologram view (x/z as low/high
+                // short pairs, y fits a short on its own).
+                case 11 -> worldPosition.getX() & 0xFFFF;
+                case 12 -> (worldPosition.getX() >> 16) & 0xFFFF;
+                case 13 -> worldPosition.getZ() & 0xFFFF;
+                case 14 -> (worldPosition.getZ() >> 16) & 0xFFFF;
+                case 15 -> worldPosition.getY();
                 // 4..9: raw face-config shorts (11 bits, short-safe).
                 default -> index < 10
                         ? faceConfig.bits(Direction.from3DDataValue(index - 4)) : 0;

@@ -67,5 +67,6 @@
   "gui.krios_industry.stats.energy": "Energy cost multiplier (Efficiency modules)",
   "gui.krios_industry.stats.yield": "Bonus yield (Yield modules)",
   "gui.krios_industry.stats.output": "Energy output",
-  "gui.krios_industry.stats.stored": "Stored energy"
+  "gui.krios_industry.stats.stored": "Stored energy",
+  "gui.krios_industry.faces.hint": "Left-click: select a face. Right-drag: rotate."
 }

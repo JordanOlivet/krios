@@ -2,6 +2,7 @@ package io.lakio.krios.industry.machine.generator;
 
 import io.lakio.krios.industry.platform.Services;
 import io.lakio.krios.industry.registry.ModMenus;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -15,8 +16,8 @@ import net.minecraft.world.item.ItemStack;
 public class GeneratorMenu extends AbstractContainerMenu {
 
     public static final int FUEL_SLOT = 0;
-    /** 0..3 machine values + 6 raw face-config shorts + network status. */
-    public static final int DATA_COUNT = 11;
+    /** 0..3 machine values + 6 face-config shorts + network status + pos (5). */
+    public static final int DATA_COUNT = 16;
 
     private final Container container;
     private final ContainerData data;
@@ -119,5 +120,12 @@ public class GeneratorMenu extends AbstractContainerMenu {
     /** KOIOS level of the network controller; 0 while offline. */
     public int networkLevel() {
         return data.get(10);
+    }
+
+    /** Machine position, reassembled from the synced low/high pairs. */
+    public BlockPos machinePos() {
+        int x = (data.get(12) << 16) | (data.get(11) & 0xFFFF);
+        int z = (data.get(14) << 16) | (data.get(13) & 0xFFFF);
+        return new BlockPos(x, data.get(15), z);
     }
 }

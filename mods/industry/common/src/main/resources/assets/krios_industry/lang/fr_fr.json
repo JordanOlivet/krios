@@ -67,5 +67,6 @@
   "gui.krios_industry.stats.energy": "Multiplicateur de coût énergétique (modules Efficacité)",
   "gui.krios_industry.stats.yield": "Rendement bonus (modules Rendement)",
   "gui.krios_industry.stats.output": "Production d'énergie",
-  "gui.krios_industry.stats.stored": "Énergie stockée"
+  "gui.krios_industry.stats.stored": "Énergie stockée",
+  "gui.krios_industry.faces.hint": "Clic gauche : choisir une face. Clic droit + glisser : pivoter."
 }
