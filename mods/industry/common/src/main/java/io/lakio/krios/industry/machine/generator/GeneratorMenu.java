@@ -15,8 +15,8 @@ import net.minecraft.world.item.ItemStack;
 public class GeneratorMenu extends AbstractContainerMenu {
 
     public static final int FUEL_SLOT = 0;
-    /** 0..3 machine values + 6 raw face-config shorts. */
-    public static final int DATA_COUNT = 10;
+    /** 0..3 machine values + 6 raw face-config shorts + network status. */
+    public static final int DATA_COUNT = 11;
 
     private final Container container;
     private final ContainerData data;
@@ -114,5 +114,10 @@ public class GeneratorMenu extends AbstractContainerMenu {
 
     public int getEnergyCapacity() {
         return GeneratorBlockEntity.CAPACITY;
+    }
+
+    /** KOIOS level of the network controller; 0 while offline. */
+    public int networkLevel() {
+        return data.get(10);
     }
 }

@@ -2,15 +2,14 @@ package io.lakio.krios.industry.client.screen;
 
 import io.lakio.krios.industry.tool.CalibratorMenu;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 
 /**
- * Network diagnostic readout (display-only, placeholder look until the
- * graphics pass — the future core network dashboard shares this style).
+ * Network diagnostic readout (display-only; the future core network
+ * dashboard shares this style).
  */
-public class CalibratorScreen extends AbstractContainerScreen<CalibratorMenu> {
+public class CalibratorScreen extends KriosTerminalScreen<CalibratorMenu> {
 
     private static final int PANEL_COLOR = 0xF010141B;
     private static final int LINE_HEIGHT = 14;
@@ -22,8 +21,18 @@ public class CalibratorScreen extends AbstractContainerScreen<CalibratorMenu> {
     }
 
     @Override
+    protected int terminalStatus() {
+        return switch (menu.status()) {
+            case CalibratorMenu.STATUS_ONLINE -> Math.max(1, menu.controllerLevel());
+            case CalibratorMenu.STATUS_FAULT -> -1;
+            default -> 0;
+        };
+    }
+
+    @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
+        renderTerminalOverlays(guiGraphics, mouseX, mouseY);
     }
 
     @Override
@@ -34,7 +43,7 @@ public class CalibratorScreen extends AbstractContainerScreen<CalibratorMenu> {
 
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        guiGraphics.drawString(font, title, 6, 4, 0xFF31D8FF, false);
+        renderTerminalHeader(guiGraphics);
         int y = 22;
         int status = menu.status();
         Component statusLine = switch (status) {

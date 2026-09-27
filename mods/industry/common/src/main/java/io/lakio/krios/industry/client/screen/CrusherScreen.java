@@ -2,14 +2,14 @@ package io.lakio.krios.industry.client.screen;
 
 import io.lakio.krios.industry.Constants;
 import io.lakio.krios.industry.machine.crusher.CrusherMenu;
+import io.lakio.krios.industry.machine.module.ModuleItem;
 import io.lakio.krios.industry.network.Flow;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
-public class CrusherScreen extends AbstractContainerScreen<CrusherMenu> {
+public class CrusherScreen extends KriosTerminalScreen<CrusherMenu> {
 
     private static final ResourceLocation TEXTURE = Constants.id("textures/gui/crusher.png");
     private static final int ENERGY_BAR_X = 8;
@@ -29,6 +29,17 @@ public class CrusherScreen extends AbstractContainerScreen<CrusherMenu> {
 
     public CrusherScreen(CrusherMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
+    }
+
+    @Override
+    protected int terminalStatus() {
+        return menu.networkLevel();
+    }
+
+    @Override
+    protected int feedX() {
+        // Left of the "F" faces button.
+        return imageWidth - 34;
     }
 
     private int facesButtonX() {
@@ -62,6 +73,7 @@ public class CrusherScreen extends AbstractContainerScreen<CrusherMenu> {
                     Component.literal(menu.getEnergyStored() + " / " + menu.getEnergyCapacity() + " E"),
                     mouseX, mouseY);
         }
+        renderTerminalOverlays(guiGraphics, mouseX, mouseY);
     }
 
     @Override
@@ -81,9 +93,27 @@ public class CrusherScreen extends AbstractContainerScreen<CrusherMenu> {
 
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        // Palette A: light labels on the dark GUI panel.
-        guiGraphics.drawString(font, title, titleLabelX, titleLabelY, 0xE8EAF0, false);
-        guiGraphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, 0x5A6170, false);
+        renderTerminalHeader(guiGraphics);
+        guiGraphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, COLOR_TEXT_DIM, false);
+        // Live module effects (modules are visible container slots — no extra sync).
+        int speed = 0;
+        int efficiency = 0;
+        int yieldCount = 0;
+        for (int i = 2; i <= 3; i++) {
+            if (menu.getSlot(i).getItem().getItem() instanceof ModuleItem module) {
+                switch (module.getType()) {
+                    case SPEED -> speed++;
+                    case EFFICIENCY -> efficiency++;
+                    case YIELD -> yieldCount++;
+                }
+            }
+        }
+        boolean online = menu.networkLevel() > 0;
+        Component stats = Component.translatable("gui.krios_industry.term.crusher_stats",
+                String.format("%.1f", (2 + speed) / 2.0),
+                new String[]{"1.0", "0.8", "0.64"}[efficiency],
+                yieldCount * 25);
+        guiGraphics.drawString(font, stats, 8, 62, online ? COLOR_ACCENT_DIM : COLOR_TEXT_DIM, false);
     }
 
     @Override

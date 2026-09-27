@@ -73,8 +73,9 @@ public class CrusherBlockEntity extends BlockEntity
                 case 1 -> totalTime;
                 case 2 -> energy.getStored() & 0xFFFF;
                 case 3 -> (energy.getStored() >> 16) & 0xFFFF;
+                case 10 -> networkKoiosLevel();
                 // 4..9: raw face-config shorts (11 bits, short-safe).
-                default -> index < CrusherMenu.DATA_COUNT
+                default -> index < 10
                         ? faceConfig.bits(Direction.from3DDataValue(index - 4)) : 0;
             };
         }

@@ -4,12 +4,11 @@ import io.lakio.krios.industry.Constants;
 import io.lakio.krios.industry.koios.KoiosBalance;
 import io.lakio.krios.industry.koios.KoiosCoreMenu;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
-public class KoiosCoreScreen extends AbstractContainerScreen<KoiosCoreMenu> {
+public class KoiosCoreScreen extends KriosTerminalScreen<KoiosCoreMenu> {
 
     private static final ResourceLocation TEXTURE = Constants.id("textures/gui/koios_core.png");
     private static final int XP_BAR_X = 8;
@@ -30,6 +29,11 @@ public class KoiosCoreScreen extends AbstractContainerScreen<KoiosCoreMenu> {
     }
 
     @Override
+    protected int terminalStatus() {
+        return menu.isFormed() ? menu.getKoiosLevel() : 0;
+    }
+
+    @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         renderTooltip(guiGraphics, mouseX, mouseY);
@@ -40,6 +44,7 @@ public class KoiosCoreScreen extends AbstractContainerScreen<KoiosCoreMenu> {
                     Component.translatable("gui.krios_industry.koios.xp", menu.getXp(), menu.getNextLevelXp()),
                     mouseX, mouseY);
         }
+        renderTerminalOverlays(guiGraphics, mouseX, mouseY);
     }
 
     @Override
@@ -55,7 +60,7 @@ public class KoiosCoreScreen extends AbstractContainerScreen<KoiosCoreMenu> {
 
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        guiGraphics.drawString(font, title, titleLabelX, titleLabelY, COLOR_TEXT, false);
+        renderTerminalHeader(guiGraphics);
 
         if (menu.isFormed()) {
             guiGraphics.drawString(font, Component.translatable("gui.krios_industry.koios.online"),

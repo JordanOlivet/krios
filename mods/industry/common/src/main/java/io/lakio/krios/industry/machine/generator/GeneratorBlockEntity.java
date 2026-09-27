@@ -57,8 +57,9 @@ public class GeneratorBlockEntity extends BlockEntity
                 case 1 -> burnDuration;
                 case 2 -> energy.getStored() & 0xFFFF;
                 case 3 -> (energy.getStored() >> 16) & 0xFFFF;
+                case 10 -> networkKoiosLevel();
                 // 4..9: raw face-config shorts (11 bits, short-safe).
-                default -> index < GeneratorMenu.DATA_COUNT
+                default -> index < 10
                         ? faceConfig.bits(Direction.from3DDataValue(index - 4)) : 0;
             };
         }
@@ -128,6 +129,13 @@ public class GeneratorBlockEntity extends BlockEntity
     @Override
     public Level networkLevel() {
         return level;
+    }
+
+    /** KOIOS level of this machine's network controller; 0 while offline. */
+    public int networkKoiosLevel() {
+        Network network = NetworkManager.networkOf(this);
+        return network != null && network.controller() instanceof KoiosCoreBlockEntity core
+                ? core.getKoiosLevel() : 0;
     }
 
     /** Pool contribution: rate-capped by the buffer, wakes the burner. */

@@ -1,15 +1,15 @@
 package io.lakio.krios.industry.client.screen;
 
 import io.lakio.krios.industry.Constants;
+import io.lakio.krios.industry.machine.generator.GeneratorBlockEntity;
 import io.lakio.krios.industry.machine.generator.GeneratorMenu;
 import io.lakio.krios.industry.network.Flow;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
-public class GeneratorScreen extends AbstractContainerScreen<GeneratorMenu> {
+public class GeneratorScreen extends KriosTerminalScreen<GeneratorMenu> {
 
     private static final ResourceLocation TEXTURE = Constants.id("textures/gui/generator.png");
     private static final int ENERGY_BAR_X = 8;
@@ -24,6 +24,17 @@ public class GeneratorScreen extends AbstractContainerScreen<GeneratorMenu> {
 
     public GeneratorScreen(GeneratorMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
+    }
+
+    @Override
+    protected int terminalStatus() {
+        return menu.networkLevel();
+    }
+
+    @Override
+    protected int feedX() {
+        // Left of the "F" faces button.
+        return imageWidth - 34;
     }
 
     private int facesButtonX() {
@@ -56,6 +67,7 @@ public class GeneratorScreen extends AbstractContainerScreen<GeneratorMenu> {
                     Component.literal(menu.getEnergyStored() + " / " + menu.getEnergyCapacity() + " E"),
                     mouseX, mouseY);
         }
+        renderTerminalOverlays(guiGraphics, mouseX, mouseY);
     }
 
     @Override
@@ -75,9 +87,15 @@ public class GeneratorScreen extends AbstractContainerScreen<GeneratorMenu> {
 
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        // Palette A: light labels on the dark GUI panel.
-        guiGraphics.drawString(font, title, titleLabelX, titleLabelY, 0xE8EAF0, false);
-        guiGraphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, 0x5A6170, false);
+        renderTerminalHeader(guiGraphics);
+        guiGraphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, COLOR_TEXT_DIM, false);
+        // Live stats above and below the fuel slot (rows 40-58).
+        boolean burning = menu.isBurning();
+        guiGraphics.drawString(font, Component.translatable("gui.krios_industry.term.gen_rate",
+                burning ? GeneratorBlockEntity.GENERATION_PER_TICK : 0), 8, 28,
+                burning ? COLOR_ENERGY : COLOR_TEXT_DIM, false);
+        guiGraphics.drawString(font, Component.translatable("gui.krios_industry.term.stored",
+                menu.getEnergyStored(), menu.getEnergyCapacity()), 8, 62, COLOR_TEXT_DIM, false);
     }
 
     @Override
