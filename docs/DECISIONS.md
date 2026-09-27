@@ -111,6 +111,19 @@ Three rules keep that extraction mechanical (a package move, not a refactor), en
 
 - Rejected: creating `krios_core` immediately (freezes a public API with zero consumers; adds build/CI/version dance before any second client exists).
 
+## ADR-014 — Ecosystem-wide art direction: "cold signal / warm metal", diegetic
+
+**Date**: 2026-09-28 · **Status**: accepted
+
+One art direction for the whole ecosystem, recorded in `docs/ART-DIRECTION.md` (binding reference; palette files in `docs/art/`):
+
+- **Palette direction A**: cyan = software/AI, amber + copper = hardware/heat, gunmetal metal, near-black screens. Color roles are contracts — one color means one thing everywhere, across all mods.
+- **Diegetic interfaces**: machine UIs are KOIOS terminals (shared chrome component), not vanilla-style menus; vanilla spirit kept (low-res, simple, uncluttered). Hi-res art allowed only inside framed diegetic displays (e.g. the KOIOS head video feed).
+- **Distinct silhouettes**: every machine identifiable by shape alone; 1-block unit with small visual overhangs allowed (hitbox unchanged); structural blocks stay full cubes.
+- **Multiblock look ≠ mechanic**: build mechanics never change for looks — only the FORMED representation is sculpted (per-position JSON shell + BER animated centerpiece).
+- **In-house guide** ("KOIOS Archives", phased): no Ponder/Patchouli dependency — multiloader/license risk, and the guide's identity is KOIOS explaining its own ecosystem, entries growing with its level.
+- Rejected: per-mod divergent styles; strict low-res dogma; external guide libraries.
+
 ## Open questions
 
 *(none — next ones will come from design work)*
