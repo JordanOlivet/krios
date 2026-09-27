@@ -62,8 +62,10 @@
   "item.krios_industry.yield_module": "Yield Module",
   "item.krios_industry.yield_module.desc": "+25% crusher yield",
   "itemGroup.krios_industry": "Krios: Industry",
-  "gui.krios_industry.term.boot": "K.O.I.O.S. LINK",
-  "gui.krios_industry.term.crusher_stats": "SPD ×%1$s · PWR ×%2$s · +%3$s%%",
-  "gui.krios_industry.term.gen_rate": "Output: %s E/t",
-  "gui.krios_industry.term.stored": "Stored: %s / %s E"
+  "gui.krios_industry.stats.title": "Machine statistics",
+  "gui.krios_industry.stats.speed": "Speed multiplier (Speed modules)",
+  "gui.krios_industry.stats.energy": "Energy cost multiplier (Efficiency modules)",
+  "gui.krios_industry.stats.yield": "Bonus yield (Yield modules)",
+  "gui.krios_industry.stats.output": "Energy output",
+  "gui.krios_industry.stats.stored": "Stored energy"
 }

@@ -80,10 +80,6 @@ public abstract class KriosTerminalScreen<T extends AbstractContainerMenu>
         gui.fill(leftPos, topPos, leftPos + imageWidth, topPos + imageHeight, (alpha << 24) | 0x10141B);
         int sweepY = topPos + (int) (progress * (imageHeight - 2)) + 1;
         gui.fill(leftPos + 2, sweepY, leftPos + imageWidth - 2, sweepY + 1, 0x9031D8FF);
-        if ((Util.getMillis() / 60) % 2 == 0) {
-            gui.drawCenteredString(font, Component.translatable("gui.krios_industry.term.boot"),
-                    leftPos + imageWidth / 2, topPos + imageHeight / 2 - 4, COLOR_ACCENT);
-        }
     }
 
     private Component statusLine() {

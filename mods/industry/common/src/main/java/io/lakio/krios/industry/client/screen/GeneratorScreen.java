@@ -22,6 +22,15 @@ public class GeneratorScreen extends KriosTerminalScreen<GeneratorMenu> {
             new FaceConfigPanel.Column("gui.krios_industry.flow.energy_out", Flow.ENERGY, true),
             new FaceConfigPanel.Column("gui.krios_industry.flow.item_in", Flow.ITEM, false));
 
+    private final StatsPanel statsPanel = new StatsPanel(
+            new StatsPanel.Row(StatsPanel.Icon.OUTPUT,
+                    () -> Component.literal((menu.isBurning()
+                            ? GeneratorBlockEntity.GENERATION_PER_TICK : 0) + " E/t"),
+                    Component.translatable("gui.krios_industry.stats.output")),
+            new StatsPanel.Row(StatsPanel.Icon.STORED,
+                    () -> Component.literal(menu.getEnergyStored() + " / " + menu.getEnergyCapacity() + " E"),
+                    Component.translatable("gui.krios_industry.stats.stored")));
+
     public GeneratorScreen(GeneratorMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
     }
@@ -54,6 +63,7 @@ public class GeneratorScreen extends KriosTerminalScreen<GeneratorMenu> {
         guiGraphics.drawCenteredString(font, "F",
                 facesButtonX() + FACES_BUTTON_SIZE / 2, facesButtonY() + 2, 0xFFE8EAF0);
         facePanel.render(guiGraphics, font, leftPos + imageWidth + 2, topPos, menu::faceBits);
+        statsPanel.render(guiGraphics, font, leftPos, topPos, mouseX, mouseY);
         renderTooltip(guiGraphics, mouseX, mouseY);
         if (mouseX >= facesButtonX() && mouseX < facesButtonX() + FACES_BUTTON_SIZE
                 && mouseY >= facesButtonY() && mouseY < facesButtonY() + FACES_BUTTON_SIZE) {
@@ -72,6 +82,9 @@ public class GeneratorScreen extends KriosTerminalScreen<GeneratorMenu> {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (statsPanel.click(leftPos, topPos, mouseX, mouseY)) {
+            return true;
+        }
         if (mouseX >= facesButtonX() && mouseX < facesButtonX() + FACES_BUTTON_SIZE
                 && mouseY >= facesButtonY() && mouseY < facesButtonY() + FACES_BUTTON_SIZE) {
             facePanel.toggleOpen();
@@ -89,13 +102,6 @@ public class GeneratorScreen extends KriosTerminalScreen<GeneratorMenu> {
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         renderTerminalHeader(guiGraphics);
         guiGraphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, COLOR_TEXT_DIM, false);
-        // Live stats above and below the fuel slot (rows 40-58).
-        boolean burning = menu.isBurning();
-        guiGraphics.drawString(font, Component.translatable("gui.krios_industry.term.gen_rate",
-                burning ? GeneratorBlockEntity.GENERATION_PER_TICK : 0), 8, 28,
-                burning ? COLOR_ENERGY : COLOR_TEXT_DIM, false);
-        guiGraphics.drawString(font, Component.translatable("gui.krios_industry.term.stored",
-                menu.getEnergyStored(), menu.getEnergyCapacity()), 8, 62, COLOR_TEXT_DIM, false);
     }
 
     @Override

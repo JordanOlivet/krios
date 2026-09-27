@@ -62,8 +62,10 @@
   "item.krios_industry.yield_module": "Module de rendement",
   "item.krios_industry.yield_module.desc": "+25 % de rendement du broyeur",
   "itemGroup.krios_industry": "Krios: Industry",
-  "gui.krios_industry.term.boot": "LIAISON K.O.I.O.S.",
-  "gui.krios_industry.term.crusher_stats": "VIT ×%1$s · NRJ ×%2$s · +%3$s%%",
-  "gui.krios_industry.term.gen_rate": "Production : %s E/t",
-  "gui.krios_industry.term.stored": "Stock : %s / %s E"
+  "gui.krios_industry.stats.title": "Statistiques machine",
+  "gui.krios_industry.stats.speed": "Multiplicateur de vitesse (modules Vitesse)",
+  "gui.krios_industry.stats.energy": "Multiplicateur de coût énergétique (modules Efficacité)",
+  "gui.krios_industry.stats.yield": "Rendement bonus (modules Rendement)",
+  "gui.krios_industry.stats.output": "Production d'énergie",
+  "gui.krios_industry.stats.stored": "Énergie stockée"
 }

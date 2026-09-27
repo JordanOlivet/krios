@@ -3,6 +3,7 @@ package io.lakio.krios.industry.client.screen;
 import io.lakio.krios.industry.Constants;
 import io.lakio.krios.industry.machine.crusher.CrusherMenu;
 import io.lakio.krios.industry.machine.module.ModuleItem;
+import io.lakio.krios.industry.machine.module.ModuleType;
 import io.lakio.krios.industry.network.Flow;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
@@ -26,6 +27,31 @@ public class CrusherScreen extends KriosTerminalScreen<CrusherMenu> {
             new FaceConfigPanel.Column("gui.krios_industry.flow.energy_in", Flow.ENERGY, false),
             new FaceConfigPanel.Column("gui.krios_industry.flow.item_in", Flow.ITEM, false),
             new FaceConfigPanel.Column("gui.krios_industry.flow.item_out", Flow.ITEM, true));
+
+    // Module effects are visible container slots — no extra sync needed.
+    private final StatsPanel statsPanel = new StatsPanel(
+            new StatsPanel.Row(StatsPanel.Icon.SPEED,
+                    () -> Component.literal("×" + String.format("%.1f",
+                            (2 + moduleCount(ModuleType.SPEED)) / 2.0)),
+                    Component.translatable("gui.krios_industry.stats.speed")),
+            new StatsPanel.Row(StatsPanel.Icon.ENERGY_MULT,
+                    () -> Component.literal("×" + new String[]{"1.0", "0.8", "0.64"}
+                            [moduleCount(ModuleType.EFFICIENCY)]),
+                    Component.translatable("gui.krios_industry.stats.energy")),
+            new StatsPanel.Row(StatsPanel.Icon.YIELD,
+                    () -> Component.literal("+" + moduleCount(ModuleType.YIELD) * 25 + " %"),
+                    Component.translatable("gui.krios_industry.stats.yield")));
+
+    private int moduleCount(ModuleType type) {
+        int count = 0;
+        for (int i = 2; i <= 3; i++) {
+            if (menu.getSlot(i).getItem().getItem() instanceof ModuleItem module
+                    && module.getType() == type) {
+                count++;
+            }
+        }
+        return count;
+    }
 
     public CrusherScreen(CrusherMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
@@ -60,6 +86,7 @@ public class CrusherScreen extends KriosTerminalScreen<CrusherMenu> {
         guiGraphics.drawCenteredString(font, "F",
                 facesButtonX() + FACES_BUTTON_SIZE / 2, facesButtonY() + 2, 0xFFE8EAF0);
         facePanel.render(guiGraphics, font, leftPos + imageWidth + 2, topPos, menu::faceBits);
+        statsPanel.render(guiGraphics, font, leftPos, topPos, mouseX, mouseY);
         renderTooltip(guiGraphics, mouseX, mouseY);
         if (mouseX >= facesButtonX() && mouseX < facesButtonX() + FACES_BUTTON_SIZE
                 && mouseY >= facesButtonY() && mouseY < facesButtonY() + FACES_BUTTON_SIZE) {
@@ -78,6 +105,9 @@ public class CrusherScreen extends KriosTerminalScreen<CrusherMenu> {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (statsPanel.click(leftPos, topPos, mouseX, mouseY)) {
+            return true;
+        }
         if (mouseX >= facesButtonX() && mouseX < facesButtonX() + FACES_BUTTON_SIZE
                 && mouseY >= facesButtonY() && mouseY < facesButtonY() + FACES_BUTTON_SIZE) {
             facePanel.toggleOpen();
@@ -95,25 +125,6 @@ public class CrusherScreen extends KriosTerminalScreen<CrusherMenu> {
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         renderTerminalHeader(guiGraphics);
         guiGraphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, COLOR_TEXT_DIM, false);
-        // Live module effects (modules are visible container slots — no extra sync).
-        int speed = 0;
-        int efficiency = 0;
-        int yieldCount = 0;
-        for (int i = 2; i <= 3; i++) {
-            if (menu.getSlot(i).getItem().getItem() instanceof ModuleItem module) {
-                switch (module.getType()) {
-                    case SPEED -> speed++;
-                    case EFFICIENCY -> efficiency++;
-                    case YIELD -> yieldCount++;
-                }
-            }
-        }
-        boolean online = menu.networkLevel() > 0;
-        Component stats = Component.translatable("gui.krios_industry.term.crusher_stats",
-                String.format("%.1f", (2 + speed) / 2.0),
-                new String[]{"1.0", "0.8", "0.64"}[efficiency],
-                yieldCount * 25);
-        guiGraphics.drawString(font, stats, 8, 62, online ? COLOR_ACCENT_DIM : COLOR_TEXT_DIM, false);
     }
 
     @Override
