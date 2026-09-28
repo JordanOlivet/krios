@@ -222,9 +222,10 @@ public class CrusherBlockEntity extends BlockEntity
         // furnace-grade time, half yield, modules inert (design).
         Network network = NetworkManager.networkOf(be);
         boolean online = network != null && network.isValid();
-        if (online) {
-            be.pullNetworkEnergy(network);
-        } else {
+        // Online energy arrives through the producer's fair-shared push only:
+        // a per-machine pull let the first-ticking machine tank the whole
+        // generator stock into its own buffer (sequential 100% charges).
+        if (!online) {
             be.pullEnergyFromContacts(level, pos);
         }
         // Hopper-like flow: the output streams into adjacent machines.
@@ -248,19 +249,32 @@ public class CrusherBlockEntity extends BlockEntity
         int energyPerOp = recipe.energy() * EFFICIENCY_NUM[efficiencyModules] / 25;
         int energyPerTick = Math.max(1, energyPerOp / be.totalTime);
         be.currentDrawPerTick = energyPerTick;
+        boolean starvedNow;
         if (be.energy.consume(energyPerTick)) {
             be.consumedLastTick = energyPerTick;
-            be.starvedLastTick = false;
+            starvedNow = false;
             if (++be.progress >= be.totalTime) {
                 be.craft(holder, online, yieldModules);
                 be.progress = 0;
             }
         } else {
-            // No energy: stay lit and wait — neighbors may refill next tick.
+            // No energy: stay lit and wait — the next push may refill us.
             be.consumedLastTick = 0;
-            be.starvedLastTick = true;
+            starvedNow = true;
+        }
+        if (starvedNow != be.starvedLastTick) {
+            be.starvedLastTick = starvedNow;
+            be.notifyControllerEnergyState();
         }
         be.setChanged();
+    }
+
+    /** Starved-state transition: let the KOIOS screen resync its alert. */
+    private void notifyControllerEnergyState() {
+        Network network = NetworkManager.networkOf(this);
+        if (network != null && network.controller() instanceof KoiosCoreBlockEntity core) {
+            core.energyStateChanged();
+        }
     }
 
     private int countModules(ModuleType type) {
@@ -271,18 +285,6 @@ public class CrusherBlockEntity extends BlockEntity
             }
         }
         return count;
-    }
-
-    /** Pooled transfer from the machine's own (valid) network. */
-    private void pullNetworkEnergy(Network network) {
-        if (energy.isFull()) {
-            return;
-        }
-        int pulled = network.requestEnergy(
-                Math.min(PULL_PER_TICK, energy.getCapacity() - energy.getStored()), this);
-        if (pulled > 0) {
-            energy.insert(pulled);
-        }
     }
 
     /**
@@ -361,7 +363,10 @@ public class CrusherBlockEntity extends BlockEntity
         progress = 0;
         currentDrawPerTick = 0;
         consumedLastTick = 0;
-        starvedLastTick = false;
+        if (starvedLastTick) {
+            starvedLastTick = false;
+            notifyControllerEnergyState();
+        }
         setChanged();
         level.setBlock(pos, state.setValue(BlockStateProperties.LIT, false), 3);
     }

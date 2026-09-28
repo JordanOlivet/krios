@@ -270,6 +270,24 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
         return network != null && EnergyReport.starvedCount(network) > 0;
     }
 
+    private boolean lastSyncedDeficit;
+
+    /**
+     * Called by machines on starved-state transitions (event-driven, the
+     * core never ticks — ADR-012): resync the in-world screen only when the
+     * network-wide verdict actually changed.
+     */
+    public void energyStateChanged() {
+        if (level == null || level.isClientSide) {
+            return;
+        }
+        boolean deficit = networkEnergyDeficit();
+        if (deficit != lastSyncedDeficit) {
+            lastSyncedDeficit = deficit;
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
+        }
+    }
+
     /** Renderer-side energy health (synced on the client, live on the server). */
     public int displayEnergyPermille() {
         return level != null && level.isClientSide ? clientEnergyPermille : networkEnergyPermille();
