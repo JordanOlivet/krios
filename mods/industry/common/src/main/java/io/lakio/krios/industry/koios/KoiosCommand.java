@@ -3,7 +3,10 @@ package io.lakio.krios.industry.koios;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 
+import io.lakio.krios.industry.machine.EnergyStats;
+import io.lakio.krios.industry.network.Network;
 import io.lakio.krios.industry.network.NetworkManager;
+import io.lakio.krios.industry.network.NetworkNode;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
@@ -31,7 +34,41 @@ public final class KoiosCommand {
                         .then(Commands.argument("level",
                                         IntegerArgumentType.integer(1, KoiosBalance.MAX_CLASSIC_LEVEL))
                                 .executes(context -> setLevel(context.getSource(),
-                                        IntegerArgumentType.getInteger(context, "level"))))));
+                                        IntegerArgumentType.getInteger(context, "level")))))
+                .then(Commands.literal("energy")
+                        .executes(context -> energy(context.getSource()))));
+    }
+
+    /** Per-member energy breakdown of the controller's network (diagnosis). */
+    private static int energy(CommandSourceStack source) {
+        KoiosCoreBlockEntity core = target(source);
+        if (core == null) {
+            return noCore(source);
+        }
+        Network network = NetworkManager.networkOf(core);
+        if (network == null) {
+            return noCore(source);
+        }
+        int supply = 0;
+        int draw = 0;
+        for (NetworkNode member : network.members()) {
+            if (member instanceof EnergyStats stats) {
+                supply += stats.energySupplyPerTick();
+                draw += stats.energyDrawPerTick();
+                String line = String.format("%s %s  stored %d/%d  draw %d  supply %d",
+                        member.getClass().getSimpleName(),
+                        member.networkPos().toShortString(),
+                        stats.energyStored(), stats.energyCapacity(),
+                        stats.energyDrawPerTick(), stats.energySupplyPerTick());
+                source.sendSuccess(() -> Component.literal(line), false);
+            }
+        }
+        int totalSupply = supply;
+        int totalDraw = draw;
+        source.sendSuccess(() -> Component.literal(
+                String.format("TOTAL supply %d E/t, draw %d E/t, members %d",
+                        totalSupply, totalDraw, network.members().size())), false);
+        return 1;
     }
 
     private static int info(CommandSourceStack source) {
