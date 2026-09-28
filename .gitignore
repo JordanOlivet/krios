@@ -23,3 +23,8 @@ Thumbs.db
 
 # Tooling
 .orca/
+*.ase
+__pycache__/
+
+# Extracted vanilla assets (Mojang, not redistributable)
+tools/reference/vanilla/

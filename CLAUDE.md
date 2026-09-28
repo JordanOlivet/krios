@@ -43,7 +43,7 @@ Machine pattern (Generator and Crusher are the references):
 
 Client code lives in `common/.../client/` (only referenced client-side); screens are registered per loader (`RegisterMenuScreensEvent` on NeoForge, `MenuScreens.register` in the fabric client entrypoint).
 
-Placeholder textures are script-generated (pure-stdlib PNG writers); regenerate rather than hand-edit.
+Textures started as script-generated placeholders (`tools/gen_textures.py`, pure-stdlib PNG writer), but the user has since hand-polished most of them in Aseprite (nearly all item textures as of 2026-09-29). **Never overwrite or regenerate any texture without asking the user first.** `gen_textures.py` refuses to run without an explicit filter argument; beware that substring filters can over-match (`ore` also matches `koios_core_*`) — check `git status` on the textures after any run.
 
 ## Conventions and process
 
