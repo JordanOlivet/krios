@@ -19,7 +19,9 @@ public final class KoiosBalance {
     // KNEE share of the window, then linear falloff down to FLOOR at pure
     // repetition. Anti-AFK by construction; recovers as soon as you vary.
     public static final int DIVERSITY_KNEE_PERMILLE = 250;
-    public static final int DIVERSITY_FLOOR_PERMILLE = 100;
+    // 20% floor (was 10%): pure repetition at level 1 was too punishing —
+    // ~500 mono-recipe ops to reach N2 with slow tier 1 machines.
+    public static final int DIVERSITY_FLOOR_PERMILLE = 200;
 
     /** Highest classic level reachable through data XP alone (tier 1). */
     public static final int MAX_CLASSIC_LEVEL = 4;

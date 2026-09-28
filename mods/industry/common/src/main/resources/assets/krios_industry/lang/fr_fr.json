@@ -33,7 +33,7 @@
   "gui.krios_industry.faces.title": "Configuration des faces",
   "gui.krios_industry.faces.vanilla": "Défaut",
   "gui.krios_industry.koios.critical": "Niveau critique 5 : percée matérielle requise (Tier 2 — à venir)",
-  "gui.krios_industry.koios.diversity": "Diversité des données : %s %%",
+  "gui.krios_industry.koios.diversity": "Variété des opérations : %s %%",
   "gui.krios_industry.koios.fault_detail": "Plusieurs cœurs sur un même réseau",
   "gui.krios_industry.koios.fault_title": "ERREUR RÉSEAU",
   "gui.krios_industry.koios.incomplete": "Hors ligne — structure incomplète",
@@ -100,5 +100,7 @@
   "gui.krios_industry.archive.calibrator.title": "Calibrator",
   "gui.krios_industry.archive.calibrator.body": "L’outil du technicien. Sneak + clic sur une face de la coque pour déplacer mon écran ; clic droit simple sur un bloc du réseau pour un diagnostic en direct.",
   "gui.krios_industry.archive.critical.title": "Niveau critique",
-  "gui.krios_industry.archive.critical.body": "Le niveau 5 est un plafond de matière, pas d’esprit. Une percée matérielle ouvrira le palier 2. Bientôt."
+  "gui.krios_industry.archive.critical.body": "Le niveau 5 est un plafond de matière, pas d’esprit. Une percée matérielle ouvrira le palier 2. Bientôt.",
+  "gui.krios_industry.koios.diversity.tooltip1": "%s opération(s) distincte(s) sur les %s dernières",
+  "gui.krios_industry.koios.diversity.tooltip2": "Les opérations variées rapportent l’XP max ; répéter la même réduit sa valeur (plancher : %s %%)."
 }

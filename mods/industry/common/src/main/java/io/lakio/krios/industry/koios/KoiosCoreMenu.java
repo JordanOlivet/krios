@@ -11,10 +11,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.Nullable;
 
-/** Display-only menu: no item slots, five synced values. */
+/** Display-only menu: no item slots, seven synced values. */
 public class KoiosCoreMenu extends AbstractContainerMenu {
 
-    public static final int DATA_COUNT = 5;
+    public static final int DATA_COUNT = 7;
 
     private final ContainerData data;
     @Nullable
@@ -53,6 +53,16 @@ public class KoiosCoreMenu extends AbstractContainerMenu {
     /** Distinct/total operations in the window, per-mille. */
     public int getDiversityPermille() {
         return data.get(2);
+    }
+
+    /** Distinct operation kinds currently in the window (tooltip). */
+    public int getDistinctOps() {
+        return data.get(5);
+    }
+
+    /** Operations currently held by the window (tooltip). */
+    public int getWindowFill() {
+        return data.get(6);
     }
 
     /** Reassembled from the low/high 16-bit pair (ContainerData syncs shorts). */

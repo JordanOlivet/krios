@@ -53,6 +53,16 @@ public class KoiosCoreScreen extends KriosTerminalScreen<KoiosCoreMenu> {
                     Component.translatable("gui.krios_industry.koios.xp", menu.getXp(), menu.getNextLevelXp()),
                     mouseX, mouseY);
         }
+        // Variety gauge tooltip: the raw numbers behind the percentage.
+        if (!archives.isOpen() && mouseX >= leftPos + 8 && mouseX < leftPos + 130
+                && mouseY >= topPos + 45 && mouseY < topPos + 55) {
+            guiGraphics.renderComponentTooltip(font, java.util.List.of(
+                    Component.translatable("gui.krios_industry.koios.diversity.tooltip1",
+                            menu.getDistinctOps(), menu.getWindowFill()),
+                    Component.translatable("gui.krios_industry.koios.diversity.tooltip2",
+                            KoiosBalance.DIVERSITY_FLOOR_PERMILLE / 10)),
+                    mouseX, mouseY);
+        }
         archives.render(guiGraphics, font, width, height, menu.getKoiosLevel(), mouseX, mouseY);
         int bx = leftPos + archivesButtonX();
         if (!archives.isOpen() && mouseX >= bx && mouseX < bx + 12

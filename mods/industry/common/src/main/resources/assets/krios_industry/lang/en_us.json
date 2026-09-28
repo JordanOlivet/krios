@@ -33,7 +33,7 @@
   "gui.krios_industry.faces.title": "Face configuration",
   "gui.krios_industry.faces.vanilla": "Default",
   "gui.krios_industry.koios.critical": "Critical level 5: material breakthrough required (Tier 2 — coming soon)",
-  "gui.krios_industry.koios.diversity": "Data diversity: %s%%",
+  "gui.krios_industry.koios.diversity": "Operation variety: %s%%",
   "gui.krios_industry.koios.fault_detail": "Multiple cores on one network",
   "gui.krios_industry.koios.fault_title": "NETWORK ERROR",
   "gui.krios_industry.koios.incomplete": "Offline — structure incomplete",
@@ -100,5 +100,7 @@
   "gui.krios_industry.archive.calibrator.title": "Calibrator",
   "gui.krios_industry.archive.calibrator.body": "The technician’s tool. Sneak-click a shell face to move my screen; plain right-click any network block for a live diagnostic.",
   "gui.krios_industry.archive.critical.title": "Critical level",
-  "gui.krios_industry.archive.critical.body": "Level 5 is a ceiling of matter, not of mind. A material breakthrough will open tier 2. Soon."
+  "gui.krios_industry.archive.critical.body": "Level 5 is a ceiling of matter, not of mind. A material breakthrough will open tier 2. Soon.",
+  "gui.krios_industry.koios.diversity.tooltip1": "%s distinct operation(s) among the last %s",
+  "gui.krios_industry.koios.diversity.tooltip2": "Varied operations earn full data XP; repeating the same one drops its value (floor: %s%%)."
 }

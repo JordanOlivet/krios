@@ -86,6 +86,9 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
                 case 2 -> diversityPermille();
                 case 3 -> xp & 0xFFFF;
                 case 4 -> (xp >> 16) & 0xFFFF;
+                // 5..6: the raw numbers behind the diversity gauge (tooltip).
+                case 5 -> windowCounts.size();
+                case 6 -> windowFill;
                 default -> 0;
             };
         }
