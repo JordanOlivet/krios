@@ -112,5 +112,6 @@
   "gui.krios_industry.diag.energy_low": "Réserves d'énergie faibles",
   "gui.krios_industry.diag.energy_empty": "Réserves d'énergie VIDES",
   "gui.krios_industry.koios.phrase.energy_deficit": "Nous consommons plus que nous ne produisons.",
-  "gui.krios_industry.koios.phrase.energy_low": "Mes réserves d'énergie s'épuisent."
+  "gui.krios_industry.koios.phrase.energy_low": "Mes réserves d'énergie s'épuisent.",
+  "gui.krios_industry.diag.energy_trend": "Tendance : %s E/t"
 }

@@ -112,5 +112,6 @@
   "gui.krios_industry.diag.energy_low": "Energy reserves low",
   "gui.krios_industry.diag.energy_empty": "Energy reserves EMPTY",
   "gui.krios_industry.koios.phrase.energy_deficit": "We consume more than we produce.",
-  "gui.krios_industry.koios.phrase.energy_low": "My energy reserves are running low."
+  "gui.krios_industry.koios.phrase.energy_low": "My energy reserves are running low.",
+  "gui.krios_industry.diag.energy_trend": "Trend: %s E/t"
 }

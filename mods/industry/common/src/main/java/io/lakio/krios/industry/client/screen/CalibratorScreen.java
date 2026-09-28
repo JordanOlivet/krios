@@ -75,9 +75,16 @@ public class CalibratorScreen extends KriosTerminalScreen<CalibratorMenu> {
         guiGraphics.drawString(font, Component.translatable("gui.krios_industry.diag.energy_rates",
                 supply, draw), 6, y, draw > supply ? 0xFFFFB03A : 0xFFE8EAF0, false);
         y += LINE_HEIGHT;
-        if (draw > supply) {
+        // Measured trend: instantaneous demand misleads on bursty machines —
+        // the deficit alert rides what the pool actually does.
+        int trend = menu.trendPerTick();
+        guiGraphics.drawString(font, Component.translatable("gui.krios_industry.diag.energy_trend",
+                (trend >= 0 ? "+" : "") + trend), 6, y,
+                trend < 0 ? 0xFFFFB03A : 0xFF9AD9E0, false);
+        y += LINE_HEIGHT;
+        if (trend < 0) {
             guiGraphics.drawString(font, Component.translatable("gui.krios_industry.diag.energy_deficit",
-                    draw - supply), 6, y, 0xFFFFB03A, false);
+                    -trend), 6, y, 0xFFFFB03A, false);
             y += LINE_HEIGHT;
         }
         int capacity = menu.energyCapacity();
