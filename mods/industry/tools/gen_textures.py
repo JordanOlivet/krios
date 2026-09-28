@@ -208,6 +208,59 @@ def generator_top():
     return img
 
 
+def furnace_side():
+    """Bands match furnace_base.json: 0-3 stacks, 3-5 top slab, 5-16 body."""
+    img = Img(16, 16)
+    img.rect(0, 0, 16, 3, METAL_EDGE)
+    for x in range(1, 16, 3):
+        img.set(x, 1, JOINT)
+    img.noise_rect(0, 3, 16, 2, METAL, 4, 111)
+    img.rect(0, 3, 16, 1, METAL_EDGE)
+    img.noise_rect(0, 5, 16, 11, METAL, 5, 113)
+    for x in (1, 14):
+        img.rect(x, 5, 1, 11, COPPER_D)
+    for y in (8, 9):
+        img.rect(4, y, 8, 1, JOINT)
+    img.rect(0, 15, 16, 1, JOINT)
+    return img
+
+
+def furnace_front(lit, frame=0):
+    img = furnace_side()
+    # Arched door (3,7)-(13,15): copper frame, dark interior, amber window.
+    img.rect(3, 7, 10, 8, COPPER)
+    img.rect(4, 8, 8, 7, COPPER_D)
+    img.rect(5, 9, 6, 5, JOINT)
+    if lit:
+        if frame == 1:
+            img.rect(5, 9, 6, 5, ENERGY)
+            img.rect(6, 10, 4, 3, ENERGY_HI)
+        elif frame == 2:
+            img.rect(5, 9, 6, 5, AMBER_D)
+            img.rect(6, 10, 4, 3, ENERGY)
+            img.set(7, 11, ENERGY_HI)
+        else:
+            img.rect(6, 10, 4, 3, ENERGY)
+            img.set(7, 11, ENERGY_HI)
+            img.set(8, 12, ENERGY_HI)
+    else:
+        img.rect(6, 12, 4, 1, AMBER_D)
+    return img
+
+
+def furnace_top():
+    img = Img(16, 16)
+    img.noise_rect(0, 0, 16, 16, METAL, 4, 117)
+    img.outline(0, 0, 16, 16, METAL_EDGE)
+    img.outline(1, 1, 14, 14, JOINT)
+    # Twin rear stack mouths (2,9)-(6,13) and (10,9)-(14,13).
+    for sx in (2, 10):
+        img.rect(sx, 9, 4, 4, JOINT)
+        img.outline(sx, 9, 4, 4, METAL_EDGE)
+        img.rect(sx + 1, 10, 2, 2, (0, 0, 0))
+    return img
+
+
 def crusher_side():
     """Bands match crusher_base.json: 0-4 jaw zone, 4-5 collar, 5-16 body."""
     img = Img(16, 16)
@@ -653,6 +706,10 @@ def main():
         "block/generator_front.png": generator_front(False),
         "block/generator_front_lit.png": stack_frames(generator_front_lit_frames()),
         "block/generator_top.png": generator_top(),
+        "block/furnace_side.png": furnace_side(),
+        "block/furnace_front.png": furnace_front(False),
+        "block/furnace_front_lit.png": stack_frames([furnace_front(True, f) for f in range(3)]),
+        "block/furnace_top.png": furnace_top(),
         "block/crusher_side.png": crusher_side(),
         "block/crusher_front.png": crusher_front(),
         "block/crusher_top.png": crusher_top(),
@@ -674,6 +731,7 @@ def main():
         "item/efficiency_module.png": module(EFFICIENCY_GLYPH, ENERGY),
         "item/yield_module.png": module(YIELD_GLYPH, CYAN_HI),
         "gui/crusher.png": gui_crusher(),
+        "gui/furnace.png": gui_crusher(),
         "gui/generator.png": gui_generator(),
         "gui/koios_core.png": gui_koios_core(),
     }
@@ -681,7 +739,8 @@ def main():
     for rel, img in out.items():
         img.save(ASSETS / rel)
     # Vanilla animation metadata for the flickering lit textures.
-    for rel in ("block/generator_front_lit.png", "block/crusher_maw_lit.png"):
+    for rel in ("block/generator_front_lit.png", "block/crusher_maw_lit.png",
+                "block/furnace_front_lit.png"):
         (ASSETS / (rel + ".mcmeta")).write_text('{"animation": {"frametime": 6}}\n')
         print(f"  {rel}.mcmeta")
 

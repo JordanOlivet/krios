@@ -12,6 +12,8 @@ public final class KoiosBalance {
 
     /** Base data XP per completed crushing operation. */
     public static final int CRUSH_BASE_XP = 10;
+    /** Base data XP per completed smelting operation (induction furnace). */
+    public static final int SMELT_BASE_XP = 6;
     /** Base data XP per generator burn cycle (per fuel item consumed). */
     public static final int BURN_BASE_XP = 2;
 

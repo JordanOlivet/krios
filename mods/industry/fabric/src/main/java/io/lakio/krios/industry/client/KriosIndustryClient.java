@@ -3,6 +3,7 @@ package io.lakio.krios.industry.client;
 import io.lakio.krios.industry.client.render.KoiosCoreRenderer;
 import io.lakio.krios.industry.client.screen.CalibratorScreen;
 import io.lakio.krios.industry.client.screen.CrusherScreen;
+import io.lakio.krios.industry.client.screen.FurnaceScreen;
 import io.lakio.krios.industry.client.screen.GeneratorScreen;
 import io.lakio.krios.industry.client.screen.KoiosCoreScreen;
 import io.lakio.krios.industry.registry.ModBlockEntities;
@@ -17,6 +18,7 @@ public class KriosIndustryClient implements ClientModInitializer {
     public void onInitializeClient() {
         MenuScreens.register(ModMenus.GENERATOR.get(), GeneratorScreen::new);
         MenuScreens.register(ModMenus.CRUSHER.get(), CrusherScreen::new);
+        MenuScreens.register(ModMenus.FURNACE.get(), FurnaceScreen::new);
         MenuScreens.register(ModMenus.KOIOS_CORE.get(), KoiosCoreScreen::new);
         MenuScreens.register(ModMenus.CALIBRATOR.get(), CalibratorScreen::new);
         BlockEntityRenderers.register(ModBlockEntities.KOIOS_CORE.get(), KoiosCoreRenderer::new);

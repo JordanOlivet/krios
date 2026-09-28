@@ -5,6 +5,7 @@ import java.util.function.Supplier;
 import io.lakio.krios.industry.Constants;
 import io.lakio.krios.industry.koios.KoiosCoreBlockEntity;
 import io.lakio.krios.industry.machine.crusher.CrusherBlockEntity;
+import io.lakio.krios.industry.machine.furnace.FurnaceBlockEntity;
 import io.lakio.krios.industry.machine.generator.GeneratorBlockEntity;
 import io.lakio.krios.industry.platform.Services;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -18,6 +19,9 @@ public final class ModBlockEntities {
 
     public static final Supplier<BlockEntityType<CrusherBlockEntity>> CRUSHER = register("crusher",
             () -> Services.REGISTRAR.createBlockEntityType(CrusherBlockEntity::new, ModBlocks.CRUSHER.get()));
+
+    public static final Supplier<BlockEntityType<FurnaceBlockEntity>> FURNACE = register("furnace",
+            () -> Services.REGISTRAR.createBlockEntityType(FurnaceBlockEntity::new, ModBlocks.FURNACE.get()));
 
     public static final Supplier<BlockEntityType<KoiosCoreBlockEntity>> KOIOS_CORE = register("koios_core",
             () -> Services.REGISTRAR.createBlockEntityType(KoiosCoreBlockEntity::new, ModBlocks.KOIOS_CORE.get()));

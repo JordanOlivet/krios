@@ -9,6 +9,7 @@ import io.lakio.krios.industry.cable.NeuralConduitBlock;
 import io.lakio.krios.industry.koios.KoiosCoreBlock;
 import io.lakio.krios.industry.koios.NeuralCasingBlock;
 import io.lakio.krios.industry.machine.crusher.CrusherBlock;
+import io.lakio.krios.industry.machine.furnace.FurnaceBlock;
 import io.lakio.krios.industry.machine.generator.GeneratorBlock;
 import io.lakio.krios.industry.platform.Services;
 import net.minecraft.ChatFormatting;
@@ -74,6 +75,17 @@ public final class ModBlocks {
                     .noOcclusion()
                     // The maw embers glow for real at night.
                     .lightLevel(state -> state.getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.LIT) ? 9 : 0)));
+
+    public static final Supplier<Block> FURNACE = registerWithItem("furnace",
+            () -> new FurnaceBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.METAL)
+                    .requiresCorrectToolForDrops()
+                    .strength(3.5F, 6.0F)
+                    .sound(SoundType.METAL)
+                    // Sculpted model (graphics pass): not a full cube.
+                    .noOcclusion()
+                    // The door window glows for real at night.
+                    .lightLevel(state -> state.getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.LIT) ? 11 : 0)));
 
     public static final Supplier<Block> NEURAL_CASING = registerWithItem("neural_casing",
             () -> new NeuralCasingBlock(BlockBehaviour.Properties.of()

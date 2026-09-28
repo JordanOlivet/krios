@@ -4,6 +4,7 @@ import io.lakio.krios.industry.Constants;
 import io.lakio.krios.industry.client.render.KoiosCoreRenderer;
 import io.lakio.krios.industry.client.screen.CalibratorScreen;
 import io.lakio.krios.industry.client.screen.CrusherScreen;
+import io.lakio.krios.industry.client.screen.FurnaceScreen;
 import io.lakio.krios.industry.client.screen.GeneratorScreen;
 import io.lakio.krios.industry.client.screen.KoiosCoreScreen;
 import io.lakio.krios.industry.registry.ModBlockEntities;
@@ -24,6 +25,7 @@ public final class KriosIndustryClient {
     public static void onRegisterScreens(RegisterMenuScreensEvent event) {
         event.register(ModMenus.GENERATOR.get(), GeneratorScreen::new);
         event.register(ModMenus.CRUSHER.get(), CrusherScreen::new);
+        event.register(ModMenus.FURNACE.get(), FurnaceScreen::new);
         event.register(ModMenus.KOIOS_CORE.get(), KoiosCoreScreen::new);
         event.register(ModMenus.CALIBRATOR.get(), CalibratorScreen::new);
     }

@@ -23,6 +23,7 @@ public final class ModCreativeTabs {
                         output.accept(ModBlocks.DEEPSLATE_NEURITE_ORE.get());
                         output.accept(ModBlocks.GENERATOR.get());
                         output.accept(ModBlocks.CRUSHER.get());
+                        output.accept(ModBlocks.FURNACE.get());
                         output.accept(ModBlocks.NEURAL_CASING.get());
                         output.accept(ModBlocks.NEURAL_CONDUIT.get());
                         output.accept(ModBlocks.KOIOS_CORE.get());

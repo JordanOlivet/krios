@@ -102,5 +102,8 @@
   "gui.krios_industry.archive.critical.title": "Niveau critique",
   "gui.krios_industry.archive.critical.body": "Le niveau 5 est un plafond de matière, pas d’esprit. Une percée matérielle ouvrira le palier 2. Bientôt.",
   "gui.krios_industry.koios.diversity.tooltip1": "%s opération(s) distincte(s) sur les %s dernières",
-  "gui.krios_industry.koios.diversity.tooltip2": "Les opérations variées rapportent l’XP max ; répéter la même réduit sa valeur (plancher : %s %%)."
+  "gui.krios_industry.koios.diversity.tooltip2": "Les opérations variées rapportent l’XP max ; répéter la même réduit sa valeur (plancher : %s %%).",
+  "block.krios_industry.furnace": "Four à induction",
+  "gui.krios_industry.archive.furnace.title": "Four à induction",
+  "gui.krios_industry.archive.furnace.body": "Fond tout ce qu’un four vanilla fond, à l’énergie plutôt qu’au combustible. Relié à mon réseau il va deux fois plus vite et accepte les modules ; déconnecté, il égale exactement un four ordinaire."
 }

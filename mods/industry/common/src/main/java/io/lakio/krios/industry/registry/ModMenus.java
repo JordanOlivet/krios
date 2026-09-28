@@ -5,6 +5,7 @@ import java.util.function.Supplier;
 import io.lakio.krios.industry.Constants;
 import io.lakio.krios.industry.koios.KoiosCoreMenu;
 import io.lakio.krios.industry.machine.crusher.CrusherMenu;
+import io.lakio.krios.industry.machine.furnace.FurnaceMenu;
 import io.lakio.krios.industry.machine.generator.GeneratorMenu;
 import io.lakio.krios.industry.platform.Services;
 import io.lakio.krios.industry.tool.CalibratorMenu;
@@ -19,6 +20,9 @@ public final class ModMenus {
 
     public static final Supplier<MenuType<CrusherMenu>> CRUSHER = register("crusher",
             () -> Services.REGISTRAR.createMenuType(CrusherMenu::new));
+
+    public static final Supplier<MenuType<FurnaceMenu>> FURNACE = register("furnace",
+            () -> Services.REGISTRAR.createMenuType(FurnaceMenu::new));
 
     public static final Supplier<MenuType<KoiosCoreMenu>> KOIOS_CORE = register("koios_core",
             () -> Services.REGISTRAR.createMenuType(KoiosCoreMenu::new));

@@ -102,5 +102,8 @@
   "gui.krios_industry.archive.critical.title": "Critical level",
   "gui.krios_industry.archive.critical.body": "Level 5 is a ceiling of matter, not of mind. A material breakthrough will open tier 2. Soon.",
   "gui.krios_industry.koios.diversity.tooltip1": "%s distinct operation(s) among the last %s",
-  "gui.krios_industry.koios.diversity.tooltip2": "Varied operations earn full data XP; repeating the same one drops its value (floor: %s%%)."
+  "gui.krios_industry.koios.diversity.tooltip2": "Varied operations earn full data XP; repeating the same one drops its value (floor: %s%%).",
+  "block.krios_industry.furnace": "Induction Furnace",
+  "gui.krios_industry.archive.furnace.title": "Induction Furnace",
+  "gui.krios_industry.archive.furnace.body": "Smelts everything a vanilla furnace does, on energy instead of fuel. Connected to my network it runs twice as fast and takes modules; disconnected it matches a plain furnace exactly."
 }

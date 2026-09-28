@@ -26,6 +26,7 @@ public class KoiosArchivesPanel {
             new Entry("diversity", 1, false),
             new Entry("generator", 1, false),
             new Entry("crusher", 1, false),
+            new Entry("furnace", 1, false),
             new Entry("modules", 2, true),
             new Entry("network", 1, true),
             new Entry("conduit", 1, false),
