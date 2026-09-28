@@ -420,7 +420,14 @@ public class FurnaceBlockEntity extends BlockEntity
 
     @Override
     public boolean canPlaceItemThroughFace(int slot, ItemStack stack, Direction side) {
-        return slot == INPUT_SLOT && allowsItem(side, false);
+        // Automated insertion (hoppers, machine flow) only takes what this
+        // machine can actually smelt — players stay free in the GUI.
+        return slot == INPUT_SLOT && allowsItem(side, false) && isProcessable(stack);
+    }
+
+    private boolean isProcessable(ItemStack stack) {
+        return level != null
+                && quickCheck.getRecipeFor(new SingleRecipeInput(stack), level).isPresent();
     }
 
     @Override
