@@ -15,7 +15,7 @@
   "commands.krios_industry.koios.xp_added": "%1$s XP de données injectée dans le cœur en [%2$s] — niveau %3$s, %4$s/%5$s XP",
   "gui.krios_industry.calibrator.diagnostic": "Diagnostic réseau",
   "gui.krios_industry.calibrator.screen_set": "Face écran K.O.I.O.S. définie : %s",
-  "gui.krios_industry.diag.energy": "Pool d'énergie : %s / %s E",
+  "gui.krios_industry.diag.energy": "%s / %s E",
   "gui.krios_industry.diag.hints": "%s machine(s) avec contact ambigu — configurer manuellement",
   "gui.krios_industry.diag.nodes": "%s machine(s), %s bloc(s) réseau",
   "gui.krios_industry.diag.status.fault": "FAUTE — plusieurs cœurs sur ce réseau",
@@ -107,11 +107,13 @@
   "gui.krios_industry.archive.furnace.title": "Four à induction",
   "gui.krios_industry.archive.furnace.body": "Fond tout ce qu’un four vanilla fond, à l’énergie plutôt qu’au combustible. Relié à mon réseau il va deux fois plus vite et accepte les modules ; déconnecté, il égale exactement un four ordinaire.",
   "gui.krios_industry.stats.consumption": "Consommation d'énergie",
-  "gui.krios_industry.diag.energy_rates": "Production : %s E/t · Consommé : %s E/t",
   "gui.krios_industry.diag.energy_low": "Réserves d'énergie faibles",
   "gui.krios_industry.diag.energy_empty": "Réserves d'énergie VIDES",
   "gui.krios_industry.koios.phrase.energy_deficit": "Des machines attendent de l'énergie.",
   "gui.krios_industry.koios.phrase.energy_low": "Mes réserves d'énergie s'épuisent.",
   "gui.krios_industry.diag.energy_demand": "Demande : %s E/t",
-  "gui.krios_industry.diag.energy_starved": "Machines à court d'énergie : %s"
+  "gui.krios_industry.diag.energy_starved": "Machines à court d'énergie : %s",
+  "gui.krios_industry.diag.section.energy": "ÉNERGIE",
+  "gui.krios_industry.diag.energy_production": "Production : %s E/t",
+  "gui.krios_industry.diag.energy_consumed": "Consommé : %s E/t"
 }

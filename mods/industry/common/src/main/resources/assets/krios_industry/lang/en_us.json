@@ -15,7 +15,7 @@
   "commands.krios_industry.koios.xp_added": "Gave %1$s data XP to the core at [%2$s] — level %3$s, %4$s/%5$s XP",
   "gui.krios_industry.calibrator.diagnostic": "Network Diagnostic",
   "gui.krios_industry.calibrator.screen_set": "K.O.I.O.S. screen face set: %s",
-  "gui.krios_industry.diag.energy": "Energy pool: %s / %s E",
+  "gui.krios_industry.diag.energy": "%s / %s E",
   "gui.krios_industry.diag.hints": "%s machine(s) with an ambiguous contact — configure manually",
   "gui.krios_industry.diag.nodes": "%s machine(s), %s network block(s)",
   "gui.krios_industry.diag.status.fault": "FAULT — multiple cores on this network",
@@ -107,11 +107,13 @@
   "gui.krios_industry.archive.furnace.title": "Induction Furnace",
   "gui.krios_industry.archive.furnace.body": "Smelts everything a vanilla furnace does, on energy instead of fuel. Connected to my network it runs twice as fast and takes modules; disconnected it matches a plain furnace exactly.",
   "gui.krios_industry.stats.consumption": "Energy consumption",
-  "gui.krios_industry.diag.energy_rates": "Production: %s E/t · Consumed: %s E/t",
   "gui.krios_industry.diag.energy_low": "Energy reserves low",
   "gui.krios_industry.diag.energy_empty": "Energy reserves EMPTY",
   "gui.krios_industry.koios.phrase.energy_deficit": "Machines are waiting for power.",
   "gui.krios_industry.koios.phrase.energy_low": "My energy reserves are running low.",
   "gui.krios_industry.diag.energy_demand": "Demand: %s E/t",
-  "gui.krios_industry.diag.energy_starved": "Machines out of power: %s"
+  "gui.krios_industry.diag.energy_starved": "Machines out of power: %s",
+  "gui.krios_industry.diag.section.energy": "ENERGY",
+  "gui.krios_industry.diag.energy_production": "Production: %s E/t",
+  "gui.krios_industry.diag.energy_consumed": "Consumed: %s E/t"
 }
