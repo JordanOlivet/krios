@@ -72,6 +72,12 @@ public class KoiosArchivesPanel {
         int x = panelX(screenW);
         int y = panelY(screenH);
 
+        // Lift the whole overlay above the host screen's chrome (items sit at
+        // z~232, tooltips at 400): without this the terminal's header glyphs
+        // bleed through the panel frame.
+        gui.pose().pushPose();
+        gui.pose().translate(0, 0, 300);
+
         // Dimmed backdrop + framed panel: this reads as "a codex", not a popup.
         gui.fill(0, 0, screenW, screenH, 0xB0000000);
         gui.fill(x - 2, y - 2, x + W + 2, y + H + 2, 0xFF0A6E87);
@@ -149,6 +155,7 @@ public class KoiosArchivesPanel {
         if (tooltip != null) {
             gui.renderTooltip(font, tooltip, mouseX, mouseY);
         }
+        gui.pose().popPose();
     }
 
     /** True when the click was handled (the overlay swallows every click). */
