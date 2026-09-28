@@ -45,6 +45,8 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
     // depth test then fails and the eye vanishes during pulses. Farther than
     // the features, depth testing composites correctly in any draw order.
     private static final float Z_BG = 1.502F;
+    private static final float Z_FRAME = 1.5028F;
+    private static final float Z_FRAME_NODE = 1.5032F;
     private static final float Z_PULSE = 1.5035F;
     private static final float Z_STATIC = 1.504F;
     private static final float Z_FLASH = 1.5042F;
@@ -73,36 +75,141 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
     @Override
     public void render(KoiosCoreBlockEntity core, float partialTick, PoseStack poseStack,
             MultiBufferSource buffers, int packedLight, int packedOverlay) {
-        if (!core.isFormed() || core.getScreenSide() == null) {
+        if (!core.isFormed()) {
             return;
         }
         Level level = core.getLevel();
         if (level == null) {
             return;
         }
-        Direction side = core.getScreenSide();
         float time = level.getGameTime() + partialTick;
 
         poseStack.pushPose();
         poseStack.translate(0.5, 0.5, 0.5);
-        switch (side) {
-            case UP -> poseStack.mulPose(Axis.XP.rotationDegrees(-90));
-            case DOWN -> poseStack.mulPose(Axis.XP.rotationDegrees(90));
-            default -> poseStack.mulPose(Axis.YP.rotationDegrees(-side.toYRot()));
-        }
-        PoseStack.Pose pose = poseStack.last();
         VertexConsumer vc = buffers.getBuffer(RenderType.entityTranslucent(TEXTURE));
 
-        float bootT = core.getClientBootStart() > 0
-                ? time - core.getClientBootStart() : Float.MAX_VALUE;
-        if (bootT < BOOT_TICKS) {
-            renderBootStatic(pose, vc, bootT);
-        } else if (core.isNetworkFault()) {
-            renderFaultStatic(poseStack, buffers, pose, vc, time);
-        } else {
-            renderFace(core, level, side, pose, vc, time);
+        // Monolith sculpt (art direction): emissive frame beams on every
+        // shell face + the AI's hologram floating above the structure.
+        renderMonolithFrame(poseStack, vc);
+        if (!core.isNetworkFault()) {
+            renderAvatar(poseStack, vc, core.getKoiosLevel(), time);
+        }
+
+        Direction side = core.getScreenSide();
+        if (side != null) {
+            switch (side) {
+                case UP -> poseStack.mulPose(Axis.XP.rotationDegrees(-90));
+                case DOWN -> poseStack.mulPose(Axis.XP.rotationDegrees(90));
+                default -> poseStack.mulPose(Axis.YP.rotationDegrees(-side.toYRot()));
+            }
+            PoseStack.Pose pose = poseStack.last();
+            float bootT = core.getClientBootStart() > 0
+                    ? time - core.getClientBootStart() : Float.MAX_VALUE;
+            if (bootT < BOOT_TICKS) {
+                renderBootStatic(pose, vc, bootT);
+            } else if (core.isNetworkFault()) {
+                renderFaultStatic(poseStack, buffers, pose, vc, time);
+            } else {
+                renderFace(core, level, side, pose, vc, time);
+            }
         }
         poseStack.popPose();
+    }
+
+    /**
+     * Cyan frame beams along every shell face's perimeter, brighter corner
+     * nodes — the "framed monolith" read. Sits between the screen background
+     * and the overlays so the face content stays untouched.
+     */
+    private void renderMonolithFrame(PoseStack poseStack, VertexConsumer vc) {
+        for (Direction face : Direction.values()) {
+            poseStack.pushPose();
+            switch (face) {
+                case UP -> poseStack.mulPose(Axis.XP.rotationDegrees(-90));
+                case DOWN -> poseStack.mulPose(Axis.XP.rotationDegrees(90));
+                default -> poseStack.mulPose(Axis.YP.rotationDegrees(-face.toYRot()));
+            }
+            PoseStack.Pose pose = poseStack.last();
+            float r = 0.04F;
+            float g = 0.43F;
+            float b = 0.53F;
+            quad(pose, vc, -1.5F, 1.42F, 3F, 0.08F, Z_FRAME, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, r, g, b, 0.9F);
+            quad(pose, vc, -1.5F, -1.5F, 3F, 0.08F, Z_FRAME, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, r, g, b, 0.9F);
+            quad(pose, vc, -1.5F, -1.42F, 0.08F, 2.84F, Z_FRAME, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, r, g, b, 0.9F);
+            quad(pose, vc, 1.42F, -1.42F, 0.08F, 2.84F, Z_FRAME, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, r, g, b, 0.9F);
+            for (int cx = -1; cx <= 1; cx += 2) {
+                for (int cy = -1; cy <= 1; cy += 2) {
+                    quad(pose, vc, cx * 1.5F - (cx > 0 ? 0.18F : 0), cy * 1.5F - (cy > 0 ? 0.18F : 0),
+                            0.18F, 0.18F, Z_FRAME_NODE,
+                            56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.19F, 0.85F, 1F, 0.95F);
+                }
+            }
+            poseStack.popPose();
+        }
+    }
+
+    /**
+     * The AI's hologram above the monolith: a slowly spinning translucent
+     * gem whose definition grows with the KOIOS level — rings appear at
+     * level 3 and 5, brightness follows. Hidden while the network is faulted.
+     */
+    private void renderAvatar(PoseStack poseStack, VertexConsumer vc, int koiosLevel, float time) {
+        float bob = Mth.sin(time * 0.05F) * 0.06F;
+        poseStack.pushPose();
+        poseStack.translate(0, 2.35F + bob, 0);
+
+        float alpha = 0.30F + koiosLevel * 0.07F;
+        poseStack.pushPose();
+        poseStack.mulPose(Axis.YP.rotationDegrees(time * 1.2F));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(45));
+        poseStack.mulPose(Axis.XP.rotationDegrees(35));
+        drawHoloCube(poseStack, vc, 0.30F, 0.19F, 0.85F, 1F, alpha);
+        drawHoloCube(poseStack, vc, 0.14F, 0.62F, 0.94F, 1F, Math.min(1F, alpha + 0.25F));
+        poseStack.popPose();
+
+        if (koiosLevel >= 3) {
+            drawHoloRing(poseStack, vc, 0.55F, 0.05F, -time * 2.0F, 0.40F);
+        }
+        if (koiosLevel >= 5) {
+            drawHoloRing(poseStack, vc, 0.74F, 0.04F, time * 3.1F, 0.45F);
+        }
+        poseStack.popPose();
+    }
+
+    private void drawHoloCube(PoseStack poseStack, VertexConsumer vc, float half,
+            float r, float g, float b, float a) {
+        for (Direction face : Direction.values()) {
+            poseStack.pushPose();
+            switch (face) {
+                case UP -> poseStack.mulPose(Axis.XP.rotationDegrees(-90));
+                case DOWN -> poseStack.mulPose(Axis.XP.rotationDegrees(90));
+                default -> poseStack.mulPose(Axis.YP.rotationDegrees(-face.toYRot()));
+            }
+            quad(poseStack.last(), vc, -half, -half, half * 2, half * 2, half,
+                    56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, r, g, b, a);
+            poseStack.popPose();
+        }
+    }
+
+    /** Horizontal square ring, drawn on both windings so it reads from below. */
+    private void drawHoloRing(PoseStack poseStack, VertexConsumer vc, float radius,
+            float thickness, float angleDegrees, float alpha) {
+        for (int flip = 0; flip < 2; flip++) {
+            poseStack.pushPose();
+            poseStack.mulPose(Axis.YP.rotationDegrees(angleDegrees));
+            poseStack.mulPose(Axis.XP.rotationDegrees(flip == 0 ? -90 : 90));
+            PoseStack.Pose pose = poseStack.last();
+            float in = radius - thickness;
+            quad(pose, vc, -radius, in, radius * 2, thickness, 0,
+                    56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.19F, 0.85F, 1F, alpha);
+            quad(pose, vc, -radius, -radius, radius * 2, thickness, 0,
+                    56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.19F, 0.85F, 1F, alpha);
+            quad(pose, vc, -radius, -in, thickness, in * 2, 0,
+                    56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.19F, 0.85F, 1F, alpha);
+            quad(pose, vc, in, -in, thickness, in * 2, 0,
+                    56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.19F, 0.85F, 1F, alpha);
+            poseStack.popPose();
+        }
     }
 
     /**
