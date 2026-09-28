@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.lakio.krios.industry.machine.EnergyReport;
 import io.lakio.krios.industry.network.Network;
 import io.lakio.krios.industry.network.NetworkManager;
 import io.lakio.krios.industry.network.NetworkNode;
@@ -68,6 +69,8 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
     private long clientLevelUpStart;
     /** Diversity received via update tag (client); -1 = compute locally. */
     private int clientDiversity = -1;
+    private int clientEnergyPermille = 1000;
+    private boolean clientEnergyDeficit;
 
     // Sliding diversity window: ring buffer of the last N operation keys plus
     // per-key counts for O(1) share lookups (design: diminishing returns on
@@ -89,6 +92,9 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
                 // 5..6: the raw numbers behind the diversity gauge (tooltip).
                 case 5 -> windowCounts.size();
                 case 6 -> windowFill;
+                // 7..8: network energy health (KOIOS alerts).
+                case 7 -> networkEnergyPermille();
+                case 8 -> networkEnergyDeficit() ? 1 : 0;
                 default -> 0;
             };
         }
@@ -246,6 +252,31 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
     /** Renderer-side diversity: the synced value on the client, live on the server. */
     public int displayDiversityPermille() {
         return clientDiversity >= 0 ? clientDiversity : diversityPermille();
+    }
+
+    /** Network energy fill per-mille; 1000 (healthy) while no buffers exist. */
+    private int networkEnergyPermille() {
+        Network network = NetworkManager.networkOf(this);
+        if (network == null) {
+            return 1000;
+        }
+        int capacity = EnergyReport.capacity(network);
+        return capacity == 0 ? 1000 : (int) ((long) EnergyReport.stored(network) * 1000 / capacity);
+    }
+
+    /** Demand outpaces production on this network. */
+    private boolean networkEnergyDeficit() {
+        Network network = NetworkManager.networkOf(this);
+        return network != null && EnergyReport.draw(network) > EnergyReport.supply(network);
+    }
+
+    /** Renderer-side energy health (synced on the client, live on the server). */
+    public int displayEnergyPermille() {
+        return level != null && level.isClientSide ? clientEnergyPermille : networkEnergyPermille();
+    }
+
+    public boolean displayEnergyDeficit() {
+        return level != null && level.isClientSide ? clientEnergyDeficit : networkEnergyDeficit();
     }
 
     private void pushWindow(String key) {
@@ -456,6 +487,10 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
         if (tag.contains("Div")) {
             clientDiversity = tag.getInt("Div");
         }
+        if (tag.contains("EnergyMille")) {
+            clientEnergyPermille = tag.getInt("EnergyMille");
+            clientEnergyDeficit = tag.getBoolean("Deficit");
+        }
         // Client-only in practice: the update tag carries the fault flag; on
         // the server the graph rederives it after load (never persisted).
         networkFault = tag.getBoolean("Fault");
@@ -473,6 +508,8 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
         CompoundTag tag = new CompoundTag();
         tag.putInt("DataXp", xp);
         tag.putInt("Div", diversityPermille());
+        tag.putInt("EnergyMille", networkEnergyPermille());
+        tag.putBoolean("Deficit", networkEnergyDeficit());
         if (screenSide != null) {
             tag.putInt("ScreenSide", screenSide.get3DDataValue());
         }

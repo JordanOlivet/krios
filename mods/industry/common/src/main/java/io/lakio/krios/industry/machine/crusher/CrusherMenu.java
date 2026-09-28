@@ -15,8 +15,8 @@ import net.minecraft.world.item.ItemStack;
 
 public class CrusherMenu extends AbstractContainerMenu {
 
-    /** 0..3 machine values + 6 face-config shorts + network status + pos (5). */
-    public static final int DATA_COUNT = 16;
+    /** 0..3 machine values + 6 face shorts + network status + pos (5) + draw. */
+    public static final int DATA_COUNT = 17;
 
     private final Container container;
     private final ContainerData data;
@@ -166,5 +166,10 @@ public class CrusherMenu extends AbstractContainerMenu {
         int x = (data.get(12) << 16) | (data.get(11) & 0xFFFF);
         int z = (data.get(14) << 16) | (data.get(13) & 0xFFFF);
         return new BlockPos(x, data.get(15), z);
+    }
+
+    /** Current energy demand in E/t; 0 while idle. */
+    public int drawPerTick() {
+        return data.get(16);
     }
 }

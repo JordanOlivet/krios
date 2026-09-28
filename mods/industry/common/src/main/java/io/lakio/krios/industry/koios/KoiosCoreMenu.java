@@ -11,10 +11,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.Nullable;
 
-/** Display-only menu: no item slots, seven synced values. */
+/** Display-only menu: no item slots, nine synced values. */
 public class KoiosCoreMenu extends AbstractContainerMenu {
 
-    public static final int DATA_COUNT = 7;
+    public static final int DATA_COUNT = 9;
 
     private final ContainerData data;
     @Nullable
@@ -63,6 +63,16 @@ public class KoiosCoreMenu extends AbstractContainerMenu {
     /** Operations currently held by the window (tooltip). */
     public int getWindowFill() {
         return data.get(6);
+    }
+
+    /** Network energy fill per-mille (1000 = healthy/no buffers). */
+    public int getEnergyPermille() {
+        return data.get(7);
+    }
+
+    /** Demand outpaces production on the network. */
+    public boolean isEnergyDeficit() {
+        return data.get(8) != 0;
     }
 
     /** Reassembled from the low/high 16-bit pair (ContainerData syncs shorts). */

@@ -47,7 +47,8 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
  * tickless-idle, face-config and wake contracts as the crusher.
  */
 public class FurnaceBlockEntity extends BlockEntity
-        implements WorldlyContainer, MenuProvider, NetworkNode, FlowPorts, EnergySink {
+        implements WorldlyContainer, MenuProvider, NetworkNode, FlowPorts, EnergySink,
+        io.lakio.krios.industry.machine.EnergyStats {
 
     public static final int INPUT_SLOT = 0;
     public static final int OUTPUT_SLOT = 1;
@@ -77,6 +78,8 @@ public class FurnaceBlockEntity extends BlockEntity
             RecipeManager.createCheck(RecipeType.SMELTING);
     private int progress;
     private int totalTime;
+    /** Current demand in E/t, for diagnostics; 0 while idle. */
+    private int currentDrawPerTick;
     // Yield accumulator in quarter-items (ADR-006, same scheme as the crusher).
     private int yieldQuarters;
 
@@ -95,6 +98,7 @@ public class FurnaceBlockEntity extends BlockEntity
                 case 13 -> worldPosition.getZ() & 0xFFFF;
                 case 14 -> (worldPosition.getZ() >> 16) & 0xFFFF;
                 case 15 -> worldPosition.getY();
+                case 16 -> currentDrawPerTick;
                 // 4..9: raw face-config shorts (11 bits, short-safe).
                 default -> index < 10
                         ? faceConfig.bits(Direction.from3DDataValue(index - 4)) : 0;
@@ -238,6 +242,7 @@ public class FurnaceBlockEntity extends BlockEntity
                 : Math.max(cookingTime, KoiosBalance.DISCONNECTED_TIME_TICKS);
         int energyPerOp = ENERGY_PER_OP * EFFICIENCY_NUM[efficiencyModules] / 25;
         int energyPerTick = Math.max(1, energyPerOp / be.totalTime);
+        be.currentDrawPerTick = energyPerTick;
         if (be.energy.consume(energyPerTick)) {
             if (++be.progress >= be.totalTime) {
                 be.craft(holder, result, yieldModules);
@@ -333,8 +338,31 @@ public class FurnaceBlockEntity extends BlockEntity
 
     private void stopWork(Level level, BlockPos pos, BlockState state) {
         progress = 0;
+        currentDrawPerTick = 0;
         setChanged();
         level.setBlock(pos, state.setValue(BlockStateProperties.LIT, false), 3);
+    }
+
+    // --- Energy diagnostics (Calibrator, KOIOS alerts) ---
+
+    @Override
+    public int energyDrawPerTick() {
+        return currentDrawPerTick;
+    }
+
+    @Override
+    public int energySupplyPerTick() {
+        return 0;
+    }
+
+    @Override
+    public int energyStored() {
+        return energy.getStored();
+    }
+
+    @Override
+    public int energyCapacity() {
+        return energy.getCapacity();
     }
 
     /** Called when any slot changes while the furnace is off. */

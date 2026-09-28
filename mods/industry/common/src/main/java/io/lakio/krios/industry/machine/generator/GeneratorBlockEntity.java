@@ -34,7 +34,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 public class GeneratorBlockEntity extends BlockEntity
-        implements Container, MenuProvider, NetworkNode, EnergyPort, FlowPorts {
+        implements Container, MenuProvider, NetworkNode, EnergyPort, FlowPorts,
+        io.lakio.krios.industry.machine.EnergyStats {
 
     public static final int CAPACITY = 100_000;
     public static final int GENERATION_PER_TICK = 40;
@@ -267,6 +268,28 @@ public class GeneratorBlockEntity extends BlockEntity
             tryResume();
             tryIgnite();
         }
+    }
+
+    // --- Energy diagnostics (Calibrator, KOIOS alerts) ---
+
+    @Override
+    public int energyDrawPerTick() {
+        return 0;
+    }
+
+    @Override
+    public int energySupplyPerTick() {
+        return getBlockState().getValue(BlockStateProperties.LIT) ? GENERATION_PER_TICK : 0;
+    }
+
+    @Override
+    public int energyStored() {
+        return energy.getStored();
+    }
+
+    @Override
+    public int energyCapacity() {
+        return energy.getCapacity();
     }
 
     /** Starts the next burn cycle if fuel is available and the buffer has room. */

@@ -17,7 +17,7 @@ public class CalibratorScreen extends KriosTerminalScreen<CalibratorMenu> {
     public CalibratorScreen(CalibratorMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
         imageWidth = 200;
-        imageHeight = 110;
+        imageHeight = 140;
     }
 
     @Override
@@ -68,6 +68,28 @@ public class CalibratorScreen extends KriosTerminalScreen<CalibratorMenu> {
         guiGraphics.drawString(font, Component.translatable("gui.krios_industry.diag.energy",
                 menu.energyStored(), menu.energyCapacity()), 6, y, 0xFFE8EAF0, false);
         y += LINE_HEIGHT;
+        // Live power balance + alerts (design: the Calibrator is the grid's
+        // dashboard; KOIOS relays the same alerts in its own voice).
+        int supply = menu.supplyPerTick();
+        int draw = menu.drawPerTick();
+        guiGraphics.drawString(font, Component.translatable("gui.krios_industry.diag.energy_rates",
+                supply, draw), 6, y, draw > supply ? 0xFFFFB03A : 0xFFE8EAF0, false);
+        y += LINE_HEIGHT;
+        if (draw > supply) {
+            guiGraphics.drawString(font, Component.translatable("gui.krios_industry.diag.energy_deficit",
+                    draw - supply), 6, y, 0xFFFFB03A, false);
+            y += LINE_HEIGHT;
+        }
+        int capacity = menu.energyCapacity();
+        if (capacity > 0 && menu.energyStored() == 0) {
+            guiGraphics.drawString(font, Component.translatable("gui.krios_industry.diag.energy_empty"),
+                    6, y, 0xFFE5484D, false);
+            y += LINE_HEIGHT;
+        } else if (capacity > 0 && (long) menu.energyStored() * 10 < capacity) {
+            guiGraphics.drawString(font, Component.translatable("gui.krios_industry.diag.energy_low"),
+                    6, y, 0xFFFFB03A, false);
+            y += LINE_HEIGHT;
+        }
         if (menu.hintMembers() > 0) {
             guiGraphics.drawString(font, Component.translatable("gui.krios_industry.diag.hints",
                     menu.hintMembers()), 6, y, 0xFFFFB03A, false);

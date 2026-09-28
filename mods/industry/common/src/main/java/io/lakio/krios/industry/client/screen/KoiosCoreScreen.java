@@ -144,6 +144,13 @@ public class KoiosCoreScreen extends KriosTerminalScreen<KoiosCoreMenu> {
         if (!menu.isFormed()) {
             return null;
         }
+        // Alerts first: energy health beats mood.
+        if (menu.isEnergyDeficit()) {
+            return Component.translatable("gui.krios_industry.koios.phrase.energy_deficit");
+        }
+        if (menu.getEnergyPermille() < 100) {
+            return Component.translatable("gui.krios_industry.koios.phrase.energy_low");
+        }
         if (menu.getDiversityPermille() < 400) {
             return Component.translatable("gui.krios_industry.koios.phrase.repetitive");
         }

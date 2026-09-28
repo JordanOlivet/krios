@@ -1,6 +1,7 @@
 package io.lakio.krios.industry.tool;
 
 import io.lakio.krios.industry.koios.KoiosCoreBlockEntity;
+import io.lakio.krios.industry.machine.EnergyReport;
 import io.lakio.krios.industry.network.FaceConfig;
 import io.lakio.krios.industry.network.FlowPorts;
 import io.lakio.krios.industry.network.Network;
@@ -25,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class CalibratorMenu extends AbstractContainerMenu {
 
-    public static final int DATA_COUNT = 9;
+    public static final int DATA_COUNT = 11;
 
     public static final int STATUS_NONE = 0;
     public static final int STATUS_ONLINE = 1;
@@ -66,11 +67,15 @@ public class CalibratorMenu extends AbstractContainerMenu {
                     case 2 -> network.size();
                     case 3 -> network.controller() instanceof KoiosCoreBlockEntity core
                             ? core.getKoiosLevel() : 0;
-                    case 4 -> network.energyStored() & 0xFFFF;
-                    case 5 -> (network.energyStored() >> 16) & 0xFFFF;
-                    case 6 -> network.energyCapacity() & 0xFFFF;
-                    case 7 -> (network.energyCapacity() >> 16) & 0xFFFF;
+                    // 4..7: SYSTEM totals (all machine buffers), not just the
+                    // producer pool — what the player thinks of as "stored".
+                    case 4 -> EnergyReport.stored(network) & 0xFFFF;
+                    case 5 -> (EnergyReport.stored(network) >> 16) & 0xFFFF;
+                    case 6 -> EnergyReport.capacity(network) & 0xFFFF;
+                    case 7 -> (EnergyReport.capacity(network) >> 16) & 0xFFFF;
                     case 8 -> countHintMembers(network);
+                    case 9 -> EnergyReport.supply(network);
+                    case 10 -> EnergyReport.draw(network);
                     default -> 0;
                 };
             }
@@ -141,5 +146,15 @@ public class CalibratorMenu extends AbstractContainerMenu {
 
     public int hintMembers() {
         return data.get(8);
+    }
+
+    /** Network production in E/t (burning generators). */
+    public int supplyPerTick() {
+        return data.get(9);
+    }
+
+    /** Network demand in E/t (working machines). */
+    public int drawPerTick() {
+        return data.get(10);
     }
 }

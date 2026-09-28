@@ -39,7 +39,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 public class CrusherBlockEntity extends BlockEntity
-        implements WorldlyContainer, MenuProvider, NetworkNode, FlowPorts, EnergySink {
+        implements WorldlyContainer, MenuProvider, NetworkNode, FlowPorts, EnergySink,
+        io.lakio.krios.industry.machine.EnergyStats {
 
     public static final int INPUT_SLOT = 0;
     public static final int OUTPUT_SLOT = 1;
@@ -62,6 +63,8 @@ public class CrusherBlockEntity extends BlockEntity
             RecipeManager.createCheck(ModRecipeTypes.CRUSHING.get());
     private int progress;
     private int totalTime;
+    /** Current demand in E/t, for diagnostics; 0 while idle. */
+    private int currentDrawPerTick;
     // Yield accumulator in quarter-items: the evolving multiplier is pure
     // arithmetic with a deterministic remainder carry (ADR-006), never a
     // per-item loop or a random roll.
@@ -83,6 +86,7 @@ public class CrusherBlockEntity extends BlockEntity
                 case 13 -> worldPosition.getZ() & 0xFFFF;
                 case 14 -> (worldPosition.getZ() >> 16) & 0xFFFF;
                 case 15 -> worldPosition.getY();
+                case 16 -> currentDrawPerTick;
                 // 4..9: raw face-config shorts (11 bits, short-safe).
                 default -> index < 10
                         ? faceConfig.bits(Direction.from3DDataValue(index - 4)) : 0;
@@ -239,6 +243,7 @@ public class CrusherBlockEntity extends BlockEntity
                 : Math.max(recipe.time(), KoiosBalance.DISCONNECTED_TIME_TICKS);
         int energyPerOp = recipe.energy() * EFFICIENCY_NUM[efficiencyModules] / 25;
         int energyPerTick = Math.max(1, energyPerOp / be.totalTime);
+        be.currentDrawPerTick = energyPerTick;
         if (be.energy.consume(energyPerTick)) {
             if (++be.progress >= be.totalTime) {
                 be.craft(holder, online, yieldModules);
@@ -345,8 +350,31 @@ public class CrusherBlockEntity extends BlockEntity
 
     private void stopWork(Level level, BlockPos pos, BlockState state) {
         progress = 0;
+        currentDrawPerTick = 0;
         setChanged();
         level.setBlock(pos, state.setValue(BlockStateProperties.LIT, false), 3);
+    }
+
+    // --- Energy diagnostics (Calibrator, KOIOS alerts) ---
+
+    @Override
+    public int energyDrawPerTick() {
+        return currentDrawPerTick;
+    }
+
+    @Override
+    public int energySupplyPerTick() {
+        return 0;
+    }
+
+    @Override
+    public int energyStored() {
+        return energy.getStored();
+    }
+
+    @Override
+    public int energyCapacity() {
+        return energy.getCapacity();
     }
 
     /** Called when input lands while the crusher is off. */

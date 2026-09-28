@@ -353,6 +353,13 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
      * diversity, near a classic level-up, else a slow learning rotation.
      */
     private static Component phraseFor(KoiosCoreBlockEntity core, float time) {
+        // Alerts first: energy health beats mood.
+        if (core.displayEnergyDeficit()) {
+            return Component.translatable("gui.krios_industry.koios.phrase.energy_deficit");
+        }
+        if (core.displayEnergyPermille() < 100) {
+            return Component.translatable("gui.krios_industry.koios.phrase.energy_low");
+        }
         if (core.displayDiversityPermille() < 400) {
             return Component.translatable("gui.krios_industry.koios.phrase.repetitive");
         }
