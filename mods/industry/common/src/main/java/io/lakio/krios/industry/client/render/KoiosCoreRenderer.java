@@ -260,11 +260,9 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
         }
 
 
-        // Learning pulse and level-up flash overlays.
-        if (pulseT < PULSE_TICKS) {
-            float a = (1F - pulseT / PULSE_TICKS) * 0.25F;
-            quad(pose, vc, -1.5F, -1.5F, 3F, 3F, Z_PULSE, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.19F, 0.85F, 1F, a);
-        }
+        // Level-up flash overlay. Learning pulses no longer flash the whole
+        // screen (it read as constant blinking with machines running) — the
+        // activity LED's bright flash carries that event instead.
         if (celebrating) {
             float a = (1F - levelUpT / LEVEL_UP_TICKS) * 0.35F;
             quad(pose, vc, -1.5F, -1.5F, 3F, 3F, Z_FLASH, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 1F, 1F, 1F, a);
