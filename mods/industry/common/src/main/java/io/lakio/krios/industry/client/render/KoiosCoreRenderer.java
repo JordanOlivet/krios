@@ -46,11 +46,13 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
     // depth test then fails and the eye vanishes during pulses. Farther than
     // the features, depth testing composites correctly in any draw order.
     private static final float Z_BG = 1.502F;
+    // Full-screen overlays sit JUST above the background: everything else is
+    // closer, so whatever order the translucent sort picks, no sibling quad
+    // ever fails the depth test behind an overlay (the vanishing-side bug).
+    private static final float Z_FLASH = 1.5022F;
     private static final float Z_FRAME = 1.5028F;
     private static final float Z_FRAME_NODE = 1.5032F;
-    private static final float Z_PULSE = 1.5035F;
     private static final float Z_STATIC = 1.504F;
-    private static final float Z_FLASH = 1.5042F;
     private static final float Z_FEATURES = 1.506F;
     private static final float Z_TEXT = 1.508F;
     private static final float Z_PUPILS = 1.509F;
@@ -91,10 +93,12 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
         poseStack.translate(0.5, 0.5, 0.5);
         VertexConsumer vc = buffers.getBuffer(RenderType.entityTranslucent(TEXTURE));
 
-        // Monolith sculpt (art direction): emissive frame beams on every
-        // shell face. The AI's full hologram body is the LAST-TIER evolution
-        // of the core (design decision 2026-09-29) — not rendered yet.
-        renderMonolithFrame(poseStack, vc);
+        // Monolith sculpt (art direction): emissive frame beams and animated
+        // circuit veins on every shell face (the veins are BER-drawn so the
+        // pattern spans the whole structure — per-block textures could not).
+        // The AI's full hologram body is the LAST-TIER evolution of the core
+        // (design decision 2026-09-29) — not rendered yet.
+        renderMonolithFrame(poseStack, vc, core.getScreenSide(), time);
 
         Direction side = core.getScreenSide();
         if (side != null) {
@@ -122,7 +126,8 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
      * nodes — the "framed monolith" read. Sits between the screen background
      * and the overlays so the face content stays untouched.
      */
-    private void renderMonolithFrame(PoseStack poseStack, VertexConsumer vc) {
+    private void renderMonolithFrame(PoseStack poseStack, VertexConsumer vc,
+            Direction screenSide, float time) {
         for (Direction face : Direction.values()) {
             poseStack.pushPose();
             switch (face) {
@@ -138,7 +143,47 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
             quad(pose, vc, -1.5F, -1.5F, 3F, 0.08F, Z_FRAME, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, r, g, b, 0.9F);
             quad(pose, vc, -1.5F, -1.42F, 0.08F, 2.84F, Z_FRAME, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, r, g, b, 0.9F);
             quad(pose, vc, 1.42F, -1.42F, 0.08F, 2.84F, Z_FRAME, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, r, g, b, 0.9F);
+            if (face != screenSide) {
+                renderVeins(pose, vc, face, time);
+            }
             poseStack.popPose();
+        }
+    }
+
+    /**
+     * BER-drawn circuit veins: one quadrant-symmetric pattern per shell face,
+     * running from the frame toward a node near the center, with a slow
+     * per-face alpha breathing. Drawn by the core so the pattern spans the
+     * whole 3x3 face — per-block textures could only repeat a motif.
+     */
+    private void renderVeins(PoseStack.Pose pose, VertexConsumer vc, Direction face, float time) {
+        float w = 0.05F;
+        int faceIndex = face.get3DDataValue();
+        for (int k = 0; k < 4; k++) {
+            float sx = (k & 1) == 0 ? 1 : -1;
+            float sy = (k & 2) == 0 ? 1 : -1;
+            float a = 0.30F + 0.10F * Mth.sin(time * 0.06F + faceIndex * 1.7F + k * 2.1F);
+            seg(pose, vc, sx * 1.5F, sy * 0.9F, sx * 0.6F, sy * 0.9F, w, a);
+            seg(pose, vc, sx * 0.6F, sy * 0.9F, sx * 0.6F, sy * 0.25F, w, a);
+            seg(pose, vc, sx * 0.6F, sy * 0.25F, sx * 0.18F, sy * 0.25F, w, a);
+            quad(pose, vc, sx * 0.18F - 0.05F, sy * 0.25F - 0.05F, 0.10F, 0.10F, Z_FRAME_NODE,
+                    56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.19F, 0.85F, 1F, Math.min(1F, a + 0.35F));
+        }
+    }
+
+    /** Axis-aligned vein segment between two points (dim cyan, frame depth). */
+    private void seg(PoseStack.Pose pose, VertexConsumer vc,
+            float x0, float y0, float x1, float y1, float w, float a) {
+        float x = Math.min(x0, x1);
+        float y = Math.min(y0, y1);
+        float lenX = Math.abs(x1 - x0);
+        float lenY = Math.abs(y1 - y0);
+        if (lenX == 0) {
+            quad(pose, vc, x - w / 2, y, w, lenY, Z_FRAME,
+                    56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.04F, 0.43F, 0.53F, a);
+        } else {
+            quad(pose, vc, x, y - w / 2, lenX, w, Z_FRAME,
+                    56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.04F, 0.43F, 0.53F, a);
         }
     }
 

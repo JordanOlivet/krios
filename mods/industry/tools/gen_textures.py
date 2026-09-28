@@ -133,25 +133,11 @@ def neural_casing_formed():
     The main lines run edge to edge at fixed coordinates, so they connect
     across neighboring casings and read as circuitry spanning the whole
     structure, not a per-block motif."""
+    # Plain near-black mass: the circuit veins are BER-drawn by the core so
+    # the pattern spans the whole structure (texture veins only repeated a
+    # per-block motif).
     img = Img(16, 16)
     img.noise_rect(0, 0, 16, 16, SCREEN, 2, 23)
-    vein = mix(SCREEN, CYAN_DIM, 0.40)
-    node = mix(SCREEN, CYAN_DIM, 0.75)
-    # Center-cross mains, 2 px wide at rows/cols 7-8: rotation-invariant edge
-    # exits, so the blockstate's random 0/90/180/270 rotations still connect
-    # block to block while varying the interior motif per position.
-    img.rect(0, 7, 16, 2, vein)
-    img.rect(7, 0, 2, 16, vein)
-    img.rect(7, 7, 2, 2, node)
-    # Asymmetric interior branches (never touch an edge): these are what the
-    # random rotations shuffle around.
-    img.rect(2, 3, 4, 1, vein)
-    img.rect(5, 3, 1, 4, vein)
-    img.set(2, 3, node)
-    img.rect(11, 11, 3, 1, vein)
-    img.rect(13, 9, 1, 3, vein)
-    img.set(13, 11, node)
-    img.rect(3, 12, 1, 2, vein)
     return img
 
 
