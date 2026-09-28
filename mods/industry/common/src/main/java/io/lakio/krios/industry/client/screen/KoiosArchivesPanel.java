@@ -92,7 +92,7 @@ public class KoiosArchivesPanel {
         // Sidebar: the section list.
         gui.fill(x + SIDEBAR_X + SIDEBAR_W + 3, y + HEADER_H + 4,
                 x + SIDEBAR_X + SIDEBAR_W + 4, y + H - 6, 0xFF262B35);
-        Component lockTip = null;
+        Component tooltip = null;
         for (int i = 0; i < ENTRIES.size(); i++) {
             Entry entry = ENTRIES.get(i);
             int rowY = y + HEADER_H + 6 + i * ROW_H;
@@ -106,11 +106,23 @@ public class KoiosArchivesPanel {
                 gui.fill(x + SIDEBAR_X, rowY, x + SIDEBAR_X + SIDEBAR_W, rowY + ROW_H - 2, 0xFF171B22);
             }
             int color = locked ? 0xFF31363F : i == selected ? 0xFF31D8FF : 0xFFA9AFBD;
-            gui.drawString(font, Component.translatable(
-                    "gui.krios_industry.archive." + entry.id() + ".title"),
-                    x + SIDEBAR_X + 6, rowY + 4, color, false);
-            if (locked && hover) {
-                lockTip = Component.translatable("gui.krios_industry.archive.locked", entry.minLevel());
+            // Titles too wide for the column are ellipsized; hover shows the
+            // full name (a locked notice wins over it).
+            Component title = Component.translatable(
+                    "gui.krios_industry.archive." + entry.id() + ".title");
+            int maxWidth = SIDEBAR_W - 12;
+            boolean truncated = font.width(title) > maxWidth;
+            Component shown = truncated
+                    ? Component.literal(font.plainSubstrByWidth(
+                            title.getString(), maxWidth - font.width("…")) + "…")
+                    : title;
+            gui.drawString(font, shown, x + SIDEBAR_X + 6, rowY + 4, color, false);
+            if (hover) {
+                if (locked) {
+                    tooltip = Component.translatable("gui.krios_industry.archive.locked", entry.minLevel());
+                } else if (truncated) {
+                    tooltip = title;
+                }
             }
         }
 
@@ -134,8 +146,8 @@ public class KoiosArchivesPanel {
             gui.fill(textX, textY, textX + 1, textY + advHeight, 0xFF0A6E87);
             gui.drawWordWrap(font, adv, textX + 6, textY, PAGE_W - 6, 0xFF5FA8BC);
         }
-        if (lockTip != null) {
-            gui.renderTooltip(font, lockTip, mouseX, mouseY);
+        if (tooltip != null) {
+            gui.renderTooltip(font, tooltip, mouseX, mouseY);
         }
     }
 
