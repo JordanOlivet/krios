@@ -614,15 +614,15 @@ def gui_crusher():
     gui_panel(img)
     # Compact vertical energy gauge on the left, inside the panel — the
     # center stays free for machine content (art direction feedback).
-    gui_bar_frame(img, 7, 20, 10, 52)
+    gui_bar_frame(img, 7, 20, 10, 42)
     gui_slot(img, 55, 40)
     gui_slot(img, 115, 40)
     gui_slot(img, 151, 27, accent=CYAN_DIM)
     gui_slot(img, 151, 51, accent=CYAN_DIM)
     gui_inventory(img)
     arrow_shape(img, 80, 42, GUI_SLOT, GUI_DARKEST)
-    # Fill sprites: vertical energy at v=166 (8x50), progress arrow at u=176.
-    energy_fill_vertical(img, 0, 166, 8, 50)
+    # Fill sprites: vertical energy at v=166 (8x40), progress arrow at u=176.
+    energy_fill_vertical(img, 0, 166, 8, 40)
     arrow_shape(img, 176, 0, CYAN, CYAN_DIM)
     img.set(177, 1, CYAN_HI)
     return img
@@ -633,11 +633,12 @@ def gui_generator():
     gui_panel(img)
     # Central bar kept for the generator, dropped below the header row.
     gui_bar_frame(img, 7, 20, 162, 10)
-    gui_slot(img, 79, 40)
+    # Slot and flame dropped below the (lowered) energy bar.
+    gui_slot(img, 79, 46)
     gui_inventory(img)
     # Dim flame socket behind the burn indicator.
     for x, y in flame_pixels():
-        img.set(81 + x, 26 + y, JOINT)
+        img.set(81 + x, 32 + y, JOINT)
     energy_fill(img, 0, 166, 160, 8)
     for x, y in flame_pixels():
         img.set(176 + x, 0 + y, ENERGY)

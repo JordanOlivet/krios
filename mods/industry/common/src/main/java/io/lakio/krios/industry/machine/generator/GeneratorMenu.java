@@ -32,7 +32,7 @@ public class GeneratorMenu extends AbstractContainerMenu {
         this.container = container;
         this.data = data;
 
-        addSlot(new Slot(container, FUEL_SLOT, 80, 41) {
+        addSlot(new Slot(container, FUEL_SLOT, 80, 47) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return Services.PLATFORM.getBurnTime(stack) > 0;

@@ -17,7 +17,7 @@ public class CrusherScreen extends KriosTerminalScreen<CrusherMenu> {
     private static final int ENERGY_BAR_X = 8;
     private static final int ENERGY_BAR_Y = 21;
     private static final int ENERGY_BAR_WIDTH = 8;
-    private static final int ENERGY_BAR_HEIGHT = 50;
+    private static final int ENERGY_BAR_HEIGHT = 40;
     private static final int ARROW_X = 80;
     private static final int ARROW_Y = 42;
     private static final int ARROW_WIDTH = 22;

@@ -130,7 +130,7 @@ public class GeneratorScreen extends KriosTerminalScreen<GeneratorMenu> {
         // Flame while burning (14x14 sprite at u=176 v=0, drawn bottom-up).
         if (menu.isBurning()) {
             int burn = menu.getBurnProgress(13);
-            guiGraphics.blit(TEXTURE, x + 81, y + 26 + 13 - burn, 176, 13 - burn, 14, burn + 1);
+            guiGraphics.blit(TEXTURE, x + 81, y + 32 + 13 - burn, 176, 13 - burn, 14, burn + 1);
         }
     }
 }
