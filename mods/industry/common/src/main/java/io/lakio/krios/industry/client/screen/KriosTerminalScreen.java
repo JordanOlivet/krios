@@ -58,7 +58,8 @@ public abstract class KriosTerminalScreen<T extends AbstractContainerMenu>
         gui.drawString(font, title, titleLabelX, titleLabelY, COLOR_ACCENT, false);
         int status = terminalStatus();
         int x = feedX();
-        int y = 3;
+        // Aligned with the machines' 12px "F" button row (y 4..16).
+        int y = 4;
         int border = status < 0 ? COLOR_ERROR : status == 0 ? COLOR_TEXT_DIM : COLOR_ACCENT;
         gui.fill(x, y, x + FEED_W, y + FEED_H, 0xFF000000 | border);
         gui.fill(x + 1, y + 1, x + FEED_W - 1, y + FEED_H - 1, 0xFF10141B);
@@ -93,7 +94,7 @@ public abstract class KriosTerminalScreen<T extends AbstractContainerMenu>
     /** Feed tooltip + boot flicker. Call at the very end of render. */
     protected void renderTerminalOverlays(GuiGraphics gui, int mouseX, int mouseY) {
         int fx = leftPos + feedX();
-        int fy = topPos + 3;
+        int fy = topPos + 4;
         if (!bootActive() && mouseX >= fx && mouseX < fx + FEED_W && mouseY >= fy && mouseY < fy + FEED_H) {
             gui.renderTooltip(font, statusLine(), mouseX, mouseY);
         }

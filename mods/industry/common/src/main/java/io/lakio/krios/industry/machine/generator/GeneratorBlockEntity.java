@@ -4,6 +4,7 @@ import io.lakio.krios.industry.energy.EnergyBuffer;
 import io.lakio.krios.industry.koios.KoiosBalance;
 import io.lakio.krios.industry.koios.KoiosCoreBlockEntity;
 import io.lakio.krios.industry.network.EnergyPort;
+import io.lakio.krios.industry.network.EnergySink;
 import io.lakio.krios.industry.network.FaceConfig;
 import io.lakio.krios.industry.network.Flow;
 import io.lakio.krios.industry.network.FlowPorts;
@@ -214,10 +215,58 @@ public class GeneratorBlockEntity extends BlockEntity
     public static void serverTick(Level level, BlockPos pos, BlockState state, GeneratorBlockEntity be) {
         // Only reachable while LIT (the block registers no ticker otherwise).
         be.energy.insert(GENERATION_PER_TICK);
+        be.distributeEnergy(level, pos);
         if (--be.burnTime <= 0 && !be.tryConsumeFuel()) {
             level.setBlock(pos, state.setValue(BlockStateProperties.LIT, false), 3);
         }
         be.setChanged();
+    }
+
+    /**
+     * Proactive distribution (design: buffers fill as soon as energy
+     * exists): while burning, the surplus streams into the network's sinks,
+     * or into touching consumers offline — idle machines charge without
+     * having to tick (ADR-012 stays intact: only the producer is awake).
+     */
+    private void distributeEnergy(Level level, BlockPos pos) {
+        Network network = NetworkManager.networkOf(this);
+        if (network != null && network.isValid()) {
+            int offer = Math.min(MAX_EXTRACT_PER_TICK, energy.getStored());
+            if (offer > 0) {
+                int accepted = network.offerEnergy(offer, this);
+                if (accepted > 0) {
+                    energy.consume(accepted);
+                }
+            }
+            return;
+        }
+        // Offline contact push: both face contracts respected.
+        for (Direction direction : Direction.values()) {
+            int offer = Math.min(MAX_EXTRACT_PER_TICK, energy.getStored());
+            if (offer <= 0) {
+                return;
+            }
+            if (!allowsEnergyExtract(direction)) {
+                continue;
+            }
+            if (level.getBlockEntity(pos.relative(direction)) instanceof EnergySink sink
+                    && sink instanceof FlowPorts ports
+                    && (!ports.faceConfig().isManual(direction.getOpposite())
+                            || ports.faceConfig().allows(direction.getOpposite(), Flow.ENERGY, false))) {
+                int accepted = sink.insertNetworkEnergy(offer);
+                if (accepted > 0) {
+                    energy.consume(accepted);
+                }
+            }
+        }
+    }
+
+    /** A neighbor changed (placed/removed/mutated): resume or ignite. */
+    public void onNeighborChanged() {
+        if (level != null && !level.isClientSide) {
+            tryResume();
+            tryIgnite();
+        }
     }
 
     /** Starts the next burn cycle if fuel is available and the buffer has room. */

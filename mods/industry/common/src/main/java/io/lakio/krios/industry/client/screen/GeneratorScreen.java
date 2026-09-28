@@ -13,7 +13,7 @@ public class GeneratorScreen extends KriosTerminalScreen<GeneratorMenu> {
 
     private static final ResourceLocation TEXTURE = Constants.id("textures/gui/generator.png");
     private static final int ENERGY_BAR_X = 8;
-    private static final int ENERGY_BAR_Y = 17;
+    private static final int ENERGY_BAR_Y = 21;
     private static final int ENERGY_BAR_WIDTH = 160;
     private static final int ENERGY_BAR_HEIGHT = 8;
     private static final int FACES_BUTTON_SIZE = 12;

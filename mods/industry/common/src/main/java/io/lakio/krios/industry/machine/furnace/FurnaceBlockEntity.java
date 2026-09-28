@@ -4,8 +4,10 @@ import io.lakio.krios.industry.energy.EnergyBuffer;
 import io.lakio.krios.industry.koios.KoiosBalance;
 import io.lakio.krios.industry.koios.KoiosCoreBlockEntity;
 import io.lakio.krios.industry.machine.generator.GeneratorBlockEntity;
+import io.lakio.krios.industry.machine.ItemFlow;
 import io.lakio.krios.industry.machine.module.ModuleItem;
 import io.lakio.krios.industry.machine.module.ModuleType;
+import io.lakio.krios.industry.network.EnergySink;
 import io.lakio.krios.industry.network.FaceConfig;
 import io.lakio.krios.industry.network.Flow;
 import io.lakio.krios.industry.network.FlowPorts;
@@ -45,7 +47,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
  * tickless-idle, face-config and wake contracts as the crusher.
  */
 public class FurnaceBlockEntity extends BlockEntity
-        implements WorldlyContainer, MenuProvider, NetworkNode, FlowPorts {
+        implements WorldlyContainer, MenuProvider, NetworkNode, FlowPorts, EnergySink {
 
     public static final int INPUT_SLOT = 0;
     public static final int OUTPUT_SLOT = 1;
@@ -213,6 +215,8 @@ public class FurnaceBlockEntity extends BlockEntity
         } else {
             be.pullEnergyFromContacts(level, pos);
         }
+        // Hopper-like flow: the output streams into adjacent machines.
+        ItemFlow.pushOutput(level, pos, be, OUTPUT_SLOT, be.faceConfig);
 
         RecipeHolder<SmeltingRecipe> holder = be.items.get(INPUT_SLOT).isEmpty() ? null
                 : be.quickCheck.getRecipeFor(new SingleRecipeInput(be.items.get(INPUT_SLOT)), level).orElse(null);
@@ -344,6 +348,20 @@ public class FurnaceBlockEntity extends BlockEntity
 
     public EnergyBuffer getEnergy() {
         return energy;
+    }
+
+    /** Producers push proactively; same rate cap as our own pulls. */
+    @Override
+    public int insertNetworkEnergy(int max) {
+        return energy.insert(Math.min(max, PULL_PER_TICK));
+    }
+
+    /** A neighbor changed (placed/removed/mutated): try to flow and wake. */
+    public void onNeighborChanged() {
+        if (level != null && !level.isClientSide) {
+            ItemFlow.pushOutput(level, worldPosition, this, OUTPUT_SLOT, faceConfig);
+            tryWake();
+        }
     }
 
     // --- MenuProvider ---

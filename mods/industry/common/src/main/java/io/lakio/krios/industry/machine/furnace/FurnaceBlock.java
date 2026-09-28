@@ -128,4 +128,14 @@ public class FurnaceBlock extends BaseEntityBlock implements NetworkConductor {
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
+
+    /** Every significant neighborhood change re-evaluates the machine. */
+    @Override
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos,
+            net.minecraft.world.level.block.Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
+        if (!level.isClientSide && level.getBlockEntity(pos) instanceof FurnaceBlockEntity furnace) {
+            furnace.onNeighborChanged();
+        }
+    }
 }

@@ -13,10 +13,11 @@ import net.minecraft.world.entity.player.Inventory;
 public class FurnaceScreen extends KriosTerminalScreen<FurnaceMenu> {
 
     private static final ResourceLocation TEXTURE = Constants.id("textures/gui/furnace.png");
+    // Compact vertical gauge, left side, inside the panel.
     private static final int ENERGY_BAR_X = 8;
-    private static final int ENERGY_BAR_Y = 17;
-    private static final int ENERGY_BAR_WIDTH = 160;
-    private static final int ENERGY_BAR_HEIGHT = 8;
+    private static final int ENERGY_BAR_Y = 21;
+    private static final int ENERGY_BAR_WIDTH = 8;
+    private static final int ENERGY_BAR_HEIGHT = 50;
     private static final int ARROW_X = 80;
     private static final int ARROW_Y = 42;
     private static final int ARROW_WIDTH = 22;
@@ -143,9 +144,10 @@ public class FurnaceScreen extends KriosTerminalScreen<FurnaceMenu> {
         int x = leftPos;
         int y = topPos;
         guiGraphics.blit(TEXTURE, x, y, 0, 0, imageWidth, imageHeight);
-        int energyWidth = menu.getEnergyProgress(ENERGY_BAR_WIDTH);
-        if (energyWidth > 0) {
-            guiGraphics.blit(TEXTURE, x + ENERGY_BAR_X, y + ENERGY_BAR_Y, 0, 166, energyWidth, ENERGY_BAR_HEIGHT);
+        int energyHeight = menu.getEnergyProgress(ENERGY_BAR_HEIGHT);
+        if (energyHeight > 0) {
+            guiGraphics.blit(TEXTURE, x + ENERGY_BAR_X, y + ENERGY_BAR_Y + ENERGY_BAR_HEIGHT - energyHeight,
+                    0, 166 + ENERGY_BAR_HEIGHT - energyHeight, ENERGY_BAR_WIDTH, energyHeight);
         }
         int arrowWidth = menu.getProgress(ARROW_WIDTH);
         if (arrowWidth > 0) {

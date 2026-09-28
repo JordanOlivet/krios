@@ -577,6 +577,17 @@ def energy_fill(img, x, y, w, h):
             img.set(x + xx, y + yy, mix(ENERGY, AMBER_D, 0.5))
 
 
+def energy_fill_vertical(img, x, y, w, h):
+    """Compact side gauge fill (drawn bottom-anchored by the screens)."""
+    for yy in range(h):
+        c = ENERGY_HI if yy == 0 else ENERGY if yy < h - 3 else AMBER_D
+        for xx in range(w):
+            img.set(x + xx, y + yy, c)
+    for yy in range(0, h, 8):
+        for xx in range(1, w - 1):
+            img.set(x + xx, y + yy, mix(ENERGY, AMBER_D, 0.5))
+
+
 def xp_fill(img, x, y, w, h):
     for yy in range(h):
         c = CYAN_HI if yy == 0 else CYAN if yy < h - 2 else CYAN_DIM
@@ -601,15 +612,17 @@ def arrow_shape(img, ox, oy, body, edge):
 def gui_crusher():
     img = Img(256, 256)
     gui_panel(img)
-    gui_bar_frame(img, 7, 16, 162, 10)
+    # Compact vertical energy gauge on the left, inside the panel — the
+    # center stays free for machine content (art direction feedback).
+    gui_bar_frame(img, 7, 20, 10, 52)
     gui_slot(img, 55, 40)
     gui_slot(img, 115, 40)
     gui_slot(img, 151, 27, accent=CYAN_DIM)
     gui_slot(img, 151, 51, accent=CYAN_DIM)
     gui_inventory(img)
     arrow_shape(img, 80, 42, GUI_SLOT, GUI_DARKEST)
-    # Fill sprites: energy row at v=166, progress arrow at u=176.
-    energy_fill(img, 0, 166, 160, 8)
+    # Fill sprites: vertical energy at v=166 (8x50), progress arrow at u=176.
+    energy_fill_vertical(img, 0, 166, 8, 50)
     arrow_shape(img, 176, 0, CYAN, CYAN_DIM)
     img.set(177, 1, CYAN_HI)
     return img
@@ -618,7 +631,8 @@ def gui_crusher():
 def gui_generator():
     img = Img(256, 256)
     gui_panel(img)
-    gui_bar_frame(img, 7, 16, 162, 10)
+    # Central bar kept for the generator, dropped below the header row.
+    gui_bar_frame(img, 7, 20, 162, 10)
     gui_slot(img, 79, 40)
     gui_inventory(img)
     # Dim flame socket behind the burn indicator.

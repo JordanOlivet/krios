@@ -66,7 +66,7 @@ public class KoiosCoreScreen extends KriosTerminalScreen<KoiosCoreMenu> {
         archives.render(guiGraphics, font, width, height, menu.getKoiosLevel(), mouseX, mouseY);
         int bx = leftPos + archivesButtonX();
         if (!archives.isOpen() && mouseX >= bx && mouseX < bx + 12
-                && mouseY >= topPos + 3 && mouseY < topPos + 15) {
+                && mouseY >= topPos + 4 && mouseY < topPos + 16) {
             guiGraphics.renderTooltip(font,
                     Component.translatable("gui.krios_industry.archive.title"), mouseX, mouseY);
         }
@@ -79,7 +79,7 @@ public class KoiosCoreScreen extends KriosTerminalScreen<KoiosCoreMenu> {
             return true;
         }
         int bx = leftPos + archivesButtonX();
-        if (mouseX >= bx && mouseX < bx + 12 && mouseY >= topPos + 3 && mouseY < topPos + 15) {
+        if (mouseX >= bx && mouseX < bx + 12 && mouseY >= topPos + 4 && mouseY < topPos + 16) {
             archives.toggleOpen();
             return true;
         }
@@ -102,9 +102,9 @@ public class KoiosCoreScreen extends KriosTerminalScreen<KoiosCoreMenu> {
         renderTerminalHeader(guiGraphics, mouseX, mouseY);
         // Archives button: a small book next to the feed.
         int bx = archivesButtonX();
-        guiGraphics.fill(bx, 3, bx + 12, 15, archives.isOpen() ? 0xFF0A6E87 : 0xFF262B35);
-        guiGraphics.fill(bx + 3, 5, bx + 9, 13, 0xFFE8EAF0);
-        guiGraphics.fill(bx + 5, 5, bx + 6, 13, 0xFF262B35);
+        guiGraphics.fill(bx, 4, bx + 12, 16, archives.isOpen() ? 0xFF0A6E87 : 0xFF262B35);
+        guiGraphics.fill(bx + 3, 6, bx + 9, 14, 0xFFE8EAF0);
+        guiGraphics.fill(bx + 5, 6, bx + 6, 14, 0xFF262B35);
 
         if (menu.isFormed()) {
             guiGraphics.drawString(font, Component.translatable("gui.krios_industry.koios.online"),

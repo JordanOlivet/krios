@@ -94,6 +94,28 @@ public final class Network {
         return gathered;
     }
 
+    /**
+     * Pooled energy distribution: offers up to {@code amount} to members
+     * implementing {@link EnergySink}, returns what was accepted. Producers
+     * call this so idle machine buffers fill proactively. Only a valid
+     * network transfers.
+     */
+    public int offerEnergy(int amount, NetworkNode source) {
+        if (!isValid() || amount <= 0) {
+            return 0;
+        }
+        int accepted = 0;
+        for (NetworkNode member : members) {
+            if (member != source && member instanceof EnergySink sink) {
+                accepted += sink.insertNetworkEnergy(amount - accepted);
+                if (accepted >= amount) {
+                    break;
+                }
+            }
+        }
+        return accepted;
+    }
+
     void markDirty() {
         dirty = true;
     }
