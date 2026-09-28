@@ -13,6 +13,7 @@ Run from anywhere: python mods/industry/tools/gen_textures.py
 """
 
 import struct
+import sys
 import zlib
 from pathlib import Path
 
@@ -40,6 +41,69 @@ TEXT_HI = (0xE8, 0xEA, 0xF0)
 STONE = [(0x6B, 0x6B, 0x6B), (0x7E, 0x7E, 0x7E), (0x8D, 0x8D, 0x8D)]
 DEEPSLATE = [(0x3E, 0x3E, 0x46), (0x50, 0x50, 0x5A), (0x5E, 0x5E, 0x68)]
 ENERGY_HI = (0xFF, 0xD9, 0x8F)
+
+# Vanilla stone/deepslate pixels (palette + hex index grid, extracted from
+# the 1.21.1 client jar with tools no longer needed): the ore blocks sit on
+# the exact vanilla background so they read like every vanilla ore.
+
+VANILLA_STONE_PALETTE = [
+    (0x8F, 0x8F, 0x8F),
+    (0x7F, 0x7F, 0x7F),
+    (0x74, 0x74, 0x74),
+    (0x68, 0x68, 0x68),
+]
+VANILLA_STONE_GRID = """
+0000122123221111
+1121211111133212
+1233222322211111
+1100101100111222
+2112221210000211
+1011111112232320
+2110002002221111
+2233232211222111
+0001011000111112
+1101110001100001
+3121223321211222
+1111100111110010
+1222101221133232
+0012211222112220
+1221111111110000
+1111112210011211
+"""
+
+VANILLA_DEEPSLATE_PALETTE = [
+    (0x79, 0x79, 0x79),
+    (0x64, 0x64, 0x64),
+    (0x51, 0x51, 0x51),
+    (0x3D, 0x3D, 0x43),
+    (0x2F, 0x2F, 0x37),
+]
+VANILLA_DEEPSLATE_GRID = """
+0122223311122322
+2344333321223323
+1101122444433433
+3212233321001112
+4322333211101123
+0021224211212221
+0112243322334432
+1233331011234322
+2323332012123332
+3344222122323443
+1212322334432200
+1123100023233201
+1233201112333211
+3334421123434433
+0011233430122110
+0012122420112211
+"""
+
+
+def grid_pixels(palette, grid):
+    return [[palette[int(ch, 16)] for ch in line] for line in grid.split()]
+
+
+VANILLA_STONE_PX = grid_pixels(VANILLA_STONE_PALETTE, VANILLA_STONE_GRID)
+VANILLA_DEEPSLATE_PX = grid_pixels(VANILLA_DEEPSLATE_PALETTE, VANILLA_DEEPSLATE_GRID)
 
 
 def mix(a, b, t):
@@ -409,12 +473,11 @@ def neural_conduit():
     return img
 
 
-def ore(base_ramp, gem, gem_hi, gem_out, seed):
+def ore(base_px, gem, gem_hi, gem_out):
     img = Img(16, 16)
     for y in range(16):
         for x in range(16):
-            n = noise(x, y, seed)
-            img.set(x, y, base_ramp[0] if n < 0.3 else base_ramp[1] if n < 0.75 else base_ramp[2])
+            img.set(x, y, base_px[y][x])
     clusters = [(3, 4), (10, 3), (5, 11), (12, 10)]
     for i, (cx, cy) in enumerate(clusters):
         img.set(cx, cy, gem)
@@ -723,10 +786,10 @@ def main():
         "block/crusher_maw.png": crusher_maw(False),
         "block/crusher_maw_lit.png": stack_frames([crusher_maw(True, f) for f in range(3)]),
         "block/neural_conduit.png": neural_conduit(),
-        "block/neurite_ore.png": ore(STONE, CYAN, CYAN_HI, CYAN_DIM, 101),
-        "block/deepslate_neurite_ore.png": ore(DEEPSLATE, CYAN, CYAN_HI, CYAN_DIM, 103),
-        "block/chronite_ore.png": ore(STONE, ENERGY, ENERGY_HI, COPPER_D, 107),
-        "block/deepslate_chronite_ore.png": ore(DEEPSLATE, ENERGY, ENERGY_HI, COPPER_D, 109),
+        "block/neurite_ore.png": ore(VANILLA_STONE_PX, CYAN, CYAN_HI, CYAN_DIM),
+        "block/deepslate_neurite_ore.png": ore(VANILLA_DEEPSLATE_PX, CYAN, CYAN_HI, CYAN_DIM),
+        "block/chronite_ore.png": ore(VANILLA_STONE_PX, ENERGY, ENERGY_HI, COPPER_D),
+        "block/deepslate_chronite_ore.png": ore(VANILLA_DEEPSLATE_PX, ENERGY, ENERGY_HI, COPPER_D),
         "block/koios_face.png": koios_face(),
         "item/neurite_ingot.png": neurite_ingot(),
         "item/raw_neurite.png": raw_neurite(),
@@ -740,14 +803,27 @@ def main():
         "gui/furnace.png": gui_crusher(),
         "gui/generator.png": gui_generator(),
     }
+    # Most shipped textures are hand-polished in Aseprite by now: never run
+    # this without a filter unless the user explicitly agreed to a full
+    # regeneration. Filters are substrings matched against the output path.
+    wanted = sys.argv[1:]
+    if not wanted:
+        print("No filter given: this OVERWRITES every texture, including "
+              "hand-polished ones. Pass substrings (e.g. 'ore') to limit, "
+              "or '--all' to really write everything.")
+        return
+    if wanted != ["--all"]:
+        out = {rel: img for rel, img in out.items()
+               if any(w in rel for w in wanted)}
     print(f"Writing {len(out)} textures to {ASSETS}")
     for rel, img in out.items():
         img.save(ASSETS / rel)
     # Vanilla animation metadata for the flickering lit textures.
     for rel in ("block/generator_front_lit.png", "block/crusher_maw_lit.png",
                 "block/furnace_front_lit.png"):
-        (ASSETS / (rel + ".mcmeta")).write_text('{"animation": {"frametime": 6}}\n')
-        print(f"  {rel}.mcmeta")
+        if rel in out:
+            (ASSETS / (rel + ".mcmeta")).write_text('{"animation": {"frametime": 6}}\n')
+            print(f"  {rel}.mcmeta")
 
 
 if __name__ == "__main__":

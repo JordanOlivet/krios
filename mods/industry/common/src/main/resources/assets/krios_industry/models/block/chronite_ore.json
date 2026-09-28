@@ -1,1 +1,7 @@
-{ "parent": "minecraft:block/cube_all", "textures": { "all": "krios_industry:block/chronite_ore" } }
+{
+    "parent": "krios_industry:block/template_emissive_ore",
+    "textures": {
+        "base": "krios_industry:block/chronite_ore",
+        "glow": "krios_industry:block/chronite_ore_glow"
+    }
+}
