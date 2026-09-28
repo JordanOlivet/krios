@@ -55,11 +55,13 @@ public final class KoiosCommand {
             if (member instanceof EnergyStats stats) {
                 supply += stats.energySupplyPerTick();
                 draw += stats.energyDrawPerTick();
-                String line = String.format("%s %s  stored %d/%d  draw %d  supply %d",
+                String line = String.format("%s %s  stored %d/%d  draw %d  used %d  supply %d%s",
                         member.getClass().getSimpleName(),
                         member.networkPos().toShortString(),
                         stats.energyStored(), stats.energyCapacity(),
-                        stats.energyDrawPerTick(), stats.energySupplyPerTick());
+                        stats.energyDrawPerTick(), stats.energyConsumedPerTick(),
+                        stats.energySupplyPerTick(),
+                        stats.energyStarved() ? "  STARVED" : "");
                 source.sendSuccess(() -> Component.literal(line), false);
             }
         }

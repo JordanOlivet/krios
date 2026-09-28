@@ -29,6 +29,26 @@ public final class EnergyReport {
         return total;
     }
 
+    public static int consumed(Network network) {
+        int total = 0;
+        for (NetworkNode member : network.members()) {
+            if (member instanceof EnergyStats stats) {
+                total += stats.energyConsumedPerTick();
+            }
+        }
+        return total;
+    }
+
+    public static int starvedCount(Network network) {
+        int count = 0;
+        for (NetworkNode member : network.members()) {
+            if (member instanceof EnergyStats stats && stats.energyStarved()) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     public static int stored(Network network) {
         int total = 0;
         for (NetworkNode member : network.members()) {

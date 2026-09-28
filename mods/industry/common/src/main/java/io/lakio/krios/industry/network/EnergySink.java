@@ -10,4 +10,13 @@ public interface EnergySink {
 
     /** Offer up to {@code max} to this member, returns what it accepted. */
     int insertNetworkEnergy(int max);
+
+    /**
+     * Serving tier: 0 is served first (e.g. working machines), 1 only sees
+     * the surplus (e.g. idle buffers). Data declared by the member — the
+     * engine stays balance-free (ADR-013).
+     */
+    default int sinkPriority() {
+        return 0;
+    }
 }

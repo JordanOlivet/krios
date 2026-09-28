@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class CalibratorMenu extends AbstractContainerMenu {
 
-    public static final int DATA_COUNT = 12;
+    public static final int DATA_COUNT = 13;
 
     public static final int STATUS_NONE = 0;
     public static final int STATUS_ONLINE = 1;
@@ -39,12 +39,6 @@ public class CalibratorMenu extends AbstractContainerMenu {
     @Nullable
     private final BlockPos pos;
 
-    // Measured stored-energy trend (server side): instantaneous demand is a
-    // snapshot and misleads on bursty machines — the trend answers "is the
-    // pool actually rising or falling".
-    private int trendLastStored = -1;
-    private long trendLastTime;
-    private int trendPerTick;
 
     /** Client constructor. */
     public CalibratorMenu(int containerId, Inventory playerInventory) {
@@ -83,7 +77,8 @@ public class CalibratorMenu extends AbstractContainerMenu {
                     case 8 -> countHintMembers(network);
                     case 9 -> EnergyReport.supply(network);
                     case 10 -> EnergyReport.draw(network);
-                    case 11 -> measuredTrend(network);
+                    case 11 -> EnergyReport.consumed(network);
+                    case 12 -> EnergyReport.starvedCount(network);
                     default -> 0;
                 };
             }
@@ -99,27 +94,6 @@ public class CalibratorMenu extends AbstractContainerMenu {
             }
         };
         addDataSlots(data);
-    }
-
-    /** Stored-energy delta in E/t, sampled over at least one second. */
-    private int measuredTrend(Network network) {
-        if (level == null) {
-            return 0;
-        }
-        long now = level.getGameTime();
-        int stored = EnergyReport.stored(network);
-        if (trendLastStored < 0 || now < trendLastTime) {
-            trendLastStored = stored;
-            trendLastTime = now;
-            return trendPerTick;
-        }
-        long elapsed = now - trendLastTime;
-        if (elapsed >= 20) {
-            trendPerTick = (int) ((stored - trendLastStored) / elapsed);
-            trendLastStored = stored;
-            trendLastTime = now;
-        }
-        return trendPerTick;
     }
 
     private static int countHintMembers(Network network) {
@@ -187,8 +161,13 @@ public class CalibratorMenu extends AbstractContainerMenu {
         return data.get(10);
     }
 
-    /** Measured stored-energy trend in E/t (negative = the pool is draining). */
-    public int trendPerTick() {
+    /** Energy actually consumed network-wide, in E/t (measured, not demand). */
+    public int consumedPerTick() {
         return data.get(11);
+    }
+
+    /** Machines frozen for lack of energy right now. */
+    public int starvedCount() {
+        return data.get(12);
     }
 }

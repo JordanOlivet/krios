@@ -13,6 +13,12 @@ public interface EnergyStats {
     /** Current production while running, in E/t (0 while idle). */
     int energySupplyPerTick();
 
+    /** E actually consumed on the last work tick (0 while idle or starved). */
+    int energyConsumedPerTick();
+
+    /** Working, but the last tick's energy consume failed (frozen machine). */
+    boolean energyStarved();
+
     int energyStored();
 
     int energyCapacity();

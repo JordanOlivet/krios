@@ -283,6 +283,16 @@ public class GeneratorBlockEntity extends BlockEntity
     }
 
     @Override
+    public int energyConsumedPerTick() {
+        return 0;
+    }
+
+    @Override
+    public boolean energyStarved() {
+        return false;
+    }
+
+    @Override
     public int energyStored() {
         return energy.getStored();
     }

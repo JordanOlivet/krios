@@ -96,24 +96,56 @@ public final class Network {
 
     /**
      * Pooled energy distribution: offers up to {@code amount} to members
-     * implementing {@link EnergySink}, returns what was accepted. Producers
-     * call this so idle machine buffers fill proactively. Only a valid
-     * network transfers.
+     * implementing {@link EnergySink}, returns what was accepted. Two
+     * serving tiers ({@link EnergySink#sinkPriority()}): tier 0 (working
+     * machines) is fully served before tier 1 (idle buffers) sees any
+     * surplus. Within a tier, a fair-share sweep precedes a greedy leftover
+     * sweep so no single sink monopolizes the flow. Allocation-free — this
+     * runs on producer ticks (ADR-012). Only a valid network transfers.
      */
     public int offerEnergy(int amount, NetworkNode source) {
         if (!isValid() || amount <= 0) {
             return 0;
         }
         int accepted = 0;
-        for (NetworkNode member : members) {
-            if (member != source && member instanceof EnergySink sink) {
-                accepted += sink.insertNetworkEnergy(amount - accepted);
+        for (int priority = 0; priority <= 1 && accepted < amount; priority++) {
+            int sinkCount = 0;
+            for (NetworkNode member : members) {
+                if (member != source && member instanceof EnergySink sink
+                        && normalizedPriority(sink) == priority) {
+                    sinkCount++;
+                }
+            }
+            if (sinkCount == 0) {
+                continue;
+            }
+            // Fair-share sweep.
+            int share = Math.max(1, (amount - accepted) / sinkCount);
+            for (NetworkNode member : members) {
                 if (accepted >= amount) {
                     break;
+                }
+                if (member != source && member instanceof EnergySink sink
+                        && normalizedPriority(sink) == priority) {
+                    accepted += sink.insertNetworkEnergy(Math.min(share, amount - accepted));
+                }
+            }
+            // Greedy leftover sweep.
+            for (NetworkNode member : members) {
+                if (accepted >= amount) {
+                    break;
+                }
+                if (member != source && member instanceof EnergySink sink
+                        && normalizedPriority(sink) == priority) {
+                    accepted += sink.insertNetworkEnergy(amount - accepted);
                 }
             }
         }
         return accepted;
+    }
+
+    private static int normalizedPriority(EnergySink sink) {
+        return sink.sinkPriority() <= 0 ? 0 : 1;
     }
 
     void markDirty() {

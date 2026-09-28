@@ -70,21 +70,20 @@ public class CalibratorScreen extends KriosTerminalScreen<CalibratorMenu> {
         y += LINE_HEIGHT;
         // Live power balance + alerts (design: the Calibrator is the grid's
         // dashboard; KOIOS relays the same alerts in its own voice).
+        // Production vs MEASURED consumption (not demand): the honest pool
+        // balance. Demand says how much would be needed to run everything;
+        // the starved count is the actionable alert.
         int supply = menu.supplyPerTick();
         int draw = menu.drawPerTick();
         guiGraphics.drawString(font, Component.translatable("gui.krios_industry.diag.energy_rates",
-                supply, draw), 6, y, draw > supply ? 0xFFFFB03A : 0xFFE8EAF0, false);
+                supply, menu.consumedPerTick()), 6, y, 0xFFE8EAF0, false);
         y += LINE_HEIGHT;
-        // Measured trend: instantaneous demand misleads on bursty machines —
-        // the deficit alert rides what the pool actually does.
-        int trend = menu.trendPerTick();
-        guiGraphics.drawString(font, Component.translatable("gui.krios_industry.diag.energy_trend",
-                (trend >= 0 ? "+" : "") + trend), 6, y,
-                trend < 0 ? 0xFFFFB03A : 0xFF9AD9E0, false);
+        guiGraphics.drawString(font, Component.translatable("gui.krios_industry.diag.energy_demand",
+                draw), 6, y, draw > supply ? 0xFFFFB03A : 0xFF9AD9E0, false);
         y += LINE_HEIGHT;
-        if (trend < 0) {
-            guiGraphics.drawString(font, Component.translatable("gui.krios_industry.diag.energy_deficit",
-                    -trend), 6, y, 0xFFFFB03A, false);
+        if (menu.starvedCount() > 0) {
+            guiGraphics.drawString(font, Component.translatable("gui.krios_industry.diag.energy_starved",
+                    menu.starvedCount()), 6, y, 0xFFE5484D, false);
             y += LINE_HEIGHT;
         }
         int capacity = menu.energyCapacity();

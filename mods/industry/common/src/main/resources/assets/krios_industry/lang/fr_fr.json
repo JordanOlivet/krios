@@ -107,11 +107,11 @@
   "gui.krios_industry.archive.furnace.title": "Four à induction",
   "gui.krios_industry.archive.furnace.body": "Fond tout ce qu’un four vanilla fond, à l’énergie plutôt qu’au combustible. Relié à mon réseau il va deux fois plus vite et accepte les modules ; déconnecté, il égale exactement un four ordinaire.",
   "gui.krios_industry.stats.consumption": "Consommation d'énergie",
-  "gui.krios_industry.diag.energy_rates": "Production : %s E/t · Demande : %s E/t",
-  "gui.krios_industry.diag.energy_deficit": "DÉFICIT : %s E/t manquants",
+  "gui.krios_industry.diag.energy_rates": "Production : %s E/t · Consommé : %s E/t",
   "gui.krios_industry.diag.energy_low": "Réserves d'énergie faibles",
   "gui.krios_industry.diag.energy_empty": "Réserves d'énergie VIDES",
-  "gui.krios_industry.koios.phrase.energy_deficit": "Nous consommons plus que nous ne produisons.",
+  "gui.krios_industry.koios.phrase.energy_deficit": "Des machines attendent de l'énergie.",
   "gui.krios_industry.koios.phrase.energy_low": "Mes réserves d'énergie s'épuisent.",
-  "gui.krios_industry.diag.energy_trend": "Tendance : %s E/t"
+  "gui.krios_industry.diag.energy_demand": "Demande : %s E/t",
+  "gui.krios_industry.diag.energy_starved": "Machines à court d'énergie : %s"
 }

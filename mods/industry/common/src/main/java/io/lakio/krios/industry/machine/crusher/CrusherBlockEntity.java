@@ -65,6 +65,10 @@ public class CrusherBlockEntity extends BlockEntity
     private int totalTime;
     /** Current demand in E/t, for diagnostics; 0 while idle. */
     private int currentDrawPerTick;
+    /** E actually consumed on the last work tick (0 = idle or starved). */
+    private int consumedLastTick;
+    /** Working but the last consume failed — frozen for lack of energy. */
+    private boolean starvedLastTick;
     // Yield accumulator in quarter-items: the evolving multiplier is pure
     // arithmetic with a deterministic remainder carry (ADR-006), never a
     // per-item loop or a random roll.
@@ -245,12 +249,17 @@ public class CrusherBlockEntity extends BlockEntity
         int energyPerTick = Math.max(1, energyPerOp / be.totalTime);
         be.currentDrawPerTick = energyPerTick;
         if (be.energy.consume(energyPerTick)) {
+            be.consumedLastTick = energyPerTick;
+            be.starvedLastTick = false;
             if (++be.progress >= be.totalTime) {
                 be.craft(holder, online, yieldModules);
                 be.progress = 0;
             }
+        } else {
+            // No energy: stay lit and wait — neighbors may refill next tick.
+            be.consumedLastTick = 0;
+            be.starvedLastTick = true;
         }
-        // No energy: stay lit and wait — neighbors may refill next tick.
         be.setChanged();
     }
 
@@ -351,6 +360,8 @@ public class CrusherBlockEntity extends BlockEntity
     private void stopWork(Level level, BlockPos pos, BlockState state) {
         progress = 0;
         currentDrawPerTick = 0;
+        consumedLastTick = 0;
+        starvedLastTick = false;
         setChanged();
         level.setBlock(pos, state.setValue(BlockStateProperties.LIT, false), 3);
     }
@@ -365,6 +376,16 @@ public class CrusherBlockEntity extends BlockEntity
     @Override
     public int energySupplyPerTick() {
         return 0;
+    }
+
+    @Override
+    public int energyConsumedPerTick() {
+        return consumedLastTick;
+    }
+
+    @Override
+    public boolean energyStarved() {
+        return starvedLastTick;
     }
 
     @Override
@@ -394,6 +415,12 @@ public class CrusherBlockEntity extends BlockEntity
     @Override
     public int insertNetworkEnergy(int max) {
         return energy.insert(Math.min(max, PULL_PER_TICK));
+    }
+
+    /** Working machines are served before idle buffers (surplus tier). */
+    @Override
+    public int sinkPriority() {
+        return getBlockState().getValue(BlockStateProperties.LIT) ? 0 : 1;
     }
 
     /** A neighbor changed (placed/removed/mutated): try to flow and wake. */

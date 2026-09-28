@@ -264,29 +264,10 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
         return capacity == 0 ? 1000 : (int) ((long) EnergyReport.stored(network) * 1000 / capacity);
     }
 
-    // Measured stored-energy trend: instantaneous demand misleads on bursty
-    // machines, so the deficit alert rides what the pool actually does.
-    private int energyTrendLastStored = -1;
-    private long energyTrendLastTime;
-    private int energyTrendPerTick;
-
-    /** The pool is measurably draining (sampled over at least one second). */
+    /** Machines are frozen for lack of energy right now (the KOIOS alert). */
     private boolean networkEnergyDeficit() {
         Network network = NetworkManager.networkOf(this);
-        if (network == null || level == null) {
-            return false;
-        }
-        long now = level.getGameTime();
-        int stored = EnergyReport.stored(network);
-        if (energyTrendLastStored < 0 || now < energyTrendLastTime) {
-            energyTrendLastStored = stored;
-            energyTrendLastTime = now;
-        } else if (now - energyTrendLastTime >= 20) {
-            energyTrendPerTick = (int) ((stored - energyTrendLastStored) / (now - energyTrendLastTime));
-            energyTrendLastStored = stored;
-            energyTrendLastTime = now;
-        }
-        return energyTrendPerTick < 0;
+        return network != null && EnergyReport.starvedCount(network) > 0;
     }
 
     /** Renderer-side energy health (synced on the client, live on the server). */
