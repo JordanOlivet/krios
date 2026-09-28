@@ -63,7 +63,8 @@ public class GeneratorScreen extends KriosTerminalScreen<GeneratorMenu> {
         guiGraphics.drawCenteredString(font, "F",
                 facesButtonX() + FACES_BUTTON_SIZE / 2, facesButtonY() + 2, 0xFFE8EAF0);
         facePanel.updateHover(leftPos + imageWidth + 2, topPos, mouseX, mouseY);
-        facePanel.render(guiGraphics, font, leftPos + imageWidth + 2, topPos, menu::faceBits, menu.machinePos());
+        facePanel.render(guiGraphics, font, leftPos + imageWidth + 2, topPos, menu::faceBits,
+                menu.machinePos(), mouseX, mouseY);
         statsPanel.render(guiGraphics, font, leftPos, topPos, mouseX, mouseY);
         renderTooltip(guiGraphics, mouseX, mouseY);
         if (mouseX >= facesButtonX() && mouseX < facesButtonX() + FACES_BUTTON_SIZE

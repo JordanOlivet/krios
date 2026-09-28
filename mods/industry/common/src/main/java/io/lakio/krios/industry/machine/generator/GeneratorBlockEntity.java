@@ -82,7 +82,11 @@ public class GeneratorBlockEntity extends BlockEntity
         }
     };
 
-    /** Same button channel as the crusher (face*16 + sub). */
+    // Directions this machine supports, for the one-click presets.
+    private static final short PRESET_IN_BITS = (short) FaceConfig.flowBits(Flow.ITEM, false);
+    private static final short PRESET_OUT_BITS = (short) FaceConfig.flowBits(Flow.ENERGY, true);
+
+    /** Same button channel as the crusher (face*16 + sub, 9..12 = presets). */
     public boolean handleFaceButton(int id) {
         int faceIndex = id / 16;
         int sub = id % 16;
@@ -94,9 +98,15 @@ public class GeneratorBlockEntity extends BlockEntity
             if (faceConfig.isManual(face)) {
                 faceConfig.resetToVirgin(face);
             } else {
-                faceConfig.enterManual(face, (short) (FaceConfig.flowBits(Flow.ENERGY, true)
-                        | FaceConfig.flowBits(Flow.ITEM, false)));
+                faceConfig.enterManual(face, (short) (PRESET_IN_BITS | PRESET_OUT_BITS));
             }
+        } else if (sub >= 9 && sub <= 12) {
+            faceConfig.enterManual(face, (short) switch (sub) {
+                case 9 -> 0;
+                case 10 -> PRESET_IN_BITS;
+                case 11 -> PRESET_OUT_BITS;
+                default -> PRESET_IN_BITS | PRESET_OUT_BITS;
+            });
         } else if (sub < 8 && faceConfig.isManual(face)) {
             faceConfig.toggleManual(face, Flow.VALUES[sub / 2], sub % 2 == 1);
         } else {

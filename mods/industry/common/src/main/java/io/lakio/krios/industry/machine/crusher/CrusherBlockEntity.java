@@ -98,9 +98,15 @@ public class CrusherBlockEntity extends BlockEntity
         }
     };
 
+    // Directions this machine supports, for the one-click presets.
+    private static final short PRESET_IN_BITS = (short) (FaceConfig.flowBits(Flow.ENERGY, false)
+            | FaceConfig.flowBits(Flow.ITEM, false));
+    private static final short PRESET_OUT_BITS = (short) FaceConfig.flowBits(Flow.ITEM, true);
+
     /**
      * Face-config edits arrive through the vanilla menu button channel
      * (no custom packets): id = face*16 + sub, sub 15 = toggle mode,
+     * sub 9..12 = presets (block / input only / output only / allow all),
      * sub 0..7 = flip flow bit (flow = sub/2, out = sub%2 == 1).
      */
     public boolean handleFaceButton(int id) {
@@ -116,10 +122,15 @@ public class CrusherBlockEntity extends BlockEntity
             } else {
                 // Seed with the vanilla-equivalent contract so entering
                 // manual mode alone changes nothing.
-                faceConfig.enterManual(face, (short) (FaceConfig.flowBits(Flow.ENERGY, false)
-                        | FaceConfig.flowBits(Flow.ITEM, false)
-                        | FaceConfig.flowBits(Flow.ITEM, true)));
+                faceConfig.enterManual(face, (short) (PRESET_IN_BITS | PRESET_OUT_BITS));
             }
+        } else if (sub >= 9 && sub <= 12) {
+            faceConfig.enterManual(face, (short) switch (sub) {
+                case 9 -> 0;
+                case 10 -> PRESET_IN_BITS;
+                case 11 -> PRESET_OUT_BITS;
+                default -> PRESET_IN_BITS | PRESET_OUT_BITS;
+            });
         } else if (sub < 8 && faceConfig.isManual(face)) {
             faceConfig.toggleManual(face, Flow.VALUES[sub / 2], sub % 2 == 1);
         } else {

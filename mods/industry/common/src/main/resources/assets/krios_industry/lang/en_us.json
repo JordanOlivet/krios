@@ -68,5 +68,9 @@
   "gui.krios_industry.flowtype.energy": "Energy",
   "gui.krios_industry.flowtype.item": "Items",
   "gui.krios_industry.faces.in": "Input",
-  "gui.krios_industry.faces.out": "Output"
+  "gui.krios_industry.faces.out": "Output",
+  "gui.krios_industry.faces.preset.block": "Block everything",
+  "gui.krios_industry.faces.preset.in": "Input only",
+  "gui.krios_industry.faces.preset.out": "Output only",
+  "gui.krios_industry.faces.preset.all": "Allow everything"
 }
