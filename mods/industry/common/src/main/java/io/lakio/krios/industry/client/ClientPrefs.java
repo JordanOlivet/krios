@@ -16,6 +16,7 @@ public final class ClientPrefs {
 
     private static final Path FILE = Path.of("config", "krios_industry-client.properties");
     private static final String STATS_EXPANDED = "stats_panel_expanded";
+    private static final String FACES_OPEN = "faces_panel_open";
 
     private static Properties props;
 
@@ -28,6 +29,15 @@ public final class ClientPrefs {
 
     public static void setStatsExpanded(boolean expanded) {
         load().setProperty(STATS_EXPANDED, Boolean.toString(expanded));
+        save();
+    }
+
+    public static boolean facesOpen() {
+        return Boolean.parseBoolean(load().getProperty(FACES_OPEN, "false"));
+    }
+
+    public static void setFacesOpen(boolean open) {
+        load().setProperty(FACES_OPEN, Boolean.toString(open));
         save();
     }
 

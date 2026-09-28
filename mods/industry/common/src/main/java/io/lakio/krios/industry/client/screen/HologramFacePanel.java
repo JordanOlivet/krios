@@ -22,7 +22,6 @@ import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -106,7 +105,7 @@ public class HologramFacePanel {
     private final Column[] columns;
     /** Column order grouped by flow type, one grid row per flow. */
     private final List<Flow> flowRows;
-    private boolean open;
+    private boolean open = io.lakio.krios.industry.client.ClientPrefs.facesOpen();
     private Direction selected;
     private Direction hovered;
     private float yaw = Float.NaN;
@@ -133,6 +132,11 @@ public class HologramFacePanel {
 
     public void toggleOpen() {
         open = !open;
+        io.lakio.krios.industry.client.ClientPrefs.setFacesOpen(open);
+        if (open) {
+            // Re-align the view with the player's current look on each open.
+            yaw = Float.NaN;
+        }
     }
 
     public int width() {
@@ -164,7 +168,7 @@ public class HologramFacePanel {
             return;
         }
         if (Float.isNaN(yaw)) {
-            yaw = initialYaw(state);
+            yaw = initialYaw(minecraft);
         }
 
         float cx = vx + VP_W / 2F;
@@ -379,9 +383,6 @@ public class HologramFacePanel {
     private void renderBadges(PoseStack pose, VertexConsumer vc, Direction dir, int faceBits) {
         boolean manual = FaceConfig.isManualBits(faceBits);
         boolean configured = FaceConfig.isConfiguredBits(faceBits);
-        if (!manual && !configured) {
-            return;
-        }
         Vector3f n = new Vector3f(dir.getStepX(), dir.getStepY(), dir.getStepZ());
         // Skip faces turned away from the viewer: guiOverlay has no depth
         // test, so a back-face badge would bleed through the machine.
@@ -397,34 +398,44 @@ public class HologramFacePanel {
             v.negate();
         }
 
-        List<Column> active = new ArrayList<>();
+        // The badges show the EFFECTIVE state, always: manual = allowed flows
+        // full strength (red cross when fully blocked); default/auto = every
+        // supported flow stays vanilla-open (dim), auto-routed ones brighter.
+        List<Column> shown = new ArrayList<>();
+        List<Integer> alphas = new ArrayList<>();
         for (Column column : columns) {
-            if (FaceConfig.allowsBits(faceBits, column.flow(), column.out())) {
-                active.add(column);
+            boolean allowed = FaceConfig.allowsBits(faceBits, column.flow(), column.out());
+            if (manual) {
+                if (allowed) {
+                    shown.add(column);
+                    alphas.add(0xE0);
+                }
+            } else {
+                shown.add(column);
+                alphas.add(configured && allowed ? 0x98 : 0x50);
             }
         }
-        if (manual && active.isEmpty()) {
+        if (manual && shown.isEmpty()) {
             crossBadge(pose, vc, n, u, v);
             return;
         }
-        float spread = 0.22F;
-        float start = -spread * (active.size() - 1) / 2F;
-        for (int i = 0; i < active.size(); i++) {
-            Column column = active.get(i);
+        float spread = 0.16F;
+        float start = -spread * (shown.size() - 1) / 2F;
+        for (int i = 0; i < shown.size(); i++) {
+            Column column = shown.get(i);
             int color = column.flow() == Flow.ENERGY ? 0xFFB03A : 0x31D8FF;
-            int alpha = manual ? 0xE0 : 0x70;
             arrowBadge(pose, vc, n, u, v, start + i * spread, column.out(),
-                    (alpha << 24) | color);
+                    (alphas.get(i) << 24) | color);
         }
     }
 
     private static void arrowBadge(PoseStack pose, VertexConsumer vc, Vector3f n, Vector3f u,
             Vector3f v, float uOffset, boolean out, int argb) {
         float dirSign = out ? 1F : -1F;
-        // Shaft then head, drawn as two quads in the face plane.
-        quad3(pose, vc, n, u, v, uOffset - 0.03F, -0.14F * dirSign, uOffset + 0.03F, 0.05F * dirSign, argb);
-        quad3(pose, vc, n, u, v, uOffset - 0.10F, 0.04F * dirSign, uOffset + 0.10F, 0.09F * dirSign, argb);
-        quad3(pose, vc, n, u, v, uOffset - 0.05F, 0.09F * dirSign, uOffset + 0.05F, 0.16F * dirSign, argb);
+        // Shaft then head, drawn as small quads in the face plane.
+        quad3(pose, vc, n, u, v, uOffset - 0.021F, -0.10F * dirSign, uOffset + 0.021F, 0.035F * dirSign, argb);
+        quad3(pose, vc, n, u, v, uOffset - 0.07F, 0.028F * dirSign, uOffset + 0.07F, 0.063F * dirSign, argb);
+        quad3(pose, vc, n, u, v, uOffset - 0.035F, 0.063F * dirSign, uOffset + 0.035F, 0.112F * dirSign, argb);
     }
 
     private void crossBadge(PoseStack pose, VertexConsumer vc, Vector3f n, Vector3f u, Vector3f v) {
@@ -536,13 +547,16 @@ public class HologramFacePanel {
                 && mouseY >= y + VP_Y && mouseY < y + VP_Y + VP_H;
     }
 
-    /** Front toward the viewer when the block has a horizontal facing. */
-    private float initialYaw(BlockState state) {
-        if (state.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
-            Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
-            return (float) Math.atan2(-facing.getStepX(), facing.getStepZ());
+    /**
+     * The hologram opens oriented like the player's own view of the block:
+     * the face the player is looking at faces the viewer.
+     */
+    private float initialYaw(Minecraft minecraft) {
+        if (minecraft.player == null) {
+            return (float) Math.PI * 0.75F;
         }
-        return (float) Math.PI * 0.75F;
+        Direction toward = minecraft.player.getDirection().getOpposite();
+        return (float) Math.atan2(-toward.getStepX(), toward.getStepZ());
     }
 
     /**
