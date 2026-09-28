@@ -129,21 +129,23 @@ def neural_casing():
 
 
 def neural_casing_formed():
-    """Formed shell: near-black mass with subtle digital veins (AE2-controller
-    vibe) — individual casing blocks must stop reading as blocks."""
+    """Formed shell: near-black mass crossed by CONTINUOUS digital veins.
+    The main lines run edge to edge at fixed coordinates, so they connect
+    across neighboring casings and read as circuitry spanning the whole
+    structure, not a per-block motif."""
     img = Img(16, 16)
     img.noise_rect(0, 0, 16, 16, SCREEN, 2, 23)
-    vein = mix(SCREEN, CYAN_DIM, 0.30)
-    node = mix(SCREEN, CYAN_DIM, 0.55)
-    # Sparse interior circuit veins; nothing touches the edges (clean tiling).
-    img.rect(3, 3, 5, 1, vein)
-    img.rect(7, 3, 1, 5, vein)
-    img.set(7, 7, node)
-    img.rect(10, 9, 3, 1, vein)
-    img.rect(12, 5, 1, 5, vein)
-    img.set(12, 9, node)
-    img.rect(4, 11, 1, 3, vein)
-    img.set(4, 11, node)
+    vein = mix(SCREEN, CYAN_DIM, 0.40)
+    node = mix(SCREEN, CYAN_DIM, 0.75)
+    # Edge-to-edge mains (tile-continuous): horizontal at y=7, vertical at x=12.
+    img.rect(0, 7, 16, 1, vein)
+    img.rect(12, 0, 1, 16, vein)
+    img.set(12, 7, node)
+    # Interior branch joining the horizontal main (never touches an edge).
+    img.rect(3, 3, 4, 1, vein)
+    img.rect(6, 3, 1, 5, vein)
+    img.set(6, 7, node)
+    img.set(3, 3, node)
     return img
 
 
@@ -623,13 +625,9 @@ def koios_face():
             elif d == 1:
                 c = mix(c, (0, 0, 0), 0.25)
             img.set(x, y, c)
-    # Eye sprite 8x8 at (48,0): SOLID cyan with rounded corners, matching
-    # the terminals' feed (full eyes, no rim, no highlight).
-    for y in range(8):
-        for x in range(8):
-            if x in (0, 7) and y in (0, 7):
-                continue
-            img.set(48 + x, y, CYAN)
+    # Eye sprite 8x8 at (48,0): SOLID square cyan, exactly like the
+    # terminals' feed eyes (no rounding, no rim, no highlight).
+    img.rect(48, 0, 8, 8, CYAN)
     # White patch 8x8 at (56,0): tinted by the renderer (mouth, pulse, panels).
     img.rect(56, 0, 8, 8, (255, 255, 255))
     # Static noise strip (0,48)-(48,63): scrolled by boot/fault renders.

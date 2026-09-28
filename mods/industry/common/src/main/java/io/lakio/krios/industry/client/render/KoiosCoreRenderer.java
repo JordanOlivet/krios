@@ -196,13 +196,14 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
         quad(pose, vc, -1.5F, -1.5F, 3F, 3F, Z_BG, 0, 0, 48 / ATLAS, 48 / ATLAS, 1, 1, 1, 1);
         // Head frame, mirroring the terminals' video feed: the face reads as
         // one delimited head, not floating features.
+        // Same footprint as the feed panel (14x12 px at 0.15/px, centered).
         float fr = 0.19F;
         float fg = 0.85F;
         float fb = 1F;
-        quad(pose, vc, -1.11F, 0.85F, 2.22F, 0.06F, Z_FRAME_NODE, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, fr, fg, fb, 0.85F);
-        quad(pose, vc, -1.11F, -0.91F, 2.22F, 0.06F, Z_FRAME_NODE, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, fr, fg, fb, 0.85F);
-        quad(pose, vc, -1.11F, -0.85F, 0.06F, 1.7F, Z_FRAME_NODE, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, fr, fg, fb, 0.85F);
-        quad(pose, vc, 1.05F, -0.85F, 0.06F, 1.7F, Z_FRAME_NODE, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, fr, fg, fb, 0.85F);
+        quad(pose, vc, -1.05F, 0.84F, 2.10F, 0.06F, Z_FRAME_NODE, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, fr, fg, fb, 0.85F);
+        quad(pose, vc, -1.05F, -0.90F, 2.10F, 0.06F, Z_FRAME_NODE, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, fr, fg, fb, 0.85F);
+        quad(pose, vc, -1.05F, -0.84F, 0.06F, 1.68F, Z_FRAME_NODE, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, fr, fg, fb, 0.85F);
+        quad(pose, vc, 0.99F, -0.84F, 0.06F, 1.68F, Z_FRAME_NODE, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, fr, fg, fb, 0.85F);
 
         float levelUpT = core.getClientLevelUpStart() > 0
                 ? time - core.getClientLevelUpStart() : Float.MAX_VALUE;
@@ -233,19 +234,21 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
         // eyes, the activity LED and the phrase line instead.
         float eyeScale = celebrating ? 1.3F : 1F;
 
-        // Full solid eyes, like the terminals' feed (no pupils): taller than
-        // wide, same 2:3 ratio as the feed's 2x3 pixel eyes.
-        float eyeW = 0.40F;
-        float eyeH = 0.60F * eyeScale;
+        // Exact terminal-feed head, scaled up: feed pixels map to world units
+        // at 0.15/px (eyes 2x3 px at x3/x9 y4, mouth 4x1 px at x5 y9, head
+        // centered on feed pixel (7,6)). Square solid eyes, no pupils.
+        float px = 0.15F;
+        float eyeW = 2 * px;
+        float eyeH = 3 * px * eyeScale;
         for (int i = -1; i <= 1; i += 2) {
-            float ex = i * 0.55F - eyeW / 2 + lookU;
-            float ey = 0.35F - eyeH / 2 + lookV;
+            float ex = i * 3 * px - eyeW / 2 + lookU;
+            float ey = 0.075F - eyeH / 2 + lookV;
             quad(pose, vc, ex, ey, eyeW, eyeH, Z_FEATURES, 48 / ATLAS, 0, 56 / ATLAS, 8 / ATLAS, 1, 1, 1, 1);
         }
 
-        // Mouth: a thin cyan line, wider while celebrating.
-        float mouthW = celebrating ? 1.3F : 0.9F;
-        quad(pose, vc, -mouthW / 2, -0.6F, mouthW, 0.09F, Z_FEATURES,
+        // Mouth: one chunky feed pixel row (4x1 px), wider while celebrating.
+        float mouthW = (celebrating ? 6 : 4) * px;
+        quad(pose, vc, -mouthW / 2, -0.6F, mouthW, px, Z_FEATURES,
                 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.19F, 0.85F, 1F, 0.95F);
 
         // Activity LED, bottom-right: calm ~1 Hz pulse, bright flash while a
