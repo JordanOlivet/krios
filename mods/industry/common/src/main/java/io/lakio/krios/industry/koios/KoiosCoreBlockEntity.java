@@ -66,6 +66,8 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
     private long clientBootStart;
     private long clientPulseStart;
     private long clientLevelUpStart;
+    /** Diversity received via update tag (client); -1 = compute locally. */
+    private int clientDiversity = -1;
 
     // Sliding diversity window: ring buffer of the last N operation keys plus
     // per-key counts for O(1) share lookups (design: diminishing returns on
@@ -236,6 +238,11 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
     /** Distinct operations over window fill, per-mille — the GUI's diversity gauge. */
     public int diversityPermille() {
         return windowFill == 0 ? 1000 : windowCounts.size() * 1000 / windowFill;
+    }
+
+    /** Renderer-side diversity: the synced value on the client, live on the server. */
+    public int displayDiversityPermille() {
+        return clientDiversity >= 0 ? clientDiversity : diversityPermille();
     }
 
     private void pushWindow(String key) {
@@ -443,6 +450,9 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
         super.loadAdditional(tag, registries);
         xp = Math.min(KoiosBalance.xpCap(), tag.getInt("DataXp"));
         screenSide = tag.contains("ScreenSide") ? Direction.from3DDataValue(tag.getInt("ScreenSide")) : null;
+        if (tag.contains("Div")) {
+            clientDiversity = tag.getInt("Div");
+        }
         // Client-only in practice: the update tag carries the fault flag; on
         // the server the graph rederives it after load (never persisted).
         networkFault = tag.getBoolean("Fault");
@@ -459,6 +469,7 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = new CompoundTag();
         tag.putInt("DataXp", xp);
+        tag.putInt("Div", diversityPermille());
         if (screenSide != null) {
             tag.putInt("ScreenSide", screenSide.get3DDataValue());
         }

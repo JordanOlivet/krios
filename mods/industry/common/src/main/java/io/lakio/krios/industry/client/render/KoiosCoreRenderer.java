@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 
 import io.lakio.krios.industry.Constants;
+import io.lakio.krios.industry.koios.KoiosBalance;
 import io.lakio.krios.industry.koios.KoiosCoreBlockEntity;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.LightTexture;
@@ -108,7 +109,7 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
             } else if (core.isNetworkFault()) {
                 renderFaultStatic(poseStack, buffers, pose, vc, time);
             } else {
-                renderFace(core, level, side, pose, vc, time);
+                renderFace(core, level, side, poseStack, buffers, vc, time);
             }
         }
         poseStack.popPose();
@@ -149,6 +150,9 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
         float v0 = (48 + (frame * 5) % 8) / ATLAS;
         float alpha = 0.6F + 0.3F * ((frame % 4) / 3F);
         quad(pose, vc, -1.5F, -1.5F, 3F, 3F, Z_STATIC, 0, v0, 48 / ATLAS, v0 + 8 / ATLAS, 1, 1, 1, alpha);
+        // Activity LED goes red and blinks hard on a fault.
+        quad(pose, vc, 1.19F, -1.37F, 0.10F, 0.10F, Z_FEATURES,
+                56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.9F, 0.28F, 0.30F, frame % 10 < 5 ? 0.95F : 0.35F);
         // Red panel: bright border quad below a darker inner quad.
         quad(pose, vc, -1.35F, -0.7F, 2.7F, 1.4F, Z_FLASH,
                 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.85F, 0.08F, 0.08F, 0.92F);
@@ -184,7 +188,8 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
     }
 
     private void renderFace(KoiosCoreBlockEntity core, Level level, Direction side,
-            PoseStack.Pose pose, VertexConsumer vc, float time) {
+            PoseStack poseStack, MultiBufferSource buffers, VertexConsumer vc, float time) {
+        PoseStack.Pose pose = poseStack.last();
         // Screen background.
         quad(pose, vc, -1.5F, -1.5F, 3F, 3F, Z_BG, 0, 0, 48 / ATLAS, 48 / ATLAS, 1, 1, 1, 1);
         // Head frame, mirroring the terminals' video feed: the face reads as
@@ -221,9 +226,10 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
             }
         }
 
-        // Blink: brief squash on a per-core offset cycle (suppressed while celebrating).
-        long blinkPhase = (level.getGameTime() + corePos.asLong() % 41 + 41) % 87;
-        float eyeScale = celebrating ? 1.3F : (blinkPhase < 4 ? 0.15F : 1F);
+        // No in-world blink: the per-frame geometry change destabilized the
+        // translucent sort (quads vanished). Life comes from the tracking
+        // eyes, the activity LED and the phrase line instead.
+        float eyeScale = celebrating ? 1.3F : 1F;
 
         // Full solid eyes, like the terminals' feed (no pupils): taller than
         // wide, same 2:3 ratio as the feed's 2x3 pixel eyes.
@@ -240,6 +246,37 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
         quad(pose, vc, -mouthW / 2, -0.6F, mouthW, 0.09F, Z_FEATURES,
                 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.19F, 0.85F, 1F, 0.95F);
 
+        // Activity LED, bottom-right: calm ~1 Hz pulse, bright flash while a
+        // learning pulse plays (blink replacement — stable geometry).
+        if (pulseT < PULSE_TICKS) {
+            quad(pose, vc, 1.16F, -1.40F, 0.16F, 0.16F, Z_FEATURES,
+                    56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.62F, 0.94F, 1F, 1F);
+        } else {
+            float ledA = 0.45F + 0.35F * Mth.sin(time * 0.3F);
+            quad(pose, vc, 1.19F, -1.37F, 0.10F, 0.10F, Z_FEATURES,
+                    56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.19F, 0.85F, 1F, ledA);
+        }
+
+        // KOIOS's phrase, bottom center — one short line, fading out past a
+        // few blocks so the base never reads as noise.
+        Component phrase = phraseFor(core, time);
+        Player viewer = net.minecraft.client.Minecraft.getInstance().player;
+        if (phrase != null && viewer != null) {
+            double dist = Math.sqrt(viewer.distanceToSqr(
+                    corePos.getX() + 0.5, corePos.getY() + 0.5, corePos.getZ() + 0.5));
+            float fade = Mth.clamp((float) (1.0 - (dist - 6.0) / 3.0), 0F, 1F);
+            if (fade > 0.06F) {
+                poseStack.pushPose();
+                poseStack.translate(0, 0, Z_TEXT);
+                poseStack.scale(TEXT_SCALE, -TEXT_SCALE, TEXT_SCALE);
+                int color = ((int) (fade * 255) << 24) | 0x5FC8DC;
+                font.drawInBatch(phrase, -font.width(phrase) / 2F, 48, color, false,
+                        poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL,
+                        0, LightTexture.FULL_BRIGHT);
+                poseStack.popPose();
+            }
+        }
+
         // Learning pulse and level-up flash overlays.
         if (pulseT < PULSE_TICKS) {
             float a = (1F - pulseT / PULSE_TICKS) * 0.25F;
@@ -249,6 +286,23 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
             float a = (1F - levelUpT / LEVEL_UP_TICKS) * 0.35F;
             quad(pose, vc, -1.5F, -1.5F, 3F, 3F, Z_FLASH, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 1F, 1F, 1F, a);
         }
+    }
+
+    /**
+     * KOIOS's on-screen voice: same contexts as the core terminal — low
+     * diversity, near a classic level-up, else a slow learning rotation.
+     */
+    private static Component phraseFor(KoiosCoreBlockEntity core, float time) {
+        if (core.displayDiversityPermille() < 400) {
+            return Component.translatable("gui.krios_industry.koios.phrase.repetitive");
+        }
+        int koiosLevel = core.getKoiosLevel();
+        if (koiosLevel < KoiosBalance.MAX_CLASSIC_LEVEL
+                && core.getXp() >= KoiosBalance.LEVEL_XP[koiosLevel + 1] * 0.8) {
+            return Component.translatable("gui.krios_industry.koios.phrase.almost");
+        }
+        long slot = (long) (time / 900) % 3;
+        return Component.translatable("gui.krios_industry.koios.phrase.learning" + (slot + 1));
     }
 
     private static void quad(PoseStack.Pose pose, VertexConsumer vc, float x, float y, float w, float h, float z,
