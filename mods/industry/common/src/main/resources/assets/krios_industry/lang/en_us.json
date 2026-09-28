@@ -115,5 +115,7 @@
   "gui.krios_industry.diag.energy_starved": "Machines out of power: %s",
   "gui.krios_industry.diag.section.energy": "ENERGY",
   "gui.krios_industry.diag.energy_production": "Production: %s E/t",
-  "gui.krios_industry.diag.energy_consumed": "Consumed: %s E/t"
+  "gui.krios_industry.diag.energy_consumed": "Consumed: %s E/t",
+  "gui.krios_industry.koios.section.unlocks": "UNLOCKS",
+  "gui.krios_industry.koios.section.xp": "DATA XP"
 }

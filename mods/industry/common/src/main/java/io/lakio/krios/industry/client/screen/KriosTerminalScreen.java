@@ -108,6 +108,25 @@ public abstract class KriosTerminalScreen<T extends AbstractContainerMenu>
         gui.fill(leftPos + 2, sweepY, leftPos + imageWidth - 2, sweepY + 1, 0x9031D8FF);
     }
 
+    /**
+     * Stateless feed box (blink + cursor tracking, no bored state) for
+     * overlays that cannot host the full chrome (e.g. the Archives panel).
+     * Coordinates are absolute screen space.
+     */
+    public static void drawFeedBox(GuiGraphics gui, int x, int y, int status, int mouseX, int mouseY) {
+        int border = status < 0 ? COLOR_ERROR : status == 0 ? COLOR_TEXT_DIM : COLOR_ACCENT;
+        gui.fill(x, y, x + FEED_W, y + FEED_H, 0xFF000000 | border);
+        gui.fill(x + 1, y + 1, x + FEED_W - 1, y + FEED_H - 1, 0xFF10141B);
+        int eye = status < 0 ? COLOR_ERROR : status == 0 ? COLOR_ACCENT_DIM : COLOR_ACCENT;
+        int dx = status > 0 ? Mth.clamp((mouseX - (x + FEED_W / 2)) / 30, -1, 1) : 0;
+        int dy = status > 0 ? Mth.clamp((mouseY - (y + FEED_H / 2)) / 30, -1, 1) : 0;
+        boolean blink = status > 0 && (Util.getMillis() / 100) % 26 == 0;
+        int top = y + 4 + (blink ? 2 : 0) + dy;
+        gui.fill(x + 3 + dx, top, x + 5 + dx, y + 7 + dy, 0xFF000000 | eye);
+        gui.fill(x + 9 + dx, top, x + 11 + dx, y + 7 + dy, 0xFF000000 | eye);
+        gui.fill(x + 5, y + 9, x + 9, y + 10, 0xFF000000 | (status > 0 ? COLOR_ACCENT_DIM : COLOR_TEXT_DIM));
+    }
+
     private Component statusLine() {
         int status = terminalStatus();
         if (status < 0) {

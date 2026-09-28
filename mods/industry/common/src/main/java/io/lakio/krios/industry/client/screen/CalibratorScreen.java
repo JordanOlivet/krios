@@ -29,6 +29,22 @@ public class CalibratorScreen extends KriosTerminalScreen<CalibratorMenu> {
     }
 
     @Override
+    protected int feedX() {
+        // Standard header order: close cross rightmost, feed to its left.
+        return imageWidth - 34;
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (mouseX >= leftPos + imageWidth - 16 && mouseX < leftPos + imageWidth - 4
+                && mouseY >= topPos + 4 && mouseY < topPos + 16) {
+            onClose();
+            return true;
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         renderTerminalOverlays(guiGraphics, mouseX, mouseY);
@@ -49,6 +65,11 @@ public class CalibratorScreen extends KriosTerminalScreen<CalibratorMenu> {
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         renderTerminalHeader(guiGraphics, mouseX, mouseY);
+        // Close cross, rightmost (standard header).
+        boolean closeHover = mouseX - leftPos >= imageWidth - 16 && mouseX - leftPos < imageWidth - 4
+                && mouseY - topPos >= 4 && mouseY - topPos < 16;
+        guiGraphics.fill(imageWidth - 16, 4, imageWidth - 4, 16, closeHover ? 0xFF6B2F2F : 0xFF262B35);
+        guiGraphics.drawCenteredString(font, "X", imageWidth - 10, 6, 0xFFE8EAF0);
         int y = 25;
         int status = menu.status();
         Component statusLine = switch (status) {

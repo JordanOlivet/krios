@@ -65,7 +65,7 @@ public class KoiosArchivesPanel {
     }
 
     public void render(GuiGraphics gui, Font font, int screenW, int screenH, int koiosLevel,
-            int mouseX, int mouseY) {
+            int feedStatus, int mouseX, int mouseY) {
         if (!open) {
             return;
         }
@@ -78,7 +78,7 @@ public class KoiosArchivesPanel {
         gui.fill(x - 1, y - 1, x + W + 1, y + H + 1, 0xFF0C0E13);
         gui.fill(x, y, x + W, y + H, 0xFF10141B);
 
-        // Header band.
+        // Header band — standard order: close cross rightmost, feed left of it.
         gui.fill(x, y, x + W, y + HEADER_H, 0xFF1B202A);
         gui.fill(x, y + HEADER_H, x + W, y + HEADER_H + 1, 0xFF0A6E87);
         gui.drawString(font, Component.translatable("gui.krios_industry.archive.title"),
@@ -87,6 +87,7 @@ public class KoiosArchivesPanel {
                 && mouseY >= y + 3 && mouseY < y + 15;
         gui.fill(x + W - 16, y + 3, x + W - 4, y + 15, closeHover ? 0xFF6B2F2F : 0xFF262B35);
         gui.drawCenteredString(font, Component.literal("X"), x + W - 10, y + 5, 0xFFE8EAF0);
+        KriosTerminalScreen.drawFeedBox(gui, x + W - 34, y + 3, feedStatus, mouseX, mouseY);
 
         // Sidebar: the section list.
         gui.fill(x + SIDEBAR_X + SIDEBAR_W + 3, y + HEADER_H + 4,

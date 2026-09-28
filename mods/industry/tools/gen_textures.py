@@ -659,15 +659,6 @@ def flame_pixels():
     return [(x, y) for y, xs in rows.items() for x in xs]
 
 
-def gui_koios_core():
-    img = Img(256, 256)
-    gui_panel(img)
-    # Header divider + status zone; labels are drawn code-side.
-    img.rect(7, 16, 162, 1, METAL_EDGE)
-    img.rect(7, 57, 162, 1, JOINT)
-    gui_bar_frame(img, 7, 125, 162, 12)
-    xp_fill(img, 0, 166, 160, 10)
-    return img
 
 
 # ---------------------------------------------------------------- face atlas
@@ -748,7 +739,6 @@ def main():
         "gui/crusher.png": gui_crusher(),
         "gui/furnace.png": gui_crusher(),
         "gui/generator.png": gui_generator(),
-        "gui/koios_core.png": gui_koios_core(),
     }
     print(f"Writing {len(out)} textures to {ASSETS}")
     for rel, img in out.items():
