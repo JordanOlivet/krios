@@ -293,10 +293,17 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
             quad(pose, vc, ex, ey, eyeW, eyeH, Z_FEATURES, 48 / ATLAS, 0, 56 / ATLAS, 8 / ATLAS, 1, 1, 1, 1);
         }
 
-        // Mouth: one chunky feed pixel row (4x1 px), wider while celebrating.
+        // Mouth: one chunky feed pixel row (4x1 px). Level-up = a real smile:
+        // wider line with both corners raised one feed pixel.
         float mouthW = (celebrating ? 6 : 4) * px;
         quad(pose, vc, -mouthW / 2, -0.6F, mouthW, px, Z_FEATURES,
                 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.19F, 0.85F, 1F, 0.95F);
+        if (celebrating) {
+            quad(pose, vc, -mouthW / 2 - px, -0.6F + px, px, px, Z_FEATURES,
+                    56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.19F, 0.85F, 1F, 0.95F);
+            quad(pose, vc, mouthW / 2, -0.6F + px, px, px, Z_FEATURES,
+                    56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.19F, 0.85F, 1F, 0.95F);
+        }
 
         // Activity LED, bottom-right: calm ~1 Hz pulse, bright flash while a
         // learning pulse plays (blink replacement — stable geometry).
