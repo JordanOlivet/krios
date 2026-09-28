@@ -4,3 +4,13 @@ plugins {
     // see https://projects.neoforged.net/neoforged/moddevgradle for new versions
     id 'net.neoforged.moddev' version '2.0.49-beta' apply false
 }
+
+// ADR-011: both license files (LGPL-3.0 + incorporated GPL-3.0) ship inside
+// every built jar. The repo root is two levels above this mod's build root.
+subprojects {
+    tasks.withType(Jar).configureEach {
+        from(rootProject.rootDir.parentFile.parentFile) {
+            include 'LICENSE', 'LICENSE.GPL'
+        }
+    }
+}

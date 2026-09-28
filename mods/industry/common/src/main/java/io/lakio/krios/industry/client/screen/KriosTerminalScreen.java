@@ -50,7 +50,8 @@ public abstract class KriosTerminalScreen<T extends AbstractContainerMenu>
     }
 
     private boolean bootActive() {
-        return !bootSkipped && Util.getMillis() - openedAt < BOOT_MILLIS;
+        return !bootSkipped && io.lakio.krios.industry.client.ClientPrefs.bootAnimation()
+                && Util.getMillis() - openedAt < BOOT_MILLIS;
     }
 
     /** Cyan title + the KOIOS feed. Call from renderLabels (translated space). */

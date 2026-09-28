@@ -17,6 +17,7 @@ public final class ClientPrefs {
     private static final Path FILE = Path.of("config", "krios_industry-client.properties");
     private static final String STATS_EXPANDED = "stats_panel_expanded";
     private static final String FACES_OPEN = "faces_panel_open";
+    private static final String BOOT_ANIMATION = "boot_animation";
 
     private static Properties props;
 
@@ -39,6 +40,11 @@ public final class ClientPrefs {
     public static void setFacesOpen(boolean open) {
         load().setProperty(FACES_OPEN, Boolean.toString(open));
         save();
+    }
+
+    /** Terminal boot flicker on screen open; set false in the file to skip. */
+    public static boolean bootAnimation() {
+        return Boolean.parseBoolean(load().getProperty(BOOT_ANIMATION, "true"));
     }
 
     private static Properties load() {

@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:blasting",
+  "ingredient": {
+    "item": "krios_industry:deepslate_chronite_ore"
+  },
+  "result": {
+    "id": "krios_industry:chronite_shard"
+  },
+  "experience": 0.7,
+  "cookingtime": 100
+}
