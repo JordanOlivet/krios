@@ -383,10 +383,19 @@ public class HologramFacePanel {
             return;
         }
         Vector3f n = new Vector3f(dir.getStepX(), dir.getStepY(), dir.getStepZ());
+        // Skip faces turned away from the viewer: guiOverlay has no depth
+        // test, so a back-face badge would bleed through the machine.
+        if (lastTransform.transformDirection(new Vector3f(n)).z <= 0) {
+            return;
+        }
         Vector3f u = dir.getAxis() == Direction.Axis.Y
                 ? new Vector3f(1, 0, 0)
                 : new Vector3f(dir.getCounterClockWise().getStepX(), 0, dir.getCounterClockWise().getStepZ());
         Vector3f v = new Vector3f(n).cross(u);
+        // Right-handed basis (u x v = n) so the arrow winding faces outward.
+        if (new Vector3f(u).cross(v).dot(n) < 0) {
+            v.negate();
+        }
 
         List<Column> active = new ArrayList<>();
         for (Column column : columns) {
@@ -439,9 +448,9 @@ public class HologramFacePanel {
         var matrix = pose.last().pose();
         float[][] uvs = {{u0, v0}, {u0, v1}, {u1, v1}, {u1, v0}};
         for (float[] p : uvs) {
-            float x = n.x * 0.515F + u.x * p[0] + v.x * p[1];
-            float y = n.y * 0.515F + u.y * p[0] + v.y * p[1];
-            float z = n.z * 0.515F + u.z * p[0] + v.z * p[1];
+            float x = n.x * 0.53F + u.x * p[0] + v.x * p[1];
+            float y = n.y * 0.53F + u.y * p[0] + v.y * p[1];
+            float z = n.z * 0.53F + u.z * p[0] + v.z * p[1];
             vc.addVertex(matrix, x, y, z).setColor(r, g, b, a);
         }
     }

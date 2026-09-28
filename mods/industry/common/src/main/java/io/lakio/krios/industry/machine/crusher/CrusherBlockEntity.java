@@ -421,23 +421,25 @@ public class CrusherBlockEntity extends BlockEntity
     public ItemStack removeItem(int slot, int amount) {
         ItemStack result = ContainerHelper.removeItem(items, slot, amount);
         setChanged();
+        // Freeing the output slot can unblock a stalled craft.
+        tryWake();
         return result;
     }
 
     @Override
     public ItemStack removeItemNoUpdate(int slot) {
-        return ContainerHelper.takeItem(items, slot);
+        ItemStack result = ContainerHelper.takeItem(items, slot);
+        tryWake();
+        return result;
     }
 
     @Override
     public void setItem(int slot, ItemStack stack) {
         items.set(slot, stack);
         setChanged();
-        // Module swaps re-wake too: a yield module can unblock an output
-        // check, and totalTime/energy change with the loadout.
-        if (slot == INPUT_SLOT || slot >= MODULE_SLOT_FIRST) {
-            tryWake();
-        }
+        // Any slot change may unblock the machine: new input, module swap
+        // (totalTime/energy/yield change), or an emptied output.
+        tryWake();
     }
 
     @Override

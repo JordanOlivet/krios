@@ -82,11 +82,11 @@ public abstract class KriosTerminalScreen<T extends AbstractContainerMenu>
         int top = y + 4 + (blink ? 2 : bored ? 1 : 0) + dy;
         gui.fill(x + 3 + dx, top, x + 5 + dx, y + 7 + dy, 0xFF000000 | eye);
         gui.fill(x + 9 + dx, top, x + 11 + dx, y + 7 + dy, 0xFF000000 | eye);
-        // Mouth: flat normally, a droopy corner pixel when bored.
+        // Mouth: flat normally; bored = corners drop BELOW the line (frown).
         gui.fill(x + 5, y + 9, x + 9, y + 10, 0xFF000000 | (status > 0 ? COLOR_ACCENT_DIM : COLOR_TEXT_DIM));
         if (bored) {
-            gui.fill(x + 4, y + 8, x + 5, y + 9, 0xFF000000 | COLOR_ACCENT_DIM);
-            gui.fill(x + 9, y + 8, x + 10, y + 9, 0xFF000000 | COLOR_ACCENT_DIM);
+            gui.fill(x + 4, y + 10, x + 5, y + 11, 0xFF000000 | COLOR_ACCENT_DIM);
+            gui.fill(x + 9, y + 10, x + 10, y + 11, 0xFF000000 | COLOR_ACCENT_DIM);
         }
     }
 

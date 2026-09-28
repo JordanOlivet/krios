@@ -60,7 +60,9 @@ public final class ModBlocks {
                     .strength(3.5F, 6.0F)
                     .sound(SoundType.METAL)
                     // Sculpted model (graphics pass): not a full cube.
-                    .noOcclusion()));
+                    .noOcclusion()
+                    // The amber core window glows for real at night.
+                    .lightLevel(state -> state.getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.LIT) ? 12 : 0)));
 
     public static final Supplier<Block> CRUSHER = registerWithItem("crusher",
             () -> new CrusherBlock(BlockBehaviour.Properties.of()
@@ -69,7 +71,9 @@ public final class ModBlocks {
                     .strength(3.5F, 6.0F)
                     .sound(SoundType.METAL)
                     // Sculpted model (graphics pass): not a full cube.
-                    .noOcclusion()));
+                    .noOcclusion()
+                    // The maw embers glow for real at night.
+                    .lightLevel(state -> state.getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.LIT) ? 9 : 0)));
 
     public static final Supplier<Block> NEURAL_CASING = registerWithItem("neural_casing",
             () -> new NeuralCasingBlock(BlockBehaviour.Properties.of()

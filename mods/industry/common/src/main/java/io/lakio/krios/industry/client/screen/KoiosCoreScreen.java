@@ -53,7 +53,7 @@ public class KoiosCoreScreen extends KriosTerminalScreen<KoiosCoreMenu> {
                     Component.translatable("gui.krios_industry.koios.xp", menu.getXp(), menu.getNextLevelXp()),
                     mouseX, mouseY);
         }
-        archives.render(guiGraphics, font, leftPos, topPos, menu.getKoiosLevel(), mouseX, mouseY);
+        archives.render(guiGraphics, font, width, height, menu.getKoiosLevel(), mouseX, mouseY);
         int bx = leftPos + archivesButtonX();
         if (!archives.isOpen() && mouseX >= bx && mouseX < bx + 12
                 && mouseY >= topPos + 3 && mouseY < topPos + 15) {
@@ -65,7 +65,7 @@ public class KoiosCoreScreen extends KriosTerminalScreen<KoiosCoreMenu> {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (archives.click(leftPos, topPos, mouseX, mouseY, menu.getKoiosLevel())) {
+        if (archives.click(width, height, mouseX, mouseY, menu.getKoiosLevel())) {
             return true;
         }
         int bx = leftPos + archivesButtonX();

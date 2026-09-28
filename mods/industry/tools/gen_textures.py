@@ -129,20 +129,21 @@ def neural_casing():
 
 
 def neural_casing_formed():
+    """Formed shell: near-black mass with subtle digital veins (AE2-controller
+    vibe) — individual casing blocks must stop reading as blocks."""
     img = Img(16, 16)
-    img.noise_rect(0, 0, 16, 16, METAL, 4, 23)
-    # Seamless mass: no bevel, only interior plate seams + dim traces.
-    img.rect(2, 8, 5, 1, JOINT)
-    img.rect(9, 4, 1, 5, JOINT)
-    img.rect(4, 12, 7, 1, JOINT)
-    # Circuit traces, fully interior so the block tiles cleanly.
-    img.rect(3, 3, 4, 1, CYAN_DIM)
-    img.rect(6, 3, 1, 4, CYAN_DIM)
-    img.set(6, 6, CYAN)
-    img.rect(10, 10, 3, 1, CYAN_DIM)
-    img.rect(12, 7, 1, 4, CYAN_DIM)
-    img.set(12, 10, CYAN)
-    img.set(3, 13, CYAN_DIM)
+    img.noise_rect(0, 0, 16, 16, SCREEN, 2, 23)
+    vein = mix(SCREEN, CYAN_DIM, 0.30)
+    node = mix(SCREEN, CYAN_DIM, 0.55)
+    # Sparse interior circuit veins; nothing touches the edges (clean tiling).
+    img.rect(3, 3, 5, 1, vein)
+    img.rect(7, 3, 1, 5, vein)
+    img.set(7, 7, node)
+    img.rect(10, 9, 3, 1, vein)
+    img.rect(12, 5, 1, 5, vein)
+    img.set(12, 9, node)
+    img.rect(4, 11, 1, 3, vein)
+    img.set(4, 11, node)
     return img
 
 
@@ -273,7 +274,11 @@ def crusher_maw(lit, frame=0):
             if lit and noise(x, y, 83 + frame * 7) > 0.35:
                 img.set(x + 1, y + 1, ENERGY if noise(x, y, 89 + frame) > 0.5 else AMBER_D)
     if lit:
-        img.rect(7, 7, 2, 2, ENERGY_HI if frame % 2 == 0 else ENERGY)
+        if frame % 2 == 0:
+            img.rect(6, 6, 4, 4, ENERGY)
+            img.rect(7, 7, 2, 2, ENERGY_HI)
+        else:
+            img.rect(7, 7, 2, 2, ENERGY)
     return img
 
 
@@ -288,14 +293,17 @@ def stack_frames(frames):
 
 
 def generator_front_lit_frames():
+    """Strong visible pulse: the whole window interior breathes."""
     frames = []
     for f in range(3):
         img = generator_front(True)
-        # Flickering core highlights per frame.
-        img.set(6 + f, 7, ENERGY_HI)
-        img.set(9 - f, 8, ENERGY)
         if f == 1:
-            img.set(7, 8, ENERGY_HI)
+            img.rect(5, 6, 6, 4, ENERGY)
+            img.rect(6, 7, 4, 2, ENERGY_HI)
+        elif f == 2:
+            img.rect(5, 6, 6, 4, AMBER_D)
+            img.rect(6, 7, 4, 2, ENERGY)
+            img.set(7, 7, ENERGY_HI)
         frames.append(img)
     return frames
 
@@ -615,16 +623,13 @@ def koios_face():
             elif d == 1:
                 c = mix(c, (0, 0, 0), 0.25)
             img.set(x, y, c)
-    # Eye sprite 8x8 at (48,0): rounded cyan block, drawn untinted.
+    # Eye sprite 8x8 at (48,0): SOLID cyan with rounded corners, matching
+    # the terminals' feed (full eyes, no rim, no highlight).
     for y in range(8):
         for x in range(8):
-            if (x in (0, 7) and y in (0, 7)):
+            if x in (0, 7) and y in (0, 7):
                 continue
-            c = CYAN
-            if x in (0, 7) or y in (0, 7):
-                c = CYAN_DIM
-            img.set(48 + x, y, c)
-    img.rect(49 + 1, 1, 2, 2, CYAN_HI)
+            img.set(48 + x, y, CYAN)
     # White patch 8x8 at (56,0): tinted by the renderer (mouth, pulse, panels).
     img.rect(56, 0, 8, 8, (255, 255, 255))
     # Static noise strip (0,48)-(48,63): scrolled by boot/fault renders.

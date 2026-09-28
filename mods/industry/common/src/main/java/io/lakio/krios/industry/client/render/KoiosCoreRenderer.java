@@ -89,11 +89,9 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
         VertexConsumer vc = buffers.getBuffer(RenderType.entityTranslucent(TEXTURE));
 
         // Monolith sculpt (art direction): emissive frame beams on every
-        // shell face + the AI's hologram floating above the structure.
+        // shell face. The AI's full hologram body is the LAST-TIER evolution
+        // of the core (design decision 2026-09-29) — not rendered yet.
         renderMonolithFrame(poseStack, vc);
-        if (!core.isNetworkFault()) {
-            renderAvatar(poseStack, vc, core.getKoiosLevel(), time);
-        }
 
         Direction side = core.getScreenSide();
         if (side != null) {
@@ -137,77 +135,6 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
             quad(pose, vc, -1.5F, -1.5F, 3F, 0.08F, Z_FRAME, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, r, g, b, 0.9F);
             quad(pose, vc, -1.5F, -1.42F, 0.08F, 2.84F, Z_FRAME, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, r, g, b, 0.9F);
             quad(pose, vc, 1.42F, -1.42F, 0.08F, 2.84F, Z_FRAME, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, r, g, b, 0.9F);
-            for (int cx = -1; cx <= 1; cx += 2) {
-                for (int cy = -1; cy <= 1; cy += 2) {
-                    quad(pose, vc, cx * 1.5F - (cx > 0 ? 0.18F : 0), cy * 1.5F - (cy > 0 ? 0.18F : 0),
-                            0.18F, 0.18F, Z_FRAME_NODE,
-                            56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.19F, 0.85F, 1F, 0.95F);
-                }
-            }
-            poseStack.popPose();
-        }
-    }
-
-    /**
-     * The AI's hologram above the monolith: a slowly spinning translucent
-     * gem whose definition grows with the KOIOS level — rings appear at
-     * level 3 and 5, brightness follows. Hidden while the network is faulted.
-     */
-    private void renderAvatar(PoseStack poseStack, VertexConsumer vc, int koiosLevel, float time) {
-        float bob = Mth.sin(time * 0.05F) * 0.06F;
-        poseStack.pushPose();
-        poseStack.translate(0, 2.35F + bob, 0);
-
-        float alpha = 0.30F + koiosLevel * 0.07F;
-        poseStack.pushPose();
-        poseStack.mulPose(Axis.YP.rotationDegrees(time * 1.2F));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(45));
-        poseStack.mulPose(Axis.XP.rotationDegrees(35));
-        drawHoloCube(poseStack, vc, 0.30F, 0.19F, 0.85F, 1F, alpha);
-        drawHoloCube(poseStack, vc, 0.14F, 0.62F, 0.94F, 1F, Math.min(1F, alpha + 0.25F));
-        poseStack.popPose();
-
-        if (koiosLevel >= 3) {
-            drawHoloRing(poseStack, vc, 0.55F, 0.05F, -time * 2.0F, 0.40F);
-        }
-        if (koiosLevel >= 5) {
-            drawHoloRing(poseStack, vc, 0.74F, 0.04F, time * 3.1F, 0.45F);
-        }
-        poseStack.popPose();
-    }
-
-    private void drawHoloCube(PoseStack poseStack, VertexConsumer vc, float half,
-            float r, float g, float b, float a) {
-        for (Direction face : Direction.values()) {
-            poseStack.pushPose();
-            switch (face) {
-                case UP -> poseStack.mulPose(Axis.XP.rotationDegrees(-90));
-                case DOWN -> poseStack.mulPose(Axis.XP.rotationDegrees(90));
-                default -> poseStack.mulPose(Axis.YP.rotationDegrees(-face.toYRot()));
-            }
-            quad(poseStack.last(), vc, -half, -half, half * 2, half * 2, half,
-                    56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, r, g, b, a);
-            poseStack.popPose();
-        }
-    }
-
-    /** Horizontal square ring, drawn on both windings so it reads from below. */
-    private void drawHoloRing(PoseStack poseStack, VertexConsumer vc, float radius,
-            float thickness, float angleDegrees, float alpha) {
-        for (int flip = 0; flip < 2; flip++) {
-            poseStack.pushPose();
-            poseStack.mulPose(Axis.YP.rotationDegrees(angleDegrees));
-            poseStack.mulPose(Axis.XP.rotationDegrees(flip == 0 ? -90 : 90));
-            PoseStack.Pose pose = poseStack.last();
-            float in = radius - thickness;
-            quad(pose, vc, -radius, in, radius * 2, thickness, 0,
-                    56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.19F, 0.85F, 1F, alpha);
-            quad(pose, vc, -radius, -radius, radius * 2, thickness, 0,
-                    56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.19F, 0.85F, 1F, alpha);
-            quad(pose, vc, -radius, -in, thickness, in * 2, 0,
-                    56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.19F, 0.85F, 1F, alpha);
-            quad(pose, vc, in, -in, thickness, in * 2, 0,
-                    56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.19F, 0.85F, 1F, alpha);
             poseStack.popPose();
         }
     }
@@ -260,6 +187,15 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
             PoseStack.Pose pose, VertexConsumer vc, float time) {
         // Screen background.
         quad(pose, vc, -1.5F, -1.5F, 3F, 3F, Z_BG, 0, 0, 48 / ATLAS, 48 / ATLAS, 1, 1, 1, 1);
+        // Head frame, mirroring the terminals' video feed: the face reads as
+        // one delimited head, not floating features.
+        float fr = 0.19F;
+        float fg = 0.85F;
+        float fb = 1F;
+        quad(pose, vc, -1.11F, 0.85F, 2.22F, 0.06F, Z_FRAME_NODE, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, fr, fg, fb, 0.85F);
+        quad(pose, vc, -1.11F, -0.91F, 2.22F, 0.06F, Z_FRAME_NODE, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, fr, fg, fb, 0.85F);
+        quad(pose, vc, -1.11F, -0.85F, 0.06F, 1.7F, Z_FRAME_NODE, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, fr, fg, fb, 0.85F);
+        quad(pose, vc, 1.05F, -0.85F, 0.06F, 1.7F, Z_FRAME_NODE, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, fr, fg, fb, 0.85F);
 
         float levelUpT = core.getClientLevelUpStart() > 0
                 ? time - core.getClientLevelUpStart() : Float.MAX_VALUE;
@@ -289,17 +225,13 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
         long blinkPhase = (level.getGameTime() + corePos.asLong() % 41 + 41) % 87;
         float eyeScale = celebrating ? 1.3F : (blinkPhase < 4 ? 0.15F : 1F);
 
+        // Full solid eyes, like the terminals' feed (no pupils).
         float eyeW = 0.55F;
         float eyeH = 0.55F * eyeScale;
         for (int i = -1; i <= 1; i += 2) {
             float ex = i * 0.55F - eyeW / 2 + lookU;
             float ey = 0.35F - eyeH / 2 + lookV;
             quad(pose, vc, ex, ey, eyeW, eyeH, Z_FEATURES, 48 / ATLAS, 0, 56 / ATLAS, 8 / ATLAS, 1, 1, 1, 1);
-            if (eyeScale > 0.5F) {
-                // Pupil: dark tinted white patch, pushed further by the look.
-                quad(pose, vc, ex + eyeW / 2 - 0.09F + lookU * 0.8F, ey + eyeH / 2 - 0.09F + lookV * 0.8F,
-                        0.18F, 0.18F, Z_PUPILS, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.02F, 0.12F, 0.14F, 1);
-            }
         }
 
         // Mouth: a thin cyan line, wider while celebrating.
