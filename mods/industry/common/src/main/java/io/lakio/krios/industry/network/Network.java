@@ -108,6 +108,11 @@ public final class Network {
             return 0;
         }
         int accepted = 0;
+        // Rotating start index: the leftover sweep otherwise concentrates
+        // the whole net surplus on the FIRST non-full sink every tick
+        // (observed as buffers recharging strictly one after another).
+        int memberCount = members.size();
+        int start = (distributionCursor++ & 0x7FFFFFFF) % memberCount;
         for (int priority = 0; priority <= 1 && accepted < amount; priority++) {
             int sinkCount = 0;
             for (NetworkNode member : members) {
@@ -121,20 +126,16 @@ public final class Network {
             }
             // Fair-share sweep.
             int share = Math.max(1, (amount - accepted) / sinkCount);
-            for (NetworkNode member : members) {
-                if (accepted >= amount) {
-                    break;
-                }
+            for (int i = 0; i < memberCount && accepted < amount; i++) {
+                NetworkNode member = members.get((start + i) % memberCount);
                 if (member != source && member instanceof EnergySink sink
                         && normalizedPriority(sink) == priority) {
                     accepted += sink.insertNetworkEnergy(Math.min(share, amount - accepted));
                 }
             }
-            // Greedy leftover sweep.
-            for (NetworkNode member : members) {
-                if (accepted >= amount) {
-                    break;
-                }
+            // Leftover sweep, same rotated order.
+            for (int i = 0; i < memberCount && accepted < amount; i++) {
+                NetworkNode member = members.get((start + i) % memberCount);
                 if (member != source && member instanceof EnergySink sink
                         && normalizedPriority(sink) == priority) {
                     accepted += sink.insertNetworkEnergy(amount - accepted);
@@ -143,6 +144,9 @@ public final class Network {
         }
         return accepted;
     }
+
+    /** Round-robin cursor for offerEnergy; runtime-only, never persisted. */
+    private int distributionCursor;
 
     private static int normalizedPriority(EnergySink sink) {
         return sink.sinkPriority() <= 0 ? 0 : 1;
