@@ -55,6 +55,8 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
     private static final float Z_TEXT = 1.508F;
     private static final float Z_PUPILS = 1.509F;
     private static final float TEXT_SCALE = 0.022F;
+    /** The on-screen phrase line: half the fault-text size, fits the frame. */
+    private static final float PHRASE_SCALE = 0.011F;
     /** Wrap width in font pixels, matching the panel's inner width. */
     private static final int TEXT_WRAP_PX = (int) (2.3F / TEXT_SCALE);
     private static final int BOOT_TICKS = 50;
@@ -257,25 +259,6 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
                     56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.19F, 0.85F, 1F, ledA);
         }
 
-        // KOIOS's phrase, bottom center — one short line, fading out past a
-        // few blocks so the base never reads as noise.
-        Component phrase = phraseFor(core, time);
-        Player viewer = net.minecraft.client.Minecraft.getInstance().player;
-        if (phrase != null && viewer != null) {
-            double dist = Math.sqrt(viewer.distanceToSqr(
-                    corePos.getX() + 0.5, corePos.getY() + 0.5, corePos.getZ() + 0.5));
-            float fade = Mth.clamp((float) (1.0 - (dist - 6.0) / 3.0), 0F, 1F);
-            if (fade > 0.06F) {
-                poseStack.pushPose();
-                poseStack.translate(0, 0, Z_TEXT);
-                poseStack.scale(TEXT_SCALE, -TEXT_SCALE, TEXT_SCALE);
-                int color = ((int) (fade * 255) << 24) | 0x5FC8DC;
-                font.drawInBatch(phrase, -font.width(phrase) / 2F, 48, color, false,
-                        poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL,
-                        0, LightTexture.FULL_BRIGHT);
-                poseStack.popPose();
-            }
-        }
 
         // Learning pulse and level-up flash overlays.
         if (pulseT < PULSE_TICKS) {
@@ -285,6 +268,28 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
         if (celebrating) {
             float a = (1F - levelUpT / LEVEL_UP_TICKS) * 0.35F;
             quad(pose, vc, -1.5F, -1.5F, 3F, 3F, Z_FLASH, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 1F, 1F, 1F, a);
+        }
+
+        // KOIOS's phrase, bottom center — one short line, fading out past a
+        // few blocks. MUST stay the LAST draw of this face: drawInBatch pulls
+        // other render types from the buffer source, which ends the
+        // entityTranslucent batch behind our VertexConsumer.
+        Component phrase = phraseFor(core, time);
+        Player viewer = net.minecraft.client.Minecraft.getInstance().player;
+        if (phrase != null && viewer != null) {
+            double dist = Math.sqrt(viewer.distanceToSqr(
+                    corePos.getX() + 0.5, corePos.getY() + 0.5, corePos.getZ() + 0.5));
+            float fade = Mth.clamp((float) (1.0 - (dist - 6.0) / 3.0), 0F, 1F);
+            if (fade > 0.06F) {
+                poseStack.pushPose();
+                poseStack.translate(0, 0, Z_TEXT);
+                poseStack.scale(PHRASE_SCALE, -PHRASE_SCALE, PHRASE_SCALE);
+                int color = ((int) (fade * 255) << 24) | 0x5FC8DC;
+                font.drawInBatch(phrase, -font.width(phrase) / 2F, 105, color, false,
+                        poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL,
+                        0, LightTexture.FULL_BRIGHT);
+                poseStack.popPose();
+            }
         }
     }
 
