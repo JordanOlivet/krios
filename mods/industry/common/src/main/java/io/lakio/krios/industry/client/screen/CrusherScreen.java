@@ -136,7 +136,7 @@ public class CrusherScreen extends KriosTerminalScreen<CrusherMenu> {
 
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        renderTerminalHeader(guiGraphics);
+        renderTerminalHeader(guiGraphics, mouseX, mouseY);
         guiGraphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, COLOR_TEXT_DIM, false);
     }
 

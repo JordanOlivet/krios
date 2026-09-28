@@ -3,6 +3,7 @@ package io.lakio.krios.industry.client.screen;
 import net.minecraft.Util;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 
@@ -30,6 +31,11 @@ public abstract class KriosTerminalScreen<T extends AbstractContainerMenu>
 
     private final long openedAt = Util.getMillis();
     private boolean bootSkipped;
+    // KOIOS "life": the feed's eyes follow the cursor and get bored when
+    // nothing moves for a while.
+    private int lastMouseX = Integer.MIN_VALUE;
+    private int lastMouseY = Integer.MIN_VALUE;
+    private long lastActivity = Util.getMillis();
 
     protected KriosTerminalScreen(T menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
@@ -47,8 +53,8 @@ public abstract class KriosTerminalScreen<T extends AbstractContainerMenu>
         return !bootSkipped && Util.getMillis() - openedAt < BOOT_MILLIS;
     }
 
-    /** Cyan title + the KOIOS feed. Call from renderLabels. */
-    protected void renderTerminalHeader(GuiGraphics gui) {
+    /** Cyan title + the KOIOS feed. Call from renderLabels (translated space). */
+    protected void renderTerminalHeader(GuiGraphics gui, int mouseX, int mouseY) {
         gui.drawString(font, title, titleLabelX, titleLabelY, COLOR_ACCENT, false);
         int status = terminalStatus();
         int x = feedX();
@@ -56,13 +62,32 @@ public abstract class KriosTerminalScreen<T extends AbstractContainerMenu>
         int border = status < 0 ? COLOR_ERROR : status == 0 ? COLOR_TEXT_DIM : COLOR_ACCENT;
         gui.fill(x, y, x + FEED_W, y + FEED_H, 0xFF000000 | border);
         gui.fill(x + 1, y + 1, x + FEED_W - 1, y + FEED_H - 1, 0xFF10141B);
-        // The head: two eyes on a blink cycle, a dim mouth; red when faulted.
+
+        // Life: track cursor movement to know when the player idles.
+        long now = Util.getMillis();
+        if (mouseX != lastMouseX || mouseY != lastMouseY) {
+            lastMouseX = mouseX;
+            lastMouseY = mouseY;
+            lastActivity = now;
+        }
+        boolean bored = status > 0 && now - lastActivity > 30_000;
+
+        // Eyes follow the cursor by a pixel; droop when bored; red on fault.
         int eye = status < 0 ? COLOR_ERROR : status == 0 ? COLOR_ACCENT_DIM : COLOR_ACCENT;
-        boolean blink = status > 0 && (Util.getMillis() / 100) % 26 == 0;
-        int top = blink ? y + 6 : y + 4;
-        gui.fill(x + 3, top, x + 5, y + 7, 0xFF000000 | eye);
-        gui.fill(x + 9, top, x + 11, y + 7, 0xFF000000 | eye);
+        int feedCx = leftPos + x + FEED_W / 2;
+        int feedCy = topPos + y + FEED_H / 2;
+        int dx = status > 0 && !bored ? Mth.clamp((mouseX - feedCx) / 30, -1, 1) : 0;
+        int dy = status > 0 && !bored ? Mth.clamp((mouseY - feedCy) / 30, -1, 1) : 0;
+        boolean blink = status > 0 && (now / 100) % (bored ? 40 : 26) == 0;
+        int top = y + 4 + (blink ? 2 : bored ? 1 : 0) + dy;
+        gui.fill(x + 3 + dx, top, x + 5 + dx, y + 7 + dy, 0xFF000000 | eye);
+        gui.fill(x + 9 + dx, top, x + 11 + dx, y + 7 + dy, 0xFF000000 | eye);
+        // Mouth: flat normally, a droopy corner pixel when bored.
         gui.fill(x + 5, y + 9, x + 9, y + 10, 0xFF000000 | (status > 0 ? COLOR_ACCENT_DIM : COLOR_TEXT_DIM));
+        if (bored) {
+            gui.fill(x + 4, y + 8, x + 5, y + 9, 0xFF000000 | COLOR_ACCENT_DIM);
+            gui.fill(x + 9, y + 8, x + 10, y + 9, 0xFF000000 | COLOR_ACCENT_DIM);
+        }
     }
 
     /** Feed tooltip + boot flicker. Call at the very end of render. */

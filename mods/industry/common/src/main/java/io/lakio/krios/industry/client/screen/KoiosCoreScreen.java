@@ -3,6 +3,8 @@ package io.lakio.krios.industry.client.screen;
 import io.lakio.krios.industry.Constants;
 import io.lakio.krios.industry.koios.KoiosBalance;
 import io.lakio.krios.industry.koios.KoiosCoreMenu;
+import net.minecraft.ChatFormatting;
+import net.minecraft.Util;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -60,7 +62,7 @@ public class KoiosCoreScreen extends KriosTerminalScreen<KoiosCoreMenu> {
 
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        renderTerminalHeader(guiGraphics);
+        renderTerminalHeader(guiGraphics, mouseX, mouseY);
 
         if (menu.isFormed()) {
             guiGraphics.drawString(font, Component.translatable("gui.krios_industry.koios.online"),
@@ -83,7 +85,32 @@ public class KoiosCoreScreen extends KriosTerminalScreen<KoiosCoreMenu> {
         if (menu.isCriticalPending()) {
             guiGraphics.drawWordWrap(font, Component.translatable("gui.krios_industry.koios.critical"),
                     8, 100, XP_BAR_WIDTH, COLOR_CRITICAL);
+        } else {
+            Component phrase = koiosPhrase();
+            if (phrase != null) {
+                guiGraphics.drawWordWrap(font, phrase.copy().withStyle(ChatFormatting.ITALIC),
+                        8, 100, XP_BAR_WIDTH, COLOR_ACCENT_DIM);
+            }
         }
+    }
+
+    /**
+     * KOIOS's voice (art direction): one contextual line, rotating slowly so
+     * it never spams. GUI only, never the chat.
+     */
+    private Component koiosPhrase() {
+        if (!menu.isFormed()) {
+            return null;
+        }
+        if (menu.getDiversityPermille() < 400) {
+            return Component.translatable("gui.krios_industry.koios.phrase.repetitive");
+        }
+        int next = menu.getNextLevelXp();
+        if (next > 0 && menu.getXp() >= next * 0.8) {
+            return Component.translatable("gui.krios_industry.koios.phrase.almost");
+        }
+        long slot = Util.getMillis() / 45_000 % 3;
+        return Component.translatable("gui.krios_industry.koios.phrase.learning" + (slot + 1));
     }
 
     private void drawUnlock(GuiGraphics guiGraphics, String nameKey, int requiredLevel, int y) {

@@ -43,7 +43,7 @@ public class CalibratorScreen extends KriosTerminalScreen<CalibratorMenu> {
 
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        renderTerminalHeader(guiGraphics);
+        renderTerminalHeader(guiGraphics, mouseX, mouseY);
         int y = 22;
         int status = menu.status();
         Component statusLine = switch (status) {

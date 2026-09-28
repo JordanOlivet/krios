@@ -7,6 +7,8 @@ import io.lakio.krios.industry.registry.ModBlockEntities;
 import io.lakio.krios.industry.tool.CalibratorItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
@@ -27,6 +29,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.Containers;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3f;
 
 public class GeneratorBlock extends BaseEntityBlock implements NetworkConductor {
 
@@ -65,6 +68,19 @@ public class GeneratorBlock extends BaseEntityBlock implements NetworkConductor 
     @Override
     protected BlockState mirror(BlockState state, Mirror mirror) {
         return state.rotate(mirror.getRotation(state.getValue(BlockStateProperties.HORIZONTAL_FACING)));
+    }
+
+    /** Signature particles (art direction): amber embers while burning. */
+    @Override
+    public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
+        if (!state.getValue(BlockStateProperties.LIT) || random.nextInt(3) != 0) {
+            return;
+        }
+        level.addParticle(new DustParticleOptions(new Vector3f(1F, 0.69F, 0.23F), 0.7F),
+                pos.getX() + 0.55 + random.nextDouble() * 0.2,
+                pos.getY() + 1.02,
+                pos.getZ() + 0.55 + random.nextDouble() * 0.2,
+                0, 0.02, 0);
     }
 
     @Override

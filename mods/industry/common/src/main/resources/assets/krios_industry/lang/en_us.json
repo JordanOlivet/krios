@@ -72,5 +72,10 @@
   "gui.krios_industry.faces.preset.block": "Block everything",
   "gui.krios_industry.faces.preset.in": "Input only",
   "gui.krios_industry.faces.preset.out": "Output only",
-  "gui.krios_industry.faces.preset.all": "Allow everything"
+  "gui.krios_industry.faces.preset.all": "Allow everything",
+  "gui.krios_industry.koios.phrase.learning1": "Observing. Every operation refines me.",
+  "gui.krios_industry.koios.phrase.learning2": "Your machines hum. I listen.",
+  "gui.krios_industry.koios.phrase.learning3": "Data assimilated. Continue.",
+  "gui.krios_industry.koios.phrase.repetitive": "The same operation, again. I am bored.",
+  "gui.krios_industry.koios.phrase.almost": "Almost. A little more data."
 }

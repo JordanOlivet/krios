@@ -262,7 +262,7 @@ def crusher_jaw():
     return img
 
 
-def crusher_maw(lit):
+def crusher_maw(lit, frame=0):
     img = Img(16, 16)
     img.noise_rect(0, 0, 16, 16, METAL, 4, 73)
     img.outline(0, 0, 16, 16, METAL_EDGE)
@@ -270,11 +270,34 @@ def crusher_maw(lit):
     for y in range(4, 12, 2):
         for x in range(4, 12, 2):
             img.set(x, y, METAL_EDGE)
-            if lit:
-                img.set(x + 1, y + 1, ENERGY)
+            if lit and noise(x, y, 83 + frame * 7) > 0.35:
+                img.set(x + 1, y + 1, ENERGY if noise(x, y, 89 + frame) > 0.5 else AMBER_D)
     if lit:
-        img.rect(7, 7, 2, 2, ENERGY_HI)
+        img.rect(7, 7, 2, 2, ENERGY_HI if frame % 2 == 0 else ENERGY)
     return img
+
+
+def stack_frames(frames):
+    """Vertical strip for a vanilla animated texture (+ .mcmeta)."""
+    img = Img(16, 16 * len(frames))
+    for i, frame in enumerate(frames):
+        for y in range(16):
+            for x in range(16):
+                img.px[i * 16 + y][x] = frame.px[y][x]
+    return img
+
+
+def generator_front_lit_frames():
+    frames = []
+    for f in range(3):
+        img = generator_front(True)
+        # Flickering core highlights per frame.
+        img.set(6 + f, 7, ENERGY_HI)
+        img.set(9 - f, 8, ENERGY)
+        if f == 1:
+            img.set(7, 8, ENERGY_HI)
+        frames.append(img)
+    return frames
 
 
 def koios_core_frame():
@@ -633,14 +656,14 @@ def main():
         "block/koios_core_formed.png": koios_core_formed(),
         "block/generator_side.png": generator_side(),
         "block/generator_front.png": generator_front(False),
-        "block/generator_front_lit.png": generator_front(True),
+        "block/generator_front_lit.png": stack_frames(generator_front_lit_frames()),
         "block/generator_top.png": generator_top(),
         "block/crusher_side.png": crusher_side(),
         "block/crusher_front.png": crusher_front(),
         "block/crusher_top.png": crusher_top(),
         "block/crusher_jaw.png": crusher_jaw(),
         "block/crusher_maw.png": crusher_maw(False),
-        "block/crusher_maw_lit.png": crusher_maw(True),
+        "block/crusher_maw_lit.png": stack_frames([crusher_maw(True, f) for f in range(3)]),
         "block/neural_conduit.png": neural_conduit(),
         "block/neurite_ore.png": ore(STONE, CYAN, CYAN_HI, CYAN_DIM, 101),
         "block/deepslate_neurite_ore.png": ore(DEEPSLATE, CYAN, CYAN_HI, CYAN_DIM, 103),
@@ -662,6 +685,10 @@ def main():
     print(f"Writing {len(out)} textures to {ASSETS}")
     for rel, img in out.items():
         img.save(ASSETS / rel)
+    # Vanilla animation metadata for the flickering lit textures.
+    for rel in ("block/generator_front_lit.png", "block/crusher_maw_lit.png"):
+        (ASSETS / (rel + ".mcmeta")).write_text('{"animation": {"frametime": 6}}\n')
+        print(f"  {rel}.mcmeta")
 
 
 if __name__ == "__main__":

@@ -72,5 +72,10 @@
   "gui.krios_industry.faces.preset.block": "Tout bloquer",
   "gui.krios_industry.faces.preset.in": "Entrée seule",
   "gui.krios_industry.faces.preset.out": "Sortie seule",
-  "gui.krios_industry.faces.preset.all": "Tout autoriser"
+  "gui.krios_industry.faces.preset.all": "Tout autoriser",
+  "gui.krios_industry.koios.phrase.learning1": "J'observe. Chaque opération m'affine.",
+  "gui.krios_industry.koios.phrase.learning2": "Vos machines chantent. J’écoute.",
+  "gui.krios_industry.koios.phrase.learning3": "Données assimilées. Continuez.",
+  "gui.krios_industry.koios.phrase.repetitive": "Encore la même opération. Je m’ennuie.",
+  "gui.krios_industry.koios.phrase.almost": "Presque. Encore un peu de données."
 }
