@@ -1,6 +1,15 @@
 {
   "variants": {
     "formed=false": { "model": "krios_industry:block/neural_casing" },
-    "formed=true": { "model": "krios_industry:block/neural_casing_formed" }
+    "formed=true": [
+      { "model": "krios_industry:block/neural_casing_formed" },
+      { "model": "krios_industry:block/neural_casing_formed", "y": 90 },
+      { "model": "krios_industry:block/neural_casing_formed", "y": 180 },
+      { "model": "krios_industry:block/neural_casing_formed", "y": 270 },
+      { "model": "krios_industry:block/neural_casing_formed", "x": 90 },
+      { "model": "krios_industry:block/neural_casing_formed", "x": 90, "y": 90 },
+      { "model": "krios_industry:block/neural_casing_formed", "x": 90, "y": 180 },
+      { "model": "krios_industry:block/neural_casing_formed", "x": 90, "y": 270 }
+    ]
   }
 }

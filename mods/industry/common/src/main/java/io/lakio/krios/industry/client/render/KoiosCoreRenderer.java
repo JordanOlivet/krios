@@ -229,9 +229,10 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
             }
         }
 
-        // No in-world blink: the per-frame geometry change destabilized the
-        // translucent sort (quads vanished). Life comes from the tracking
-        // eyes, the activity LED and the phrase line instead.
+        // Blink, feed-style: the eye drops to ONE chunky feed pixel, never a
+        // sliver (the old 0.15x squash destabilized the translucent sort).
+        long blinkPhase = (level.getGameTime() + (corePos.asLong() % 41 + 41)) % 52;
+        boolean blink = !celebrating && blinkPhase < 2;
         float eyeScale = celebrating ? 1.3F : 1F;
 
         // Exact terminal-feed head, scaled up: feed pixels map to world units
@@ -239,10 +240,11 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
         // centered on feed pixel (7,6)). Square solid eyes, no pupils.
         float px = 0.15F;
         float eyeW = 2 * px;
-        float eyeH = 3 * px * eyeScale;
+        float eyeH = (blink ? 1 : 3) * px * eyeScale;
         for (int i = -1; i <= 1; i += 2) {
             float ex = i * 3 * px - eyeW / 2 + lookU;
-            float ey = 0.075F - eyeH / 2 + lookV;
+            // Bottom edge anchored, like the feed: the lid drops from above.
+            float ey = -0.15F + lookV;
             quad(pose, vc, ex, ey, eyeW, eyeH, Z_FEATURES, 48 / ATLAS, 0, 56 / ATLAS, 8 / ATLAS, 1, 1, 1, 1);
         }
 
