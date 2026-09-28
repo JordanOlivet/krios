@@ -188,5 +188,5 @@ Production order: 1) silhouettes + thin cables, 2) terminal chrome + per-machine
 
 - Ore names final check (Chronite/Neurite still placeholders-by-default).
 - Critical level 5 cost (items + XP) — decided when tier 2 ships.
-- Furnace module slot count (when the Furnace is built).
+- ~~Furnace module slot count~~ — settled 2026-09-29: 2 slots, same as the crusher (tier 1 standard). Built as the Induction Furnace over vanilla smelting recipes (2x furnace speed connected, exact vanilla parity offline, flat 400 E/smelt).
 - ~~Avatar hologram timing~~ — settled 2026-09-29: the hologram body (pedestal projecting the AI's head) is the last-tier evolution of the core structure; until then the monolith keeps its screen face.
