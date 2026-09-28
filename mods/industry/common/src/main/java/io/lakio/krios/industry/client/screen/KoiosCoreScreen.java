@@ -2,7 +2,6 @@ package io.lakio.krios.industry.client.screen;
 
 import io.lakio.krios.industry.koios.KoiosBalance;
 import io.lakio.krios.industry.koios.KoiosCoreMenu;
-import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
@@ -34,7 +33,7 @@ public class KoiosCoreScreen extends KriosTerminalScreen<KoiosCoreMenu> {
     public KoiosCoreScreen(KoiosCoreMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
         imageWidth = 256;
-        imageHeight = 200;
+        imageHeight = 216;
     }
 
     @Override
@@ -170,18 +169,12 @@ public class KoiosCoreScreen extends KriosTerminalScreen<KoiosCoreMenu> {
         y = drawUnlock(guiGraphics, "gui.krios_industry.koios.unlock.yield", KoiosBalance.YIELD_UNLOCK_LEVEL, y);
         y += 3;
 
-        // KOIOS's voice / critical notice.
-        guiGraphics.fill(8, y, imageWidth - 8, y + 1, 0xFF262B35);
-        y += 6;
+        // Critical notice (the voice lives under the XP gauge, terminal-style).
         if (menu.isCriticalPending()) {
+            guiGraphics.fill(8, y, imageWidth - 8, y + 1, 0xFF262B35);
+            y += 6;
             guiGraphics.drawWordWrap(font, Component.translatable("gui.krios_industry.koios.critical"),
                     8, y, imageWidth - 16, COLOR_CRITICAL);
-        } else {
-            Component phrase = koiosPhrase();
-            if (phrase != null) {
-                guiGraphics.drawWordWrap(font, phrase.copy().withStyle(ChatFormatting.ITALIC),
-                        8, y, imageWidth - 16, COLOR_ACCENT_DIM);
-            }
         }
 
         // Data-XP gauge, bottom, full width.
@@ -198,6 +191,16 @@ public class KoiosCoreScreen extends KriosTerminalScreen<KoiosCoreMenu> {
         if (fill > 0) {
             guiGraphics.fill(XP_BAR_X + 1, XP_BAR_Y + 1, XP_BAR_X + 1 + fill, XP_BAR_Y + XP_BAR_HEIGHT - 1, 0xFF31D8FF);
             guiGraphics.fill(XP_BAR_X + 1, XP_BAR_Y + 1, XP_BAR_X + 1 + fill, XP_BAR_Y + 2, 0xFF9FF0FF);
+        }
+
+        // KOIOS's voice, terminal-style, under the gauge: "> phrase_" with a
+        // blinking cursor.
+        Component phrase = koiosPhrase();
+        if (phrase != null) {
+            String cursor = (Util.getMillis() / 500) % 2 == 0 ? "_" : "";
+            Component line = Component.literal("> ").append(phrase).append(Component.literal(cursor));
+            guiGraphics.drawWordWrap(font, line, 8, XP_BAR_Y + XP_BAR_HEIGHT + 5,
+                    imageWidth - 16, 0xFF5FC8DC);
         }
     }
 
