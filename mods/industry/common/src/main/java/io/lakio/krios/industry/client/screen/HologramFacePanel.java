@@ -447,11 +447,16 @@ public class HologramFacePanel {
         int b = argb & 0xFF;
         var matrix = pose.last().pose();
         float[][] uvs = {{u0, v0}, {u0, v1}, {u1, v1}, {u1, v0}};
-        for (float[] p : uvs) {
-            float x = n.x * 0.53F + u.x * p[0] + v.x * p[1];
-            float y = n.y * 0.53F + u.y * p[0] + v.y * p[1];
-            float z = n.z * 0.53F + u.z * p[0] + v.z * p[1];
-            vc.addVertex(matrix, x, y, z).setColor(r, g, b, a);
+        // Both windings: the GUI's y-flip inverts handedness, so a single
+        // winding gets culled; back faces are already skipped in view space.
+        for (int pass = 0; pass < 2; pass++) {
+            for (int i = 0; i < 4; i++) {
+                float[] p = uvs[pass == 0 ? i : 3 - i];
+                float x = n.x * 0.53F + u.x * p[0] + v.x * p[1];
+                float y = n.y * 0.53F + u.y * p[0] + v.y * p[1];
+                float z = n.z * 0.53F + u.z * p[0] + v.z * p[1];
+                vc.addVertex(matrix, x, y, z).setColor(r, g, b, a);
+            }
         }
     }
 

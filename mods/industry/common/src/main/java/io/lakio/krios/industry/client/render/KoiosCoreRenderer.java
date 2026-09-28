@@ -225,9 +225,10 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
         long blinkPhase = (level.getGameTime() + corePos.asLong() % 41 + 41) % 87;
         float eyeScale = celebrating ? 1.3F : (blinkPhase < 4 ? 0.15F : 1F);
 
-        // Full solid eyes, like the terminals' feed (no pupils).
-        float eyeW = 0.55F;
-        float eyeH = 0.55F * eyeScale;
+        // Full solid eyes, like the terminals' feed (no pupils): taller than
+        // wide, same 2:3 ratio as the feed's 2x3 pixel eyes.
+        float eyeW = 0.40F;
+        float eyeH = 0.60F * eyeScale;
         for (int i = -1; i <= 1; i += 2) {
             float ex = i * 0.55F - eyeW / 2 + lookU;
             float ey = 0.35F - eyeH / 2 + lookV;
