@@ -117,5 +117,9 @@
   "gui.krios_industry.diag.energy_production": "Production: %s E/t",
   "gui.krios_industry.diag.energy_consumed": "Consumed: %s E/t",
   "gui.krios_industry.koios.section.unlocks": "UNLOCKS",
-  "gui.krios_industry.koios.section.xp": "DATA XP"
+  "gui.krios_industry.koios.section.xp": "DATA XP",
+  "item.krios_industry.calibrator.blueprint": "Sneak-click the ground: project a construction blueprint",
+  "gui.krios_industry.calibrator.blueprint_set": "Blueprint projected — build inside the hologram",
+  "gui.krios_industry.calibrator.blueprint_cleared": "Blueprint cleared",
+  "gui.krios_industry.calibrator.blueprint_complete": "Structure complete"
 }

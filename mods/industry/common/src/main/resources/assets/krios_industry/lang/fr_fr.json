@@ -117,5 +117,9 @@
   "gui.krios_industry.diag.energy_production": "Production : %s E/t",
   "gui.krios_industry.diag.energy_consumed": "Consommé : %s E/t",
   "gui.krios_industry.koios.section.unlocks": "DÉBLOCAGES",
-  "gui.krios_industry.koios.section.xp": "XP DONNÉES"
+  "gui.krios_industry.koios.section.xp": "XP DONNÉES",
+  "item.krios_industry.calibrator.blueprint": "Sneak + clic au sol : projeter un blueprint de construction",
+  "gui.krios_industry.calibrator.blueprint_set": "Blueprint projeté — construis dans l’hologramme",
+  "gui.krios_industry.calibrator.blueprint_cleared": "Blueprint retiré",
+  "gui.krios_industry.calibrator.blueprint_complete": "Structure complète"
 }

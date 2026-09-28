@@ -1,6 +1,8 @@
 package io.lakio.krios.industry.client;
 
+import io.lakio.krios.industry.client.render.BlueprintRenderer;
 import io.lakio.krios.industry.client.render.KoiosCoreRenderer;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import io.lakio.krios.industry.client.screen.CalibratorScreen;
 import io.lakio.krios.industry.client.screen.CrusherScreen;
 import io.lakio.krios.industry.client.screen.FurnaceScreen;
@@ -22,5 +24,7 @@ public class KriosIndustryClient implements ClientModInitializer {
         MenuScreens.register(ModMenus.KOIOS_CORE.get(), KoiosCoreScreen::new);
         MenuScreens.register(ModMenus.CALIBRATOR.get(), CalibratorScreen::new);
         BlockEntityRenderers.register(ModBlockEntities.KOIOS_CORE.get(), KoiosCoreRenderer::new);
+        WorldRenderEvents.AFTER_TRANSLUCENT.register(context ->
+                BlueprintRenderer.render(context.matrixStack(), context.tickCounter().getGameTimeDeltaPartialTick(false)));
     }
 }

@@ -48,11 +48,13 @@ public class CalibratorItem extends Item {
             return InteractionResult.PASS;
         }
         if (!(level.getBlockState(pos).getBlock() instanceof NeuralCasingBlock)) {
-            return InteractionResult.PASS;
+            // Sneak + click any other block: toggle the construction
+            // blueprint on top of it. Pure visual aid — client-side only.
+            return handleBlueprint(context);
         }
         KoiosCoreBlockEntity core = NeuralCasingBlock.findFormedCore(level, pos);
         if (core == null) {
-            return InteractionResult.PASS;
+            return handleBlueprint(context);
         }
         Direction face = context.getClickedFace();
         // The clicked casing must sit on that side of the structure, so the
@@ -74,9 +76,26 @@ public class CalibratorItem extends Item {
         return InteractionResult.sidedSuccess(level.isClientSide);
     }
 
+    /** Client-side blueprint anchor toggle (no server state to keep). */
+    private static InteractionResult handleBlueprint(UseOnContext context) {
+        Level level = context.getLevel();
+        if (level.isClientSide) {
+            boolean placed = io.lakio.krios.industry.client.BlueprintState
+                    .toggle(context.getClickedPos());
+            Player player = context.getPlayer();
+            if (player != null) {
+                player.displayClientMessage(Component.translatable(placed
+                        ? "gui.krios_industry.calibrator.blueprint_set"
+                        : "gui.krios_industry.calibrator.blueprint_cleared"), true);
+            }
+        }
+        return InteractionResult.sidedSuccess(level.isClientSide);
+    }
+
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, context, tooltip, flag);
         tooltip.add(Component.translatable(getDescriptionId() + ".desc").withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.translatable(getDescriptionId() + ".blueprint").withStyle(ChatFormatting.DARK_AQUA));
     }
 }
