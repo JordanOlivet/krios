@@ -16,7 +16,7 @@ public interface MachineMenu {
      * width from these numbers; keep both in sync.
      */
     int MODULE_SLOT_X = -49;
-    int MODULE_SLOT_Y = 104;
+    int MODULE_SLOT_Y = 109;
     int MODULE_SLOT_STEP = 22;
 
     /** Raw face-config bits for face 0..5 (decode via FaceConfig statics). */

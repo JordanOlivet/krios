@@ -23,8 +23,10 @@ public class ModuleBayPanel extends AnnexPanel {
     // MODULE_SLOT_X - 1 = panelX + (panelWidth - 18) / 2. Width must stay
     // >= the localized title's minimum or the slots drift off-center.
     private static final int CONTENT_W = 58;
-    /** Slot frame top = contentY = dockY + TITLE_H. */
-    private static final int DOCK_Y = MachineMenu.MODULE_SLOT_Y - 1 - TITLE_H;
+    /** Breathing room between the title bar and the first slot. */
+    private static final int TOP_PAD = 5;
+    /** Slot frame top = contentY + TOP_PAD. */
+    private static final int DOCK_Y = MachineMenu.MODULE_SLOT_Y - 1 - TITLE_H - TOP_PAD;
 
     private final int slotCount;
     private final Consumer<Boolean> menuSync;
@@ -50,7 +52,7 @@ public class ModuleBayPanel extends AnnexPanel {
 
     @Override
     protected int contentHeight() {
-        return slotCount * MachineMenu.MODULE_SLOT_STEP - 4;
+        return TOP_PAD + slotCount * MachineMenu.MODULE_SLOT_STEP - 4;
     }
 
     @Override
