@@ -29,15 +29,8 @@ public class CalibratorScreen extends KriosTerminalScreen<CalibratorMenu> {
     }
 
     @Override
-    protected int feedX() {
-        // Standard header order: close cross rightmost, feed to its left.
-        return imageWidth - 34;
-    }
-
-    @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (mouseX >= leftPos + imageWidth - 16 && mouseX < leftPos + imageWidth - 4
-                && mouseY >= topPos + 4 && mouseY < topPos + 16) {
+        if (isCloseCrossHit(mouseX, mouseY)) {
             onClose();
             return true;
         }
@@ -52,24 +45,13 @@ public class CalibratorScreen extends KriosTerminalScreen<CalibratorMenu> {
 
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
-        int x = leftPos;
-        int y = topPos;
-        // Codex-style framed panel (same language as the Archives).
-        guiGraphics.fill(x - 2, y - 2, x + imageWidth + 2, y + imageHeight + 2, 0xFF0A6E87);
-        guiGraphics.fill(x - 1, y - 1, x + imageWidth + 1, y + imageHeight + 1, 0xFF0C0E13);
-        guiGraphics.fill(x, y, x + imageWidth, y + imageHeight, 0xFF10141B);
-        guiGraphics.fill(x, y, x + imageWidth, y + 18, 0xFF1B202A);
-        guiGraphics.fill(x, y + 18, x + imageWidth, y + 19, 0xFF0A6E87);
+        renderCodexFrame(guiGraphics);
     }
 
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         renderTerminalHeader(guiGraphics, mouseX, mouseY);
-        // Close cross, rightmost (standard header).
-        boolean closeHover = mouseX - leftPos >= imageWidth - 16 && mouseX - leftPos < imageWidth - 4
-                && mouseY - topPos >= 4 && mouseY - topPos < 16;
-        guiGraphics.fill(imageWidth - 16, 4, imageWidth - 4, 16, closeHover ? 0xFF6B2F2F : 0xFF262B35);
-        guiGraphics.drawCenteredString(font, "X", imageWidth - 10, 6, 0xFFE8EAF0);
+        renderCloseCross(guiGraphics, mouseX, mouseY);
         int y = 25;
         int status = menu.status();
         Component statusLine = switch (status) {

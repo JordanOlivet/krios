@@ -103,6 +103,7 @@ public class FurnaceBlockEntity extends BlockEntity
                 case 14 -> (worldPosition.getZ() >> 16) & 0xFFFF;
                 case 15 -> worldPosition.getY();
                 case 16 -> currentDrawPerTick;
+                case 17 -> starvedLastTick ? 1 : 0;
                 // 4..9: raw face-config shorts (11 bits, short-safe).
                 default -> index < 10
                         ? faceConfig.bits(Direction.from3DDataValue(index - 4)) : 0;

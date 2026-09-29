@@ -9,12 +9,12 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 
 /**
- * Collapsible stats side panel, docked LEFT of a terminal screen (art
- * direction: the panel keeps machine stats out of the working area). One
- * row per stat: pixel icon + live value, full stat name as tooltip. The
- * collapsed/expanded state persists globally through {@link ClientPrefs}.
+ * Machine stats annex (art direction: stats stay out of the working area),
+ * docked LEFT on the shared {@link AnnexPanel} chassis. One row per stat:
+ * pixel icon + live value, full stat name as tooltip. The open state
+ * persists globally through {@link ClientPrefs}.
  */
-public class StatsPanel {
+public class StatsPanel extends AnnexPanel {
 
     /** One stat row: icon, live value supplier, tooltip naming the stat. */
     public record Row(Icon icon, Supplier<Component> value, Component tooltip) {
@@ -23,72 +23,62 @@ public class StatsPanel {
     public enum Icon { SPEED, ENERGY_MULT, YIELD, OUTPUT, STORED }
 
     private static final int ROW_HEIGHT = 14;
-    private static final int TAB_SIZE = 12;
-    private static final int PAD = 4;
     private static final int ICON_SPACE = 14;
 
     private final List<Row> rows;
-    private boolean expanded = ClientPrefs.statsExpanded();
+    // Sized against the live values each frame (layout hook); clicks always
+    // land after a render, so the cache is fresh when it matters.
+    private int cachedWidth = 50;
 
     public StatsPanel(Row... rows) {
+        super(Side.LEFT, 4, "gui.krios_industry.stats.title", ClientPrefs.statsExpanded());
         this.rows = List.of(rows);
     }
 
-    private int panelWidth(Font font) {
+    @Override
+    protected void onToggle(boolean open) {
+        ClientPrefs.setStatsExpanded(open);
+    }
+
+    @Override
+    protected void layout(Font font) {
         int max = 0;
         for (Row row : rows) {
             max = Math.max(max, font.width(row.value().get()));
         }
-        return PAD + ICON_SPACE + max + PAD;
+        cachedWidth = ICON_SPACE + max;
     }
 
-    private int tabX(int leftPos) {
-        return leftPos - TAB_SIZE - 2;
+    @Override
+    protected int contentWidth() {
+        return cachedWidth;
     }
 
-    private int panelX(int leftPos, Font font) {
-        return leftPos - panelWidth(font) - 2;
+    @Override
+    protected int contentHeight() {
+        return rows.size() * ROW_HEIGHT;
     }
 
-    public void render(GuiGraphics gui, Font font, int leftPos, int topPos, int mouseX, int mouseY) {
-        int tx = tabX(leftPos);
-        int ty = topPos + 4;
-        gui.fill(tx, ty, tx + TAB_SIZE, ty + TAB_SIZE, expanded ? 0xFF0A6E87 : 0xFF262B35);
-        for (int i = 0; i < 3; i++) {
-            gui.fill(tx + 3, ty + 3 + i * 3, tx + TAB_SIZE - 3, ty + 4 + i * 3, 0xFFE8EAF0);
-        }
-        if (expanded) {
-            int width = panelWidth(font);
-            int px = panelX(leftPos, font);
-            int py = topPos + 18;
-            int height = PAD + rows.size() * ROW_HEIGHT + PAD - 4;
-            gui.fill(px, py, px + width, py + height, 0xE8101418);
-            for (int i = 0; i < rows.size(); i++) {
-                Row row = rows.get(i);
-                int rowY = py + PAD + i * ROW_HEIGHT;
-                drawIcon(gui, row.icon(), px + PAD, rowY);
-                Component value = row.value().get();
-                gui.drawString(font, value, px + width - PAD - font.width(value), rowY + 1, 0xFFE8EAF0, false);
-                if (mouseX >= px && mouseX < px + width && mouseY >= rowY - 2 && mouseY < rowY + ROW_HEIGHT - 2) {
-                    gui.renderTooltip(font, row.tooltip(), mouseX, mouseY);
-                }
+    @Override
+    protected void renderContent(GuiGraphics gui, Font font, int x, int y, int mouseX, int mouseY) {
+        for (int i = 0; i < rows.size(); i++) {
+            Row row = rows.get(i);
+            int rowY = y + 2 + i * ROW_HEIGHT;
+            drawIcon(gui, row.icon(), x, rowY);
+            Component value = row.value().get();
+            gui.drawString(font, value, x + cachedWidth - font.width(value), rowY + 1, 0xFFE8EAF0, false);
+            if (mouseX >= x && mouseX < x + cachedWidth && mouseY >= rowY - 2 && mouseY < rowY + ROW_HEIGHT - 2) {
+                gui.renderTooltip(font, row.tooltip(), mouseX, mouseY);
             }
         }
-        if (mouseX >= tx && mouseX < tx + TAB_SIZE && mouseY >= ty && mouseY < ty + TAB_SIZE) {
-            gui.renderTooltip(font, Component.translatable("gui.krios_industry.stats.title"), mouseX, mouseY);
-        }
     }
 
-    /** True when the click was on the collapse tab (state toggled + saved). */
-    public boolean click(int leftPos, int topPos, double mouseX, double mouseY) {
-        int tx = tabX(leftPos);
-        int ty = topPos + 4;
-        if (mouseX >= tx && mouseX < tx + TAB_SIZE && mouseY >= ty && mouseY < ty + TAB_SIZE) {
-            expanded = !expanded;
-            ClientPrefs.setStatsExpanded(expanded);
-            return true;
+    @Override
+    protected void drawTabIcon(GuiGraphics gui, int x, int y) {
+        // Three data rows, the panel's function at a glance.
+        for (int i = 0; i < 3; i++) {
+            gui.fill(x, y + 1 + i * 3, x + 8, y + 2 + i * 3, 0xFFE8EAF0);
         }
-        return false;
     }
 
     private static void drawIcon(GuiGraphics gui, Icon icon, int x, int y) {

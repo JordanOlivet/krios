@@ -1,22 +1,14 @@
 package io.lakio.krios.industry.client.screen;
 
-import io.lakio.krios.industry.Constants;
 import io.lakio.krios.industry.machine.generator.GeneratorBlockEntity;
 import io.lakio.krios.industry.machine.generator.GeneratorMenu;
 import io.lakio.krios.industry.network.Flow;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
 
-public class GeneratorScreen extends KriosTerminalScreen<GeneratorMenu> {
-
-    private static final ResourceLocation TEXTURE = Constants.id("textures/gui/generator.png");
-    private static final int ENERGY_BAR_X = 8;
-    private static final int ENERGY_BAR_Y = 21;
-    private static final int ENERGY_BAR_WIDTH = 160;
-    private static final int ENERGY_BAR_HEIGHT = 8;
-    private static final int FACES_BUTTON_SIZE = 12;
+public class GeneratorScreen extends MachineTerminalScreen<GeneratorMenu> {
 
     private final HologramFacePanel facePanel = new HologramFacePanel(
             new HologramFacePanel.Column(Flow.ENERGY, true),
@@ -31,106 +23,48 @@ public class GeneratorScreen extends KriosTerminalScreen<GeneratorMenu> {
                     () -> Component.literal(menu.getEnergyStored() + " / " + menu.getEnergyCapacity() + " E"),
                     Component.translatable("gui.krios_industry.stats.stored")));
 
+    private final AnnexPanel[] annexes = {statsPanel, facePanel};
+
     public GeneratorScreen(GeneratorMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
     }
 
     @Override
-    protected int terminalStatus() {
-        return menu.networkLevel();
+    protected AnnexPanel[] annexPanels() {
+        return annexes;
     }
 
     @Override
-    protected int feedX() {
-        // Left of the "F" faces button.
-        return imageWidth - 34;
-    }
-
-    private int facesButtonX() {
-        return leftPos + imageWidth - FACES_BUTTON_SIZE - 4;
-    }
-
-    private int facesButtonY() {
-        return topPos + 4;
+    protected HologramFacePanel facePanel() {
+        return facePanel;
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
-        guiGraphics.fill(facesButtonX(), facesButtonY(),
-                facesButtonX() + FACES_BUTTON_SIZE, facesButtonY() + FACES_BUTTON_SIZE,
-                facePanel.isOpen() ? 0xFF0A6E87 : 0xFF262B35);
-        guiGraphics.drawCenteredString(font, "F",
-                facesButtonX() + FACES_BUTTON_SIZE / 2, facesButtonY() + 2, 0xFFE8EAF0);
-        facePanel.updateHover(leftPos + imageWidth + 2, topPos, mouseX, mouseY);
-        facePanel.render(guiGraphics, font, leftPos + imageWidth + 2, topPos, menu::faceBits,
-                menu.machinePos(), mouseX, mouseY);
-        statsPanel.render(guiGraphics, font, leftPos, topPos, mouseX, mouseY);
-        renderTooltip(guiGraphics, mouseX, mouseY);
-        if (mouseX >= facesButtonX() && mouseX < facesButtonX() + FACES_BUTTON_SIZE
-                && mouseY >= facesButtonY() && mouseY < facesButtonY() + FACES_BUTTON_SIZE) {
-            guiGraphics.renderTooltip(font,
-                    Component.translatable("gui.krios_industry.faces.title"), mouseX, mouseY);
+    protected void renderWork(GuiGraphics guiGraphics) {
+        // Pixel flame above the fuel slot, height following the burn.
+        if (!menu.isBurning()) {
+            return;
         }
-        int barX = leftPos + ENERGY_BAR_X;
-        int barY = topPos + ENERGY_BAR_Y;
-        if (mouseX >= barX && mouseX < barX + ENERGY_BAR_WIDTH && mouseY >= barY && mouseY < barY + ENERGY_BAR_HEIGHT) {
-            guiGraphics.renderTooltip(font,
-                    Component.literal(menu.getEnergyStored() + " / " + menu.getEnergyCapacity() + " E"),
-                    mouseX, mouseY);
+        int burn = menu.getBurnProgress(12);
+        int baseX = leftPos + WORK_CENTER_X;
+        int baseY = topPos + 42;
+        for (int i = 0; i < burn; i++) {
+            int half = Math.max(1, (12 - i) / 2);
+            int color = i < 4 ? 0xFFFFB03A : i < 8 ? 0xFFFFC964 : 0xFFFFE0A0;
+            guiGraphics.fill(baseX - half, baseY - i, baseX + half, baseY - i + 1, color);
         }
-        renderTerminalOverlays(guiGraphics, mouseX, mouseY);
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (statsPanel.click(leftPos, topPos, mouseX, mouseY)) {
-            return true;
+    protected Component workingPhrase() {
+        if (!menu.isBurning()) {
+            return null;
         }
-        if (mouseX >= facesButtonX() && mouseX < facesButtonX() + FACES_BUTTON_SIZE
-                && mouseY >= facesButtonY() && mouseY < facesButtonY() + FACES_BUTTON_SIZE) {
-            facePanel.toggleOpen();
-            return true;
+        ItemStack fuel = menu.getSlot(GeneratorMenu.FUEL_SLOT).getItem();
+        if (fuel.isEmpty()) {
+            return Component.translatable("gui.krios_industry.voice.generator.working_generic");
         }
-        int id = facePanel.click(leftPos + imageWidth + 2, topPos, mouseX, mouseY, button, menu::faceBits);
-        if (id >= 0) {
-            minecraft.gameMode.handleInventoryButtonClick(menu.containerId, id);
-            return true;
-        }
-        if (id == HologramFacePanel.CLICK_CONSUMED) {
-            return true;
-        }
-        return super.mouseClicked(mouseX, mouseY, button);
-    }
-
-    @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        if (facePanel.mouseDragged(leftPos + imageWidth + 2, topPos, mouseX, mouseY, button, dragX, dragY)) {
-            return true;
-        }
-        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
-    }
-
-    @Override
-    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        renderTerminalHeader(guiGraphics, mouseX, mouseY);
-        guiGraphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, COLOR_TEXT_DIM, false);
-    }
-
-    @Override
-    protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
-        int x = leftPos;
-        int y = topPos;
-        guiGraphics.blit(TEXTURE, x, y, 0, 0, imageWidth, imageHeight);
-        // Energy gauge fill (row stored at v=166 in the texture).
-        int energyWidth = menu.getEnergyProgress(ENERGY_BAR_WIDTH);
-        if (energyWidth > 0) {
-            guiGraphics.blit(TEXTURE, x + ENERGY_BAR_X, y + ENERGY_BAR_Y, 0, 166, energyWidth, ENERGY_BAR_HEIGHT);
-        }
-        // Flame while burning (14x14 sprite at u=176 v=0, drawn bottom-up).
-        if (menu.isBurning()) {
-            int burn = menu.getBurnProgress(13);
-            guiGraphics.blit(TEXTURE, x + 81, y + 32 + 13 - burn, 176, 13 - burn, 14, burn + 1);
-        }
+        return Component.translatable("gui.krios_industry.voice.generator.working",
+                fuel.getHoverName());
     }
 }

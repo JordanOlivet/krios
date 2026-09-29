@@ -1,5 +1,6 @@
 package io.lakio.krios.industry.machine.generator;
 
+import io.lakio.krios.industry.machine.MachineMenu;
 import io.lakio.krios.industry.platform.Services;
 import io.lakio.krios.industry.registry.ModMenus;
 import net.minecraft.core.BlockPos;
@@ -13,7 +14,7 @@ import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
-public class GeneratorMenu extends AbstractContainerMenu {
+public class GeneratorMenu extends AbstractContainerMenu implements MachineMenu {
 
     public static final int FUEL_SLOT = 0;
     /** 0..3 machine values + 6 face-config shorts + network status + pos (5). */
@@ -32,7 +33,8 @@ public class GeneratorMenu extends AbstractContainerMenu {
         this.container = container;
         this.data = data;
 
-        addSlot(new Slot(container, FUEL_SLOT, 80, 47) {
+        // 256-wide codex terminal layout (MachineTerminalScreen).
+        addSlot(new Slot(container, FUEL_SLOT, 120, 46) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return Services.PLATFORM.getBurnTime(stack) > 0;
@@ -41,11 +43,11 @@ public class GeneratorMenu extends AbstractContainerMenu {
 
         for (int row = 0; row < 3; ++row) {
             for (int col = 0; col < 9; ++col) {
-                addSlot(new Slot(playerInventory, col + row * 9 + 9, 8 + col * 18, 84 + row * 18));
+                addSlot(new Slot(playerInventory, col + row * 9 + 9, 47 + col * 18, 116 + row * 18));
             }
         }
         for (int col = 0; col < 9; ++col) {
-            addSlot(new Slot(playerInventory, col, 8 + col * 18, 142));
+            addSlot(new Slot(playerInventory, col, 47 + col * 18, 174));
         }
 
         addDataSlots(data);
@@ -80,6 +82,7 @@ public class GeneratorMenu extends AbstractContainerMenu {
     }
 
     /** Raw face-config bits for face 0..5 (decode via FaceConfig statics). */
+    @Override
     public int faceBits(int face) {
         return data.get(4 + face);
     }

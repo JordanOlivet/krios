@@ -1,5 +1,6 @@
 package io.lakio.krios.industry.machine.furnace;
 
+import io.lakio.krios.industry.machine.MachineMenu;
 import io.lakio.krios.industry.machine.module.ModuleItem;
 import io.lakio.krios.industry.registry.ModMenus;
 import net.minecraft.core.BlockPos;
@@ -13,13 +14,16 @@ import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
-public class FurnaceMenu extends AbstractContainerMenu {
+public class FurnaceMenu extends AbstractContainerMenu implements MachineMenu {
 
-    /** 0..3 machine values + 6 face shorts + network status + pos (5) + draw. */
-    public static final int DATA_COUNT = 17;
+    /** 0..3 machine values + 6 face shorts + status + pos (5) + draw + starved. */
+    public static final int DATA_COUNT = 18;
 
     private final Container container;
     private final ContainerData data;
+    // Client-side module bay visibility (annex panel); the server instance
+    // stays true so quickMoveStack keeps routing into hidden slots.
+    private boolean moduleBayOpen = true;
 
     private static final int MODULE_SLOT_START = 2;
     private static final int PLAYER_START = 4;
@@ -35,26 +39,34 @@ public class FurnaceMenu extends AbstractContainerMenu {
         this.container = container;
         this.data = data;
 
-        addSlot(new Slot(container, FurnaceBlockEntity.INPUT_SLOT, 56, 41));
-        addSlot(new Slot(container, FurnaceBlockEntity.OUTPUT_SLOT, 116, 41) {
+        // 256-wide codex terminal layout (MachineTerminalScreen).
+        addSlot(new Slot(container, FurnaceBlockEntity.INPUT_SLOT, 98, 46));
+        addSlot(new Slot(container, FurnaceBlockEntity.OUTPUT_SLOT, 148, 46) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return false;
             }
         });
-        addSlot(new ModuleSlot(container, FurnaceBlockEntity.MODULE_SLOT_FIRST, 152, 28));
-        addSlot(new ModuleSlot(container, FurnaceBlockEntity.MODULE_SLOT_LAST, 152, 52));
+        addSlot(new ModuleSlot(container, FurnaceBlockEntity.MODULE_SLOT_FIRST,
+                MODULE_SLOT_X, MODULE_SLOT_Y));
+        addSlot(new ModuleSlot(container, FurnaceBlockEntity.MODULE_SLOT_LAST,
+                MODULE_SLOT_X, MODULE_SLOT_Y + MODULE_SLOT_STEP));
 
         for (int row = 0; row < 3; ++row) {
             for (int col = 0; col < 9; ++col) {
-                addSlot(new Slot(playerInventory, col + row * 9 + 9, 8 + col * 18, 84 + row * 18));
+                addSlot(new Slot(playerInventory, col + row * 9 + 9, 47 + col * 18, 116 + row * 18));
             }
         }
         for (int col = 0; col < 9; ++col) {
-            addSlot(new Slot(playerInventory, col, 8 + col * 18, 142));
+            addSlot(new Slot(playerInventory, col, 47 + col * 18, 174));
         }
 
         addDataSlots(data);
+    }
+
+    @Override
+    public void setModuleBayOpen(boolean open) {
+        moduleBayOpen = open;
     }
 
     @Override
@@ -111,6 +123,12 @@ public class FurnaceMenu extends AbstractContainerMenu {
         public int getMaxStackSize() {
             return 1;
         }
+
+        @Override
+        public boolean isActive() {
+            // Collapsed bay: slot hidden and unclickable, client-side only.
+            return moduleBayOpen;
+        }
     }
 
     @Override
@@ -119,6 +137,7 @@ public class FurnaceMenu extends AbstractContainerMenu {
     }
 
     /** Raw face-config bits for face 0..5 (decode via FaceConfig statics). */
+    @Override
     public int faceBits(int face) {
         return data.get(4 + face);
     }
@@ -171,5 +190,11 @@ public class FurnaceMenu extends AbstractContainerMenu {
     /** Current energy demand in E/t; 0 while idle. */
     public int drawPerTick() {
         return data.get(16);
+    }
+
+    /** Working but frozen for lack of energy (voice line). */
+    @Override
+    public boolean isStarved() {
+        return data.get(17) != 0;
     }
 }

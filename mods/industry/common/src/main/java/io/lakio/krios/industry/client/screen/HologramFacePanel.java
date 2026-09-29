@@ -35,8 +35,10 @@ import org.joml.Vector4f;
  * off, right+cyan = on, centered+grey = auto) plus one-click presets.
  * Everything edits through the vanilla menu-button channel
  * (face*16 + sub; 15 = mode, 9..12 = presets) — no custom packets.
+ * Docked RIGHT on the {@link AnnexPanel} chassis; coordinates below are
+ * content-relative.
  */
-public class HologramFacePanel {
+public class HologramFacePanel extends AnnexPanel {
 
     /** A supported flow direction; sub id encodes it as flow*2 + out. */
     public record Column(Flow flow, boolean out) {
@@ -59,9 +61,9 @@ public class HologramFacePanel {
             "gui.krios_industry.direction.north", "gui.krios_industry.direction.south",
             "gui.krios_industry.direction.west", "gui.krios_industry.direction.east"};
 
-    private static final int PANEL_W = 140;
-    private static final int VP_X = 6;
-    private static final int VP_Y = 16;
+    private static final int CONTENT_W = 132;
+    private static final int VP_X = 2;
+    private static final int VP_Y = 2;
     private static final int VP_W = 128;
     private static final int VP_H = 100;
     private static final float SCALE = 24;
@@ -76,8 +78,8 @@ public class HologramFacePanel {
     private static final int SWITCH_H = 10;
     private static final int KNOB = 8;
     /** Column centers for the Input / Output grid columns. */
-    private static final int COL_IN_X = 56;
-    private static final int COL_OUT_X = 98;
+    private static final int COL_IN_X = 52;
+    private static final int COL_OUT_X = 94;
     private static final int COL_W = 40;
 
     /** Cube face corners in [-0.5, 0.5] model space, seen from outside. */
@@ -105,7 +107,6 @@ public class HologramFacePanel {
     private final Column[] columns;
     /** Column order grouped by flow type, one grid row per flow. */
     private final List<Flow> flowRows;
-    private boolean open = io.lakio.krios.industry.client.ClientPrefs.facesOpen();
     private Direction selected;
     private Direction hovered;
     private float yaw = Float.NaN;
@@ -116,6 +117,8 @@ public class HologramFacePanel {
     private Direction knobFace;
 
     public HologramFacePanel(Column... columns) {
+        super(Side.RIGHT, 4, "gui.krios_industry.faces.title",
+                io.lakio.krios.industry.client.ClientPrefs.facesOpen());
         this.columns = columns;
         this.flowRows = new ArrayList<>();
         for (Column column : columns) {
@@ -126,12 +129,8 @@ public class HologramFacePanel {
         this.knobPos = new float[columns.length];
     }
 
-    public boolean isOpen() {
-        return open;
-    }
-
-    public void toggleOpen() {
-        open = !open;
+    @Override
+    protected void onToggle(boolean open) {
         io.lakio.krios.industry.client.ClientPrefs.setFacesOpen(open);
         if (open) {
             // Re-align the view with the player's current look on each open.
@@ -139,23 +138,46 @@ public class HologramFacePanel {
         }
     }
 
-    public int width() {
-        return PANEL_W;
+    @Override
+    protected int contentWidth() {
+        return CONTENT_W;
     }
 
-    public int height() {
-        return GRID_Y + flowRows.size() * ROW_STEP + 4;
+    @Override
+    protected int contentHeight() {
+        return GRID_Y + flowRows.size() * ROW_STEP + 2;
     }
 
-    public void render(GuiGraphics gui, Font font, int x, int y, IntUnaryOperator bits,
-            BlockPos machinePos, int mouseX, int mouseY) {
-        if (!open) {
+    @Override
+    protected void drawTabIcon(GuiGraphics gui, int x, int y) {
+        // A cube with a face pip: the hologram at a glance.
+        gui.fill(x, y, x + 8, y + 1, 0xFF31D8FF);
+        gui.fill(x, y + 7, x + 8, y + 8, 0xFF31D8FF);
+        gui.fill(x, y + 1, x + 1, y + 7, 0xFF31D8FF);
+        gui.fill(x + 7, y + 1, x + 8, y + 7, 0xFF31D8FF);
+        gui.fill(x + 3, y + 3, x + 5, y + 5, 0xFFFFB03A);
+    }
+
+    /** The BlockPos + face-bits payload arrives through the screen's render. */
+    private IntUnaryOperator renderBits;
+    private BlockPos renderPos;
+
+    /** Stashes the live payload, then lets the chassis drive renderContent. */
+    public void renderPanel(GuiGraphics gui, Font font, int leftPos, int topPos, int imageWidth,
+            IntUnaryOperator bits, BlockPos machinePos, int mouseX, int mouseY) {
+        this.renderBits = bits;
+        this.renderPos = machinePos;
+        render(gui, font, leftPos, topPos, imageWidth, mouseX, mouseY);
+    }
+
+    @Override
+    protected void renderContent(GuiGraphics gui, Font font, int x, int y, int mouseX, int mouseY) {
+        IntUnaryOperator bits = renderBits;
+        BlockPos machinePos = renderPos;
+        if (bits == null || machinePos == null) {
             return;
         }
         Minecraft minecraft = Minecraft.getInstance();
-        gui.fill(x, y, x + PANEL_W, y + height(), 0xE8101418);
-        gui.drawString(font, Component.translatable("gui.krios_industry.faces.title"),
-                x + 6, y + 4, 0xFF31D8FF, false);
 
         // Viewport frame.
         int vx = x + VP_X;
@@ -235,8 +257,8 @@ public class HologramFacePanel {
         if (selected == null) {
             int textY = y + MODE_ROW_Y + 2;
             for (FormattedCharSequence line : font.split(
-                    Component.translatable("gui.krios_industry.faces.hint"), PANEL_W - 12)) {
-                gui.drawString(font, line, x + 6, textY, 0xFF5A6170, false);
+                    Component.translatable("gui.krios_industry.faces.hint"), CONTENT_W - 4)) {
+                gui.drawString(font, line, x + 2, textY, 0xFF5A6170, false);
                 textY += 10;
             }
             return;
@@ -246,8 +268,8 @@ public class HologramFacePanel {
 
         // Face name + mode toggle.
         gui.drawString(font, Component.translatable(FACE_KEYS[selected.get3DDataValue()]),
-                x + 6, y + MODE_ROW_Y + 3, 0xFFE8EAF0, false);
-        int modeX = x + PANEL_W - 60;
+                x + 2, y + MODE_ROW_Y + 3, 0xFFE8EAF0, false);
+        int modeX = x + CONTENT_W - 56;
         gui.fill(modeX, y + MODE_ROW_Y, modeX + 54, y + MODE_ROW_Y + ROW_H,
                 manual ? 0xFF0A6E87 : 0xFF262B35);
         gui.drawCenteredString(font, Component.translatable(manual
@@ -260,7 +282,7 @@ public class HologramFacePanel {
         // Presets: block / input only / output only / allow all.
         Component presetTip = null;
         for (int i = 0; i < 4; i++) {
-            int px = x + 6 + i * (PRESET_SIZE + 4);
+            int px = x + 2 + i * (PRESET_SIZE + 4);
             int py = y + PRESET_ROW_Y;
             boolean hover = mouseX >= px && mouseX < px + PRESET_SIZE
                     && mouseY >= py && mouseY < py + PRESET_SIZE;
@@ -294,7 +316,7 @@ public class HologramFacePanel {
             int rowY = y + GRID_Y + row * ROW_STEP;
             gui.drawString(font, Component.translatable(
                     "gui.krios_industry.flowtype." + flow.name().toLowerCase()),
-                    x + 6, rowY + 2, 0xFFA9AFBD, false);
+                    x + 2, rowY + 2, 0xFFA9AFBD, false);
             for (boolean out : new boolean[]{false, true}) {
                 int colX = x + (out ? COL_OUT_X : COL_IN_X);
                 int index = columnIndex(flow, out);
@@ -479,7 +501,7 @@ public class HologramFacePanel {
      * outside the panel.
      */
     public int click(int x, int y, double mouseX, double mouseY, int button, IntUnaryOperator bits) {
-        if (!open || mouseX < x || mouseX >= x + PANEL_W || mouseY < y || mouseY >= y + height()) {
+        if (!isOpen() || mouseX < x || mouseX >= x + CONTENT_W || mouseY < y || mouseY >= y + contentHeight()) {
             return -1;
         }
         if (inViewport(x, y, mouseX, mouseY)) {
@@ -493,7 +515,7 @@ public class HologramFacePanel {
         }
         int face = selected.get3DDataValue();
         // Mode toggle.
-        int modeX = x + PANEL_W - 60;
+        int modeX = x + CONTENT_W - 56;
         if (mouseX >= modeX && mouseX < modeX + 54
                 && mouseY >= y + MODE_ROW_Y && mouseY < y + MODE_ROW_Y + ROW_H) {
             return face * 16 + 15;
@@ -501,7 +523,7 @@ public class HologramFacePanel {
         // Presets.
         if (mouseY >= y + PRESET_ROW_Y && mouseY < y + PRESET_ROW_Y + PRESET_SIZE) {
             for (int i = 0; i < 4; i++) {
-                int px = x + 6 + i * (PRESET_SIZE + 4);
+                int px = x + 2 + i * (PRESET_SIZE + 4);
                 if (mouseX >= px && mouseX < px + PRESET_SIZE) {
                     return face * 16 + SUB_PRESET_BLOCK + i;
                 }
@@ -529,7 +551,7 @@ public class HologramFacePanel {
     /** Right-drag inside the viewport rotates the hologram. */
     public boolean mouseDragged(int x, int y, double mouseX, double mouseY, int button,
             double dragX, double dragY) {
-        if (!open || button != 1 || !inViewport(x, y, mouseX, mouseY)) {
+        if (!isOpen() || button != 1 || !inViewport(x, y, mouseX, mouseY)) {
             return false;
         }
         yaw += (float) dragX * 0.03F;
@@ -539,7 +561,7 @@ public class HologramFacePanel {
 
     /** Hover tracking; call every frame before render. */
     public void updateHover(int x, int y, double mouseX, double mouseY) {
-        hovered = open && inViewport(x, y, mouseX, mouseY) ? pickFace(mouseX, mouseY) : null;
+        hovered = isOpen() && inViewport(x, y, mouseX, mouseY) ? pickFace(mouseX, mouseY) : null;
     }
 
     private boolean inViewport(int x, int y, double mouseX, double mouseY) {

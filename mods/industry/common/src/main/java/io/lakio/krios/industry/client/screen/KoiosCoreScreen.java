@@ -41,12 +41,6 @@ public class KoiosCoreScreen extends KriosTerminalScreen<KoiosCoreMenu> {
         return menu.isFormed() ? menu.getKoiosLevel() : 0;
     }
 
-    @Override
-    protected int feedX() {
-        // Standard header order: close cross rightmost, feed to its left.
-        return imageWidth - 34;
-    }
-
     private int archivesButtonX() {
         return imageWidth - 52;
     }
@@ -100,9 +94,7 @@ public class KoiosCoreScreen extends KriosTerminalScreen<KoiosCoreMenu> {
         if (archives.click(width, height, mouseX, mouseY, menu.getKoiosLevel())) {
             return true;
         }
-        // Close cross, rightmost.
-        if (mouseX >= leftPos + imageWidth - 16 && mouseX < leftPos + imageWidth - 4
-                && mouseY >= topPos + 4 && mouseY < topPos + 16) {
+        if (isCloseCrossHit(mouseX, mouseY)) {
             onClose();
             return true;
         }
@@ -116,14 +108,7 @@ public class KoiosCoreScreen extends KriosTerminalScreen<KoiosCoreMenu> {
 
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
-        int x = leftPos;
-        int y = topPos;
-        // Codex-style framed panel (shared visual language).
-        guiGraphics.fill(x - 2, y - 2, x + imageWidth + 2, y + imageHeight + 2, 0xFF0A6E87);
-        guiGraphics.fill(x - 1, y - 1, x + imageWidth + 1, y + imageHeight + 1, 0xFF0C0E13);
-        guiGraphics.fill(x, y, x + imageWidth, y + imageHeight, 0xFF10141B);
-        guiGraphics.fill(x, y, x + imageWidth, y + 18, 0xFF1B202A);
-        guiGraphics.fill(x, y + 18, x + imageWidth, y + 19, 0xFF0A6E87);
+        renderCodexFrame(guiGraphics);
     }
 
     @Override
@@ -133,11 +118,7 @@ public class KoiosCoreScreen extends KriosTerminalScreen<KoiosCoreMenu> {
         // core panel is taller than the overlay, so they would poke above its
         // frame (and the overlay swallows every click anyway).
         if (!archives.isOpen()) {
-            // Close cross, rightmost (standard header).
-            boolean closeHover = mouseX - leftPos >= imageWidth - 16 && mouseX - leftPos < imageWidth - 4
-                    && mouseY - topPos >= 4 && mouseY - topPos < 16;
-            guiGraphics.fill(imageWidth - 16, 4, imageWidth - 4, 16, closeHover ? 0xFF6B2F2F : 0xFF262B35);
-            guiGraphics.drawCenteredString(font, "X", imageWidth - 10, 6, 0xFFE8EAF0);
+            renderCloseCross(guiGraphics, mouseX, mouseY);
             // Archives button: a small book left of the feed.
             int bx = archivesButtonX();
             guiGraphics.fill(bx, 4, bx + 12, 16, 0xFF262B35);

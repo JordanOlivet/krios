@@ -44,9 +44,40 @@ public abstract class KriosTerminalScreen<T extends AbstractContainerMenu>
     /** Feed status: negative = network fault, 0 = offline, positive = online KOIOS level. */
     protected abstract int terminalStatus();
 
-    /** Feed X in panel space; machines shift it left of their "F" button. */
+    /** Standard header order: close cross rightmost, feed to its left. */
     protected int feedX() {
-        return imageWidth - FEED_W - 4;
+        return imageWidth - 34;
+    }
+
+    /** Codex-style framed panel (shared visual language). Call from renderBg. */
+    protected void renderCodexFrame(GuiGraphics gui) {
+        int x = leftPos;
+        int y = topPos;
+        gui.fill(x - 2, y - 2, x + imageWidth + 2, y + imageHeight + 2, 0xFF0A6E87);
+        gui.fill(x - 1, y - 1, x + imageWidth + 1, y + imageHeight + 1, 0xFF0C0E13);
+        gui.fill(x, y, x + imageWidth, y + imageHeight, 0xFF10141B);
+        gui.fill(x, y, x + imageWidth, y + 18, 0xFF1B202A);
+        gui.fill(x, y + 18, x + imageWidth, y + 19, 0xFF0A6E87);
+    }
+
+    /** Close cross, rightmost (standard header). Call from renderLabels. */
+    protected void renderCloseCross(GuiGraphics gui, int mouseX, int mouseY) {
+        boolean hover = isCloseCrossHit(mouseX, mouseY);
+        gui.fill(imageWidth - 16, 4, imageWidth - 4, 16, hover ? 0xFF6B2F2F : 0xFF262B35);
+        gui.drawCenteredString(font, "X", imageWidth - 10, 6, 0xFFE8EAF0);
+    }
+
+    /** Absolute-space hit test for the standard close cross. */
+    protected boolean isCloseCrossHit(double mouseX, double mouseY) {
+        return mouseX >= leftPos + imageWidth - 16 && mouseX < leftPos + imageWidth - 4
+                && mouseY >= topPos + 4 && mouseY < topPos + 16;
+    }
+
+    /** Terminal voice line "> phrase_", blinking cursor. Translated space. */
+    protected void drawVoiceLine(GuiGraphics gui, Component phrase, int x, int y, int width) {
+        String cursor = (Util.getMillis() / 500) % 2 == 0 ? "_" : "";
+        Component line = Component.literal("> ").append(phrase).append(Component.literal(cursor));
+        gui.drawWordWrap(font, line, x, y, width, 0xFF5FC8DC);
     }
 
     private boolean bootActive() {
