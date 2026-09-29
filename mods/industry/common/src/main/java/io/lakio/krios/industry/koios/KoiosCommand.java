@@ -5,6 +5,7 @@ import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 
+import io.lakio.krios.industry.Constants;
 import io.lakio.krios.industry.config.IndustryConfig;
 import io.lakio.krios.industry.machine.EnergyStats;
 import io.lakio.krios.industry.network.Network;
@@ -17,16 +18,28 @@ import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * /koios — op-level (permission 2) inspection and progression tooling for the
- * closest formed core in range, using the same lookup machines use. The
- * builder is pure Brigadier/vanilla so it lives in common; each loader only
- * hooks it into its command-registration event.
+ * Op-level (permission 2) command tree, pure Brigadier/vanilla so it lives in
+ * common; each loader only hooks it into its command-registration event.
+ *
+ * Canonical root is the modid (ADR-016): /krios_industry config for the
+ * mod-level knobs, /krios_industry koios ... for core inspection and
+ * progression tooling (closest formed core in range, same lookup machines
+ * use). /koios stays as the diegetic alias of the KOIOS subtree only —
+ * talking to the AI directly.
  */
 public final class KoiosCommand {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
-        // Server-global difficulty knobs (ADR-015) — the only /koios subtree
-        // that works without a formed core nearby.
+        dispatcher.register(Commands.literal(Constants.MOD_ID)
+                .requires(source -> source.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                .then(configTree())
+                .then(koiosTree()));
+        dispatcher.register(koiosTree()
+                .requires(source -> source.hasPermission(Commands.LEVEL_GAMEMASTERS)));
+    }
+
+    /** Server-global difficulty knobs (ADR-015) — no formed core required. */
+    private static LiteralArgumentBuilder<CommandSourceStack> configTree() {
         LiteralArgumentBuilder<CommandSourceStack> config = Commands.literal("config")
                 .executes(context -> configShow(context.getSource(), null));
         for (IndustryConfig.Key key : IndustryConfig.Key.values()) {
@@ -37,8 +50,12 @@ public final class KoiosCommand {
                             .executes(context -> configSet(context.getSource(), key,
                                     DoubleArgumentType.getDouble(context, "value")))));
         }
-        dispatcher.register(Commands.literal("koios")
-                .requires(source -> source.hasPermission(Commands.LEVEL_GAMEMASTERS))
+        return config;
+    }
+
+    /** Fresh builder per call: registered under the root and as the alias. */
+    private static LiteralArgumentBuilder<CommandSourceStack> koiosTree() {
+        return Commands.literal("koios")
                 .then(Commands.literal("info")
                         .executes(context -> info(context.getSource())))
                 .then(Commands.literal("xp")
@@ -51,8 +68,7 @@ public final class KoiosCommand {
                                 .executes(context -> setLevel(context.getSource(),
                                         IntegerArgumentType.getInteger(context, "level")))))
                 .then(Commands.literal("energy")
-                        .executes(context -> energy(context.getSource())))
-                .then(config));
+                        .executes(context -> energy(context.getSource())));
     }
 
     /** Lists one difficulty multiplier, or all of them with {@code only} null. */

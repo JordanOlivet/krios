@@ -16,7 +16,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Per-world server balance config (ADR-015): the ADR-007 difficulty
  * multipliers, stored in {@code <world>/serverconfig/krios_industry-server.properties}
- * and editable on disk or live through {@code /koios config}. The file speaks
+ * and editable on disk or live through {@code /krios_industry config}. The file speaks
  * human decimals ("1.5"); game logic reads permille ints and stays
  * allocation-free (ADR-012 discipline).
  *
@@ -126,7 +126,7 @@ public final class IndustryConfig {
             try (OutputStream out = Files.newOutputStream(file)) {
                 props.store(out, "Krios Industry difficulty multipliers ("
                         + MIN_VALUE + "-" + MAX_VALUE + ", 1.0 = default); "
-                        + "editable in game with /koios config");
+                        + "editable in game with /krios_industry config");
             }
         } catch (IOException ignored) {
         }

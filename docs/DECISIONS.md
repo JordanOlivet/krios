@@ -135,6 +135,14 @@ Mod configuration (first content: the ADR-007 difficulty multipliers `energy_cos
 - Client display never reads config directly; anything a GUI shows keeps riding ContainerData (the constants-are-never-synced rule holds because scaled values are synced, thresholds stay constants).
 - Later, without new dependencies: a codex-style config screen in common, hooked through NeoForge's native mod-list config button and a ModMenu soft entrypoint on Fabric (compile-only).
 
+## ADR-016 — Command namespace: canonical root = modid, diegetic aliases
+
+**Date**: 2026-09-29 · **Status**: accepted
+
+User-facing commands root at the modid — `/krios_industry config`, `/krios_industry koios <info|xp|level|energy>` — so a player who knows the mod's name can discover them by completion; lore names are not an interface. Short diegetic aliases are allowed on top when they carry flavor: `/koios ...` stays as an alias of the KOIOS subtree only (talking to the AI; `config` is a mod knob, not a core one, and is not aliased). Every Krios mod follows the same shape.
+
+- Deferred: a shared `/krios <mod> ...` ecosystem root once a second mod ships — Brigadier merges same-name literals, so each mod can graft its section; permission checks must then sit on the mod-section nodes, not the shared root.
+
 ## Open questions
 
 *(none — next ones will come from design work)*

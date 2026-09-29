@@ -70,7 +70,7 @@ public final class KoiosBalance {
     }
 
     /**
-     * Difficulty-scaled per-operation energy cost (/koios config
+     * Difficulty-scaled per-operation energy cost (/krios_industry config
      * energy_cost). Server-side only: a null or client level answers the
      * unscaled base.
      */
@@ -80,8 +80,8 @@ public final class KoiosBalance {
     }
 
     /**
-     * Difficulty-scaled data XP for one reported operation (/koios config
-     * xp_rate), with the diversity factor folded in.
+     * Difficulty-scaled data XP for one reported operation (/krios_industry
+     * config xp_rate), with the diversity factor folded in.
      */
     public static int scaledOpXp(@Nullable Level level, int baseXp, int diversityPermille) {
         long ratePermille = IndustryConfig.permille(
