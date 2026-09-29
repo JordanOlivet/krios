@@ -1,9 +1,13 @@
 package io.lakio.krios.industry.koios;
 
+import io.lakio.krios.industry.config.IndustryConfig;
+import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
+
 /**
- * Central balance knobs for the KOIOS progression. Kept in one place so the
- * planned difficulty config (ADR-007) has a single hookup point. Values are
- * placeholders-by-default; rebalancing them is expected.
+ * Central balance knobs for the KOIOS progression, and the single hookup
+ * point of the ADR-007/ADR-015 difficulty multipliers (the {@code scaled*}
+ * helpers). Values are placeholders-by-default; rebalancing them is expected.
  */
 public final class KoiosBalance {
 
@@ -63,6 +67,26 @@ public final class KoiosBalance {
     /** Data XP accrual stops at the critical threshold until it is paid. */
     public static int xpCap() {
         return LEVEL_XP[CRITICAL_LEVEL];
+    }
+
+    /**
+     * Difficulty-scaled per-operation energy cost (/koios config
+     * energy_cost). Server-side only: a null or client level answers the
+     * unscaled base.
+     */
+    public static int scaledEnergyCost(@Nullable Level level, int baseEnergy) {
+        return IndustryConfig.scale(baseEnergy, IndustryConfig.permille(
+                level == null ? null : level.getServer(), IndustryConfig.Key.ENERGY_COST));
+    }
+
+    /**
+     * Difficulty-scaled data XP for one reported operation (/koios config
+     * xp_rate), with the diversity factor folded in.
+     */
+    public static int scaledOpXp(@Nullable Level level, int baseXp, int diversityPermille) {
+        long ratePermille = IndustryConfig.permille(
+                level == null ? null : level.getServer(), IndustryConfig.Key.XP_RATE);
+        return (int) (baseXp * diversityPermille * ratePermille / 1_000_000L);
     }
 
     private KoiosBalance() {

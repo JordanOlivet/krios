@@ -178,7 +178,7 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
         }
         int cap = KoiosBalance.xpCap();
         for (int i = 0; i < count && xp < cap; i++) {
-            xp = Math.min(cap, xp + baseXp * diversityFactorPermille(key) / 1000);
+            xp = Math.min(cap, xp + KoiosBalance.scaledOpXp(level, baseXp, diversityFactorPermille(key)));
             pushWindow(key);
         }
         int previousLevel = koiosLevel;

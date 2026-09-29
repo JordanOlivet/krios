@@ -244,7 +244,8 @@ public class FurnaceBlockEntity extends BlockEntity
         be.totalTime = online
                 ? Math.max(1, cookingTime / (2 + speedModules))
                 : Math.max(cookingTime, KoiosBalance.DISCONNECTED_TIME_TICKS);
-        int energyPerOp = ENERGY_PER_OP * EFFICIENCY_NUM[efficiencyModules] / 25;
+        int energyPerOp = KoiosBalance.scaledEnergyCost(level,
+                ENERGY_PER_OP * EFFICIENCY_NUM[efficiencyModules] / 25);
         int energyPerTick = Math.max(1, energyPerOp / be.totalTime);
         be.currentDrawPerTick = energyPerTick;
         boolean starvedNow;

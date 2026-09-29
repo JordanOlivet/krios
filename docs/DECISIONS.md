@@ -124,6 +124,17 @@ One art direction for the whole ecosystem, recorded in `docs/ART-DIRECTION.md` (
 - **In-house guide** ("KOIOS Archives", phased): no Ponder/Patchouli dependency — multiloader/license risk, and the guide's identity is KOIOS explaining its own ecosystem, entries growing with its level.
 - Rejected: per-mod divergent styles; strict low-res dogma; external guide libraries.
 
+## ADR-015 — Per-world server config in common, edited in game by command
+
+**Date**: 2026-09-29 · **Status**: accepted
+
+Mod configuration (first content: the ADR-007 difficulty multipliers `energy_cost` and `xp_rate`) lives in a per-world properties file, `<world>/serverconfig/krios_industry-server.properties`, owned by common code (`config/IndustryConfig`): lazy per-server cache (reloads when the singleplayer world changes), human decimals in the file, permille ints in game logic, failure-tolerant IO, file materialized on first use. Application points route through `KoiosBalance.scaled*` — it stays the single balance hookup. In-game editing is `/koios config [key] [value]` (ops, applied live, persisted immediately).
+
+- Per-world (the NeoForge serverconfig location, implemented loader-agnostically via `getWorldPath`): balance is a property of a world like vanilla difficulty; saves can carry different tunings.
+- No loader config API and no external library: NeoForge `ModConfigSpec` + Fabric Cloth Config/ModMenu would split config into per-loader code and formats, add hard Fabric dependencies, and produce generic screens against the diegetic AD (ADR-014). Rejected.
+- Client display never reads config directly; anything a GUI shows keeps riding ContainerData (the constants-are-never-synced rule holds because scaled values are synced, thresholds stay constants).
+- Later, without new dependencies: a codex-style config screen in common, hooked through NeoForge's native mod-list config button and a ModMenu soft entrypoint on Fabric (compile-only).
+
 ## Open questions
 
 *(none — next ones will come from design work)*

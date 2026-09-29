@@ -1,8 +1,11 @@
 package io.lakio.krios.industry.koios;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 
+import io.lakio.krios.industry.config.IndustryConfig;
 import io.lakio.krios.industry.machine.EnergyStats;
 import io.lakio.krios.industry.network.Network;
 import io.lakio.krios.industry.network.NetworkManager;
@@ -22,6 +25,18 @@ import org.jetbrains.annotations.Nullable;
 public final class KoiosCommand {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+        // Server-global difficulty knobs (ADR-015) — the only /koios subtree
+        // that works without a formed core nearby.
+        LiteralArgumentBuilder<CommandSourceStack> config = Commands.literal("config")
+                .executes(context -> configShow(context.getSource(), null));
+        for (IndustryConfig.Key key : IndustryConfig.Key.values()) {
+            config.then(Commands.literal(key.id())
+                    .executes(context -> configShow(context.getSource(), key))
+                    .then(Commands.argument("value", DoubleArgumentType.doubleArg(
+                                    IndustryConfig.MIN_VALUE, IndustryConfig.MAX_VALUE))
+                            .executes(context -> configSet(context.getSource(), key,
+                                    DoubleArgumentType.getDouble(context, "value")))));
+        }
         dispatcher.register(Commands.literal("koios")
                 .requires(source -> source.hasPermission(Commands.LEVEL_GAMEMASTERS))
                 .then(Commands.literal("info")
@@ -36,7 +51,29 @@ public final class KoiosCommand {
                                 .executes(context -> setLevel(context.getSource(),
                                         IntegerArgumentType.getInteger(context, "level")))))
                 .then(Commands.literal("energy")
-                        .executes(context -> energy(context.getSource()))));
+                        .executes(context -> energy(context.getSource())))
+                .then(config));
+    }
+
+    /** Lists one difficulty multiplier, or all of them with {@code only} null. */
+    private static int configShow(CommandSourceStack source, @Nullable IndustryConfig.Key only) {
+        for (IndustryConfig.Key key : IndustryConfig.Key.values()) {
+            if (only != null && key != only) {
+                continue;
+            }
+            String value = Double.toString(IndustryConfig.value(source.getServer(), key));
+            source.sendSuccess(() -> Component.translatable(
+                    "commands.krios_industry.koios.config_line", key.id(), value), false);
+        }
+        return 1;
+    }
+
+    private static int configSet(CommandSourceStack source, IndustryConfig.Key key, double value) {
+        IndustryConfig.set(source.getServer(), key, value);
+        String applied = Double.toString(IndustryConfig.value(source.getServer(), key));
+        source.sendSuccess(() -> Component.translatable(
+                "commands.krios_industry.koios.config_set", key.id(), applied), true);
+        return 1;
     }
 
     /** Per-member energy breakdown of the controller's network (diagnosis). */

@@ -9,6 +9,8 @@
   "block.krios_industry.neural_casing": "Neural Casing",
   "block.krios_industry.neural_conduit": "Neural Conduit",
   "block.krios_industry.neurite_ore": "Neurite Ore",
+  "commands.krios_industry.koios.config_line": "K.O.I.O.S. parameter %1$s = %2$s (1.0 = default)",
+  "commands.krios_industry.koios.config_set": "K.O.I.O.S. parameter %1$s set to %2$s for this world",
   "commands.krios_industry.koios.info": "K.O.I.O.S. core at [%1$s]: level %2$s, %3$s/%4$s data XP, diversity %5$s%%",
   "commands.krios_industry.koios.level_set": "Core at [%1$s] set to level %2$s (%3$s data XP)",
   "commands.krios_industry.koios.no_core": "No formed K.O.I.O.S. core within %s blocks",

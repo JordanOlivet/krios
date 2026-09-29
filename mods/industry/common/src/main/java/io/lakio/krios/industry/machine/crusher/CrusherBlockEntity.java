@@ -246,7 +246,8 @@ public class CrusherBlockEntity extends BlockEntity
         be.totalTime = online
                 ? Math.max(1, recipe.time() * 2 / (2 + speedModules))
                 : Math.max(recipe.time(), KoiosBalance.DISCONNECTED_TIME_TICKS);
-        int energyPerOp = recipe.energy() * EFFICIENCY_NUM[efficiencyModules] / 25;
+        int energyPerOp = KoiosBalance.scaledEnergyCost(level,
+                recipe.energy() * EFFICIENCY_NUM[efficiencyModules] / 25);
         int energyPerTick = Math.max(1, energyPerOp / be.totalTime);
         be.currentDrawPerTick = energyPerTick;
         boolean starvedNow;
