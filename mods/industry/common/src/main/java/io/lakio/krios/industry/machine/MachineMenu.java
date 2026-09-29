@@ -15,7 +15,7 @@ public interface MachineMenu {
      * Shared with the client ModuleBayPanel, which derives its dock and
      * width from these numbers; keep both in sync.
      */
-    int MODULE_SLOT_X = -40;
+    int MODULE_SLOT_X = -49;
     int MODULE_SLOT_Y = 104;
     int MODULE_SLOT_STEP = 22;
 

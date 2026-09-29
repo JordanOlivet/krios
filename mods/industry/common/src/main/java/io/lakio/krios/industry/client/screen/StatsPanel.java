@@ -61,13 +61,15 @@ public class StatsPanel extends AnnexPanel {
 
     @Override
     protected void renderContent(GuiGraphics gui, Font font, int x, int y, int mouseX, int mouseY) {
+        // The title can widen the panel past the rows; spread to the frame.
+        int width = effectiveContentWidth();
         for (int i = 0; i < rows.size(); i++) {
             Row row = rows.get(i);
             int rowY = y + 2 + i * ROW_HEIGHT;
             drawIcon(gui, row.icon(), x, rowY);
             Component value = row.value().get();
-            gui.drawString(font, value, x + cachedWidth - font.width(value), rowY + 1, 0xFFE8EAF0, false);
-            if (mouseX >= x && mouseX < x + cachedWidth && mouseY >= rowY - 2 && mouseY < rowY + ROW_HEIGHT - 2) {
+            gui.drawString(font, value, x + width - font.width(value), rowY + 1, 0xFFE8EAF0, false);
+            if (mouseX >= x && mouseX < x + width && mouseY >= rowY - 2 && mouseY < rowY + ROW_HEIGHT - 2) {
                 gui.renderTooltip(font, row.tooltip(), mouseX, mouseY);
             }
         }

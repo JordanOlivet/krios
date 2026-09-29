@@ -20,13 +20,17 @@ public abstract class AnnexPanel {
     /** Title bar height; content starts right below. */
     public static final int TITLE_H = 15;
     protected static final int PAD = 4;
-    /** Gap between the main frame edge and the annex. */
-    private static final int GAP = 3;
+    /** Breathing room between the main frame edge and the annex. */
+    private static final int GAP = 8;
 
     private final Side side;
     private final int dockY;
     private final String titleKey;
     private boolean open;
+    // The title defines the panel's minimum footprint (narrow content must
+    // not let the title bleed over the main frame). Refreshed each render;
+    // clicks always land after one.
+    private int titleMinContent;
 
     protected AnnexPanel(Side side, int dockY, String titleKey, boolean initiallyOpen) {
         this.side = side;
@@ -59,7 +63,12 @@ public abstract class AnnexPanel {
     }
 
     public int panelWidth() {
-        return contentWidth() + PAD * 2;
+        return Math.max(contentWidth(), titleMinContent) + PAD * 2;
+    }
+
+    /** Content width the panel actually grants (title can widen it). */
+    protected int effectiveContentWidth() {
+        return Math.max(contentWidth(), titleMinContent);
     }
 
     public int panelHeight() {
@@ -89,6 +98,8 @@ public abstract class AnnexPanel {
     public void render(GuiGraphics gui, Font font, int leftPos, int topPos, int imageWidth,
             int mouseX, int mouseY) {
         layout(font);
+        // Title + collapse glyph clearance.
+        titleMinContent = font.width(Component.translatable(titleKey)) + 10;
         int y = panelY(topPos);
         if (!open) {
             int x = tabX(leftPos, imageWidth);

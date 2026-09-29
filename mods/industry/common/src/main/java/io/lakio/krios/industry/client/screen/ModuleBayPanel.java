@@ -19,9 +19,10 @@ import net.minecraft.client.gui.GuiGraphics;
 public class ModuleBayPanel extends AnnexPanel {
 
     // Geometry contract with MachineMenu's slot constants:
-    // panelX = leftPos - panelWidth - 3 and the slot frame sits at
-    // MODULE_SLOT_X - 1 = panelX + (panelWidth - 18) / 2.
-    private static final int CONTENT_W = 50;
+    // panelX = leftPos - panelWidth - GAP(8) and the slot frame sits at
+    // MODULE_SLOT_X - 1 = panelX + (panelWidth - 18) / 2. Width must stay
+    // >= the localized title's minimum or the slots drift off-center.
+    private static final int CONTENT_W = 58;
     /** Slot frame top = contentY = dockY + TITLE_H. */
     private static final int DOCK_Y = MachineMenu.MODULE_SLOT_Y - 1 - TITLE_H;
 
