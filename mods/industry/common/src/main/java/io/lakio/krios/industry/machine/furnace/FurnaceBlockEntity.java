@@ -53,7 +53,10 @@ public class FurnaceBlockEntity extends BlockEntity
     public static final int INPUT_SLOT = 0;
     public static final int OUTPUT_SLOT = 1;
     public static final int MODULE_SLOT_FIRST = 2;
-    public static final int MODULE_SLOT_LAST = 3;
+    /** Tier knob: bump the count and menu/screen/bay all follow. */
+    public static final int MODULE_SLOT_COUNT = 2;
+    public static final int MODULE_SLOT_LAST = MODULE_SLOT_FIRST + MODULE_SLOT_COUNT - 1;
+    public static final int INVENTORY_SIZE = MODULE_SLOT_LAST + 1;
     public static final int CAPACITY = 20_000;
     public static final int PULL_PER_TICK = 400;
     /** Flat energy per smelt (vanilla recipes carry no energy cost). */
@@ -72,7 +75,7 @@ public class FurnaceBlockEntity extends BlockEntity
     private static final short PRESET_OUT_BITS = (short) FaceConfig.flowBits(Flow.ITEM, true);
 
     private final EnergyBuffer energy = new EnergyBuffer(CAPACITY, 0);
-    private final NonNullList<ItemStack> items = NonNullList.withSize(4, ItemStack.EMPTY);
+    private final NonNullList<ItemStack> items = NonNullList.withSize(INVENTORY_SIZE, ItemStack.EMPTY);
     private final FaceConfig faceConfig = new FaceConfig();
     private final RecipeManager.CachedCheck<SingleRecipeInput, SmeltingRecipe> quickCheck =
             RecipeManager.createCheck(RecipeType.SMELTING);

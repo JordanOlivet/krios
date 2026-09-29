@@ -1,5 +1,6 @@
 package io.lakio.krios.industry.client.screen;
 
+import io.lakio.krios.industry.machine.crusher.CrusherBlockEntity;
 import io.lakio.krios.industry.machine.crusher.CrusherMenu;
 import io.lakio.krios.industry.machine.module.ModuleItem;
 import io.lakio.krios.industry.machine.module.ModuleType;
@@ -19,7 +20,8 @@ public class CrusherScreen extends MachineTerminalScreen<CrusherMenu> {
             new HologramFacePanel.Column(Flow.ITEM, false),
             new HologramFacePanel.Column(Flow.ITEM, true));
 
-    private final ModuleBayPanel moduleBay = new ModuleBayPanel(2, menu::setModuleBayOpen);
+    private final ModuleBayPanel moduleBay = new ModuleBayPanel(
+            CrusherBlockEntity.MODULE_SLOT_COUNT, menu::setModuleBayOpen);
 
     // Module effects are visible container slots — no extra sync needed.
     private final StatsPanel statsPanel = new StatsPanel(
@@ -46,7 +48,7 @@ public class CrusherScreen extends MachineTerminalScreen<CrusherMenu> {
 
     private int moduleCount(ModuleType type) {
         int count = 0;
-        for (int i = 2; i <= 3; i++) {
+        for (int i = CrusherBlockEntity.MODULE_SLOT_FIRST; i <= CrusherBlockEntity.MODULE_SLOT_LAST; i++) {
             if (menu.getSlot(i).getItem().getItem() instanceof ModuleItem module
                     && module.getType() == type) {
                 count++;

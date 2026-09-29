@@ -25,13 +25,14 @@ public class CrusherMenu extends AbstractContainerMenu implements MachineMenu {
     // stays true so quickMoveStack keeps routing into hidden slots.
     private boolean moduleBayOpen = true;
 
-    private static final int MODULE_SLOT_START = 2;
-    private static final int PLAYER_START = 4;
-    private static final int PLAYER_END = 40;
+    private static final int MODULE_SLOT_START = CrusherBlockEntity.MODULE_SLOT_FIRST;
+    private static final int PLAYER_START = CrusherBlockEntity.INVENTORY_SIZE;
+    private static final int PLAYER_END = PLAYER_START + 36;
 
     /** Client constructor. */
     public CrusherMenu(int containerId, Inventory playerInventory) {
-        this(containerId, playerInventory, new SimpleContainer(4), new SimpleContainerData(DATA_COUNT));
+        this(containerId, playerInventory, new SimpleContainer(CrusherBlockEntity.INVENTORY_SIZE),
+                new SimpleContainerData(DATA_COUNT));
     }
 
     public CrusherMenu(int containerId, Inventory playerInventory, Container container, ContainerData data) {
@@ -47,10 +48,10 @@ public class CrusherMenu extends AbstractContainerMenu implements MachineMenu {
                 return false;
             }
         });
-        addSlot(new ModuleSlot(container, CrusherBlockEntity.MODULE_SLOT_FIRST,
-                MODULE_SLOT_X, MODULE_SLOT_Y));
-        addSlot(new ModuleSlot(container, CrusherBlockEntity.MODULE_SLOT_LAST,
-                MODULE_SLOT_X, MODULE_SLOT_Y + MODULE_SLOT_STEP));
+        for (int i = 0; i < CrusherBlockEntity.MODULE_SLOT_COUNT; i++) {
+            addSlot(new ModuleSlot(container, CrusherBlockEntity.MODULE_SLOT_FIRST + i,
+                    MODULE_SLOT_X, MODULE_SLOT_Y + i * MODULE_SLOT_STEP));
+        }
 
         for (int row = 0; row < 3; ++row) {
             for (int col = 0; col < 9; ++col) {
