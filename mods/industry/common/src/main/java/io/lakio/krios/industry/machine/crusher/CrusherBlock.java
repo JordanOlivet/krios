@@ -31,15 +31,27 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
-public class CrusherBlock extends BaseEntityBlock implements NetworkConductor {
+public class CrusherBlock extends BaseEntityBlock
+        implements NetworkConductor, io.lakio.krios.industry.machine.TieredMachine {
 
-    private static final MapCodec<CrusherBlock> CODEC = simpleCodec(CrusherBlock::new);
+    // The codec is registry plumbing vanilla never uses at runtime; the
+    // real tier rides the registered instances.
+    private static final MapCodec<CrusherBlock> CODEC =
+            simpleCodec(properties -> new CrusherBlock(properties, 1));
 
-    public CrusherBlock(Properties properties) {
+    private final int tier;
+
+    public CrusherBlock(Properties properties, int tier) {
         super(properties);
+        this.tier = tier;
         registerDefaultState(getStateDefinition().any()
                 .setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH)
                 .setValue(BlockStateProperties.LIT, false));
+    }
+
+    @Override
+    public int machineTier() {
+        return tier;
     }
 
     @Override
@@ -94,6 +106,9 @@ public class CrusherBlock extends BaseEntityBlock implements NetworkConductor {
             BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         if (stack.getItem() instanceof CalibratorItem) {
             return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
+        }
+        if (stack.getItem() instanceof io.lakio.krios.industry.machine.UpgradeKitItem kit) {
+            return kit.useOnMachine(stack, level, pos, player);
         }
         return super.useItemOn(stack, state, level, pos, player, hand, hit);
     }

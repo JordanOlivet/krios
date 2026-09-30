@@ -31,15 +31,27 @@ import net.minecraft.world.Containers;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
-public class GeneratorBlock extends BaseEntityBlock implements NetworkConductor {
+public class GeneratorBlock extends BaseEntityBlock
+        implements NetworkConductor, io.lakio.krios.industry.machine.TieredMachine {
 
-    private static final MapCodec<GeneratorBlock> CODEC = simpleCodec(GeneratorBlock::new);
+    // The codec is registry plumbing vanilla never uses at runtime; the
+    // real tier rides the registered instances.
+    private static final MapCodec<GeneratorBlock> CODEC =
+            simpleCodec(properties -> new GeneratorBlock(properties, 1));
 
-    public GeneratorBlock(Properties properties) {
+    private final int tier;
+
+    public GeneratorBlock(Properties properties, int tier) {
         super(properties);
+        this.tier = tier;
         registerDefaultState(getStateDefinition().any()
                 .setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH)
                 .setValue(BlockStateProperties.LIT, false));
+    }
+
+    @Override
+    public int machineTier() {
+        return tier;
     }
 
     @Override
@@ -88,12 +100,15 @@ public class GeneratorBlock extends BaseEntityBlock implements NetworkConductor 
         return RenderShape.MODEL;
     }
 
-    /** The Calibrator overrides the block's own right-click (diagnostic). */
+    /** The Calibrator and upgrade kits override the block's own right-click. */
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level,
             BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         if (stack.getItem() instanceof CalibratorItem) {
             return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
+        }
+        if (stack.getItem() instanceof io.lakio.krios.industry.machine.UpgradeKitItem kit) {
+            return kit.useOnMachine(stack, level, pos, player);
         }
         return super.useItemOn(stack, state, level, pos, player, hand, hit);
     }

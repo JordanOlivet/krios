@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " N ",
+    "CPC",
+    " N "
+  ],
+  "key": {
+    "N": { "item": "krios_industry:neurite_ingot" },
+    "C": { "item": "krios_industry:chronite_shard" },
+    "P": { "item": "krios_industry:compute_chip" }
+  },
+  "result": { "id": "krios_industry:upgrade_kit_tier2", "count": 1 }
+}

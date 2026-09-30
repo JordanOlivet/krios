@@ -1,6 +1,8 @@
 package io.lakio.krios.industry.machine.generator;
 
 import io.lakio.krios.industry.energy.EnergyBuffer;
+import io.lakio.krios.industry.machine.MachineTiers;
+import io.lakio.krios.industry.machine.TieredMachine;
 import io.lakio.krios.industry.koios.KoiosBalance;
 import io.lakio.krios.industry.koios.KoiosCoreBlockEntity;
 import io.lakio.krios.industry.network.EnergyPort;
@@ -44,22 +46,25 @@ public class GeneratorBlockEntity extends BlockEntity
     /** ~2 coals of reserve; a full generator idles unlit (ADR-012). */
     public static final int CAPACITY = 50_000;
     /**
-     * Energy scale (design 2026-09-30, revised after play — the strict
+     * Energy scale (design 2026-09-30, revised after play â€” the strict
      * vanilla-parity anchor starved everything): one generator feeds a
      * small machine park, 4 induction furnaces at full speed (4 E/t
      * each) or ~3 crushers. Burn time stays vanilla, so one coal
-     * (1600 ticks) = 25,600 E = 64 induction smelts — 8x its stone
+     * (1600 ticks) = 25,600 E = 64 induction smelts â€” 8x its stone
      * furnace value; that multiplier is the tech reward.
      */
     public static final int GENERATION_PER_TICK = 16;
     public static final int MAX_EXTRACT_PER_TICK = 400;
 
     // Primitive runtime state (ADR-012). No object allocation on the tick path.
-    private final EnergyBuffer energy = new EnergyBuffer(CAPACITY, MAX_EXTRACT_PER_TICK);
+    private final int machineTier;
+    private final EnergyBuffer energy;
     private final NonNullList<ItemStack> items = NonNullList.withSize(1, ItemStack.EMPTY);
     private final FaceConfig faceConfig = new FaceConfig();
     private int burnTime;
     private int burnDuration;
+    /** Live output rate (base x effective-tier factor), for stats/diag. */
+    private int currentGenerationPerTick = GENERATION_PER_TICK;
 
     // ContainerData values are truncated to 16-bit shorts on sync, so the
     // energy value ships as a low/high pair. Capacity is a constant and is
@@ -73,6 +78,10 @@ public class GeneratorBlockEntity extends BlockEntity
                 case 2 -> energy.getStored() & 0xFFFF;
                 case 3 -> (energy.getStored() >> 16) & 0xFFFF;
                 case 10 -> networkKoiosLevel();
+                // 16..17: tier plumbing (hardware tier, live effective tier).
+                case 16 -> machineTier;
+                case 17 -> MachineTiers.effectiveTier(
+                        NetworkManager.networkOf(GeneratorBlockEntity.this), machineTier);
                 // 11..15: machine pos for the hologram view (x/z as low/high
                 // short pairs, y fits a short on its own).
                 case 11 -> worldPosition.getX() & 0xFFFF;
@@ -136,6 +145,14 @@ public class GeneratorBlockEntity extends BlockEntity
 
     public GeneratorBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.GENERATOR.get(), pos, state);
+        machineTier = state.getBlock() instanceof TieredMachine tiered
+                ? tiered.machineTier() : 1;
+        // Hardware buffers scale with the machine tier (~2 coals of reserve).
+        energy = new EnergyBuffer(CAPACITY * machineTier, MAX_EXTRACT_PER_TICK);
+    }
+
+    public int machineTier() {
+        return machineTier;
     }
 
     // --- Network node ---
@@ -239,7 +256,7 @@ public class GeneratorBlockEntity extends BlockEntity
 
     /**
      * Face contract for external energy extraction (FE/TRE adapters and the
-     * disconnected contact transfer). Only a MANUAL config restricts —
+     * disconnected contact transfer). Only a MANUAL config restricts â€”
      * virgin and auto-configured faces keep vanilla behavior (exposed).
      */
     public boolean allowsEnergyExtract(Direction side) {
@@ -248,9 +265,16 @@ public class GeneratorBlockEntity extends BlockEntity
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, GeneratorBlockEntity be) {
         // Only reachable while LIT (the block registers no ticker otherwise).
-        be.energy.insert(GENERATION_PER_TICK);
-        be.distributeEnergy(level, pos);
-        if (--be.burnTime <= 0 && !be.tryConsumeFuel()) {
+        // Tier doubling: rate AND burn speed scale together, so a fuel's
+        // total energy never changes â€” higher tiers just deliver it faster.
+        Network network = NetworkManager.networkOf(be);
+        int factor = MachineTiers.speedFactor(
+                MachineTiers.effectiveTier(network, be.machineTier));
+        be.currentGenerationPerTick = GENERATION_PER_TICK * factor;
+        be.energy.insert(be.currentGenerationPerTick);
+        be.distributeEnergy(level, pos, network);
+        be.burnTime -= factor;
+        if (be.burnTime <= 0 && !be.tryConsumeFuel()) {
             level.setBlock(pos, state.setValue(BlockStateProperties.LIT, false), 3);
         }
         be.setChanged();
@@ -259,11 +283,10 @@ public class GeneratorBlockEntity extends BlockEntity
     /**
      * Proactive distribution (design: buffers fill as soon as energy
      * exists): while burning, the surplus streams into the network's sinks,
-     * or into touching consumers offline — idle machines charge without
+     * or into touching consumers offline â€” idle machines charge without
      * having to tick (ADR-012 stays intact: only the producer is awake).
      */
-    private void distributeEnergy(Level level, BlockPos pos) {
-        Network network = NetworkManager.networkOf(this);
+    private void distributeEnergy(Level level, BlockPos pos, Network network) {
         if (network != null && network.isValid()) {
             int offer = Math.min(MAX_EXTRACT_PER_TICK, energy.getStored());
             if (offer > 0) {
@@ -312,7 +335,7 @@ public class GeneratorBlockEntity extends BlockEntity
 
     @Override
     public int energySupplyPerTick() {
-        return getBlockState().getValue(BlockStateProperties.LIT) ? GENERATION_PER_TICK : 0;
+        return getBlockState().getValue(BlockStateProperties.LIT) ? currentGenerationPerTick : 0;
     }
 
     @Override
@@ -347,7 +370,7 @@ public class GeneratorBlockEntity extends BlockEntity
         }
         // Burn cycles feed the KOIOS diversity window keyed by fuel item, so
         // varied fuels teach more than a coal monoculture. Reported to this
-        // machine's network controller — no controller, no learning.
+        // machine's network controller â€” no controller, no learning.
         Network network = NetworkManager.networkOf(this);
         if (network != null && network.controller() instanceof KoiosCoreBlockEntity core) {
             core.reportOperations(
@@ -369,7 +392,7 @@ public class GeneratorBlockEntity extends BlockEntity
     }
 
     /**
-     * A full generator idles unlit and resumes when a drain frees room —
+     * A full generator idles unlit and resumes when a drain frees room â€”
      * consumers poke it after pulling (v0 adjacency; the network's scheduled
      * wake-ups take over later).
      */

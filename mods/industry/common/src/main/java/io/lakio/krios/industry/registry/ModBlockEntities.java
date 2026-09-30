@@ -14,14 +14,20 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 
 public final class ModBlockEntities {
 
+    // One BE type per machine LINE: both tier blocks share it (the BE reads
+    // its tier from the block), so tickers, menus and platform energy
+    // capabilities cover every tier for free.
     public static final Supplier<BlockEntityType<GeneratorBlockEntity>> GENERATOR = register("generator",
-            () -> Services.REGISTRAR.createBlockEntityType(GeneratorBlockEntity::new, ModBlocks.GENERATOR.get()));
+            () -> Services.REGISTRAR.createBlockEntityType(GeneratorBlockEntity::new,
+                    ModBlocks.GENERATOR.get(), ModBlocks.GENERATOR_TIER2.get()));
 
     public static final Supplier<BlockEntityType<CrusherBlockEntity>> CRUSHER = register("crusher",
-            () -> Services.REGISTRAR.createBlockEntityType(CrusherBlockEntity::new, ModBlocks.CRUSHER.get()));
+            () -> Services.REGISTRAR.createBlockEntityType(CrusherBlockEntity::new,
+                    ModBlocks.CRUSHER.get(), ModBlocks.CRUSHER_TIER2.get()));
 
     public static final Supplier<BlockEntityType<FurnaceBlockEntity>> FURNACE = register("furnace",
-            () -> Services.REGISTRAR.createBlockEntityType(FurnaceBlockEntity::new, ModBlocks.FURNACE.get()));
+            () -> Services.REGISTRAR.createBlockEntityType(FurnaceBlockEntity::new,
+                    ModBlocks.FURNACE.get(), ModBlocks.FURNACE_TIER2.get()));
 
     public static final Supplier<BlockEntityType<KoiosCoreBlockEntity>> KOIOS_CORE = register("koios_core",
             () -> Services.REGISTRAR.createBlockEntityType(KoiosCoreBlockEntity::new, ModBlocks.KOIOS_CORE.get()));

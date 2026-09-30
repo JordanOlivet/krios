@@ -593,6 +593,25 @@ def compute_chip():
     return img
 
 
+def upgrade_kit():
+    """Tier upgrade kit: module-style cartridge, amber double chevron up
+    (hardware = metal/amber), copper contact rows."""
+    img = Img(16, 16)
+    img.rect(3, 2, 12, 13, METAL)
+    img.outline(3, 2, 12, 13, METAL_EDGE)
+    img.set(3, 2, JOINT)
+    for y in range(3, 13, 2):
+        img.set(2, y, COPPER)
+        img.set(13, y, COPPER)
+    chevron = [(7, 5), (8, 5), (6, 6), (9, 6), (5, 7), (10, 7),
+               (7, 8), (8, 8), (6, 9), (9, 9), (5, 10), (10, 10)]
+    for x, y in chevron:
+        img.set(x, y, ENERGY)
+    img.set(7, 4, ENERGY_HI)
+    img.set(8, 4, ENERGY_HI)
+    return img
+
+
 SPEED_GLYPH = [(6, 6), (7, 7), (6, 8), (8, 6), (9, 7), (8, 8), (6, 9), (8, 9)]
 EFFICIENCY_GLYPH = [(8, 5), (7, 6), (8, 6), (7, 7), (8, 7), (9, 7), (7, 8), (8, 8), (7, 9)]
 YIELD_GLYPH = [(8, 5), (8, 6), (8, 7), (8, 8), (8, 9), (6, 7), (7, 7), (9, 7), (10, 7)]
@@ -815,6 +834,7 @@ def main():
         "item/chronite_shard.png": chronite_shard(),
         "item/calibrator.png": calibrator(),
         "item/compute_chip.png": compute_chip(),
+        "item/upgrade_kit_tier2.png": upgrade_kit(),
         "item/speed_module.png": module(SPEED_GLYPH, CYAN),
         "item/efficiency_module.png": module(EFFICIENCY_GLYPH, ENERGY),
         "item/yield_module.png": module(YIELD_GLYPH, CYAN_HI),

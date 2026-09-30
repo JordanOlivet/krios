@@ -39,6 +39,9 @@ public final class ModItems {
     public static final Supplier<Item> COMPUTE_CHIP = register("compute_chip",
             () -> new io.lakio.krios.industry.koios.ComputeChipItem(new Item.Properties().stacksTo(16)));
 
+    public static final Supplier<Item> UPGRADE_KIT_TIER2 = register("upgrade_kit_tier2",
+            () -> new io.lakio.krios.industry.machine.UpgradeKitItem(2, new Item.Properties().stacksTo(16)));
+
     private ModItems() {
     }
 

@@ -17,7 +17,7 @@ import net.minecraft.world.item.ItemStack;
 public class CrusherMenu extends AbstractContainerMenu implements MachineMenu {
 
     /** 0..3 machine values + 6 face shorts + status + pos (5) + draw + starved. */
-    public static final int DATA_COUNT = 18;
+    public static final int DATA_COUNT = 20;
 
     private final Container container;
     private final ContainerData data;
@@ -163,8 +163,18 @@ public class CrusherMenu extends AbstractContainerMenu implements MachineMenu {
 
     /** 0..width pixels of stored energy (gauge). */
     public int getEnergyProgress(int width) {
-        int progress = (int) ((long) getEnergyStored() * width / CrusherBlockEntity.CAPACITY);
+        int progress = (int) ((long) getEnergyStored() * width / getEnergyCapacity());
         return Math.max(0, Math.min(width, progress));
+    }
+
+    /** Hardware tier of this machine (buffer size, recipes). */
+    public int getMachineTier() {
+        return Math.max(1, data.get(18));
+    }
+
+    /** Effective tier = min(machine, core), live (performance). */
+    public int getEffectiveTier() {
+        return Math.max(1, data.get(19));
     }
 
     /** Reassembled from the low/high 16-bit pair (ContainerData syncs shorts). */
@@ -173,7 +183,7 @@ public class CrusherMenu extends AbstractContainerMenu implements MachineMenu {
     }
 
     public int getEnergyCapacity() {
-        return CrusherBlockEntity.CAPACITY;
+        return CrusherBlockEntity.CAPACITY * getMachineTier();
     }
 
     /** KOIOS level of the network controller; 0 while offline. */

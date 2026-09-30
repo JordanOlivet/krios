@@ -1,0 +1,45 @@
+package io.lakio.krios.industry.machine;
+
+import io.lakio.krios.industry.koios.KoiosCoreBlockEntity;
+import io.lakio.krios.industry.network.Network;
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * The tier math shared by every machine (design 2026-09-30).
+ *
+ * One founding rule: <b>effective tier = min(machine tier, core tier)</b>
+ * while online, tier 1 baseline otherwise — hardware performs, software
+ * caps, in both directions. One invariant: <b>each tier doubles both
+ * sides</b> (generation and consumption speed), so the park ratio — one
+ * generator feeds four induction furnaces — holds at every tier, and a
+ * fuel's energy value stays constant since it burns faster at the same
+ * per-fuel total.
+ */
+public final class MachineTiers {
+
+    /** Throughput multiplier per effective tier: 1, 2, 4, 8. */
+    public static int speedFactor(int tier) {
+        return 1 << (tier - 1);
+    }
+
+    /**
+     * Crusher base yield ladder over 2: x2 / x3 / x3 / x4 (tier 3 breathes,
+     * design). Quarter-item accumulator keeps it deterministic (ADR-006).
+     * The crusher is the yield machine — the furnace does not compound it.
+     */
+    private static final int[] YIELD_NUM = {2, 3, 3, 4};
+
+    public static int yieldNum(int tier) {
+        return YIELD_NUM[tier - 1];
+    }
+
+    /** Effective tier: min(machine, core) online; offline = tier 1 baseline. */
+    public static int effectiveTier(@Nullable Network network, int machineTier) {
+        return network != null && network.isValid()
+                && network.controller() instanceof KoiosCoreBlockEntity core
+                ? Math.min(machineTier, core.getTier()) : 1;
+    }
+
+    private MachineTiers() {
+    }
+}

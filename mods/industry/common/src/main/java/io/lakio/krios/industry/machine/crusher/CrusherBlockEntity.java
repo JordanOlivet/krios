@@ -5,6 +5,8 @@ import io.lakio.krios.industry.koios.KoiosBalance;
 import io.lakio.krios.industry.koios.KoiosCoreBlockEntity;
 import io.lakio.krios.industry.machine.generator.GeneratorBlockEntity;
 import io.lakio.krios.industry.machine.ItemFlow;
+import io.lakio.krios.industry.machine.MachineTiers;
+import io.lakio.krios.industry.machine.TieredMachine;
 import io.lakio.krios.industry.network.EnergySink;
 import io.lakio.krios.industry.network.FaceConfig;
 import io.lakio.krios.industry.network.Flow;
@@ -63,7 +65,8 @@ public class CrusherBlockEntity extends BlockEntity
     private static final int[] SLOTS_DOWN = {OUTPUT_SLOT};
     private static final int[] NO_SLOTS = {};
 
-    private final EnergyBuffer energy = new EnergyBuffer(CAPACITY, 0);
+    private final int machineTier;
+    private final EnergyBuffer energy;
     private final NonNullList<ItemStack> items = NonNullList.withSize(INVENTORY_SIZE, ItemStack.EMPTY);
     private final FaceConfig faceConfig = new FaceConfig();
     private final RecipeManager.CachedCheck<SingleRecipeInput, CrushingRecipe> quickCheck =
@@ -74,7 +77,7 @@ public class CrusherBlockEntity extends BlockEntity
     private int currentDrawPerTick;
     /** E actually consumed on the last work tick (0 = idle or starved). */
     private int consumedLastTick;
-    /** Working but the last consume failed — frozen for lack of energy. */
+    /** Working but the last consume failed â€” frozen for lack of energy. */
     private boolean starvedLastTick;
     // Yield accumulator in quarter-items: the evolving multiplier is pure
     // arithmetic with a deterministic remainder carry (ADR-006), never a
@@ -99,6 +102,10 @@ public class CrusherBlockEntity extends BlockEntity
                 case 15 -> worldPosition.getY();
                 case 16 -> currentDrawPerTick;
                 case 17 -> starvedLastTick ? 1 : 0;
+                // 18..19: tier plumbing (hardware tier, live effective tier).
+                case 18 -> machineTier;
+                case 19 -> MachineTiers.effectiveTier(
+                        NetworkManager.networkOf(CrusherBlockEntity.this), machineTier);
                 // 4..9: raw face-config shorts (11 bits, short-safe).
                 default -> index < 10
                         ? faceConfig.bits(Direction.from3DDataValue(index - 4)) : 0;
@@ -163,6 +170,14 @@ public class CrusherBlockEntity extends BlockEntity
 
     public CrusherBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.CRUSHER.get(), pos, state);
+        machineTier = state.getBlock() instanceof TieredMachine tiered
+                ? tiered.machineTier() : 1;
+        // Hardware buffers scale with the machine tier.
+        energy = new EnergyBuffer(CAPACITY * machineTier, 0);
+    }
+
+    public int machineTier() {
+        return machineTier;
     }
 
     // --- Network node ---
@@ -245,8 +260,8 @@ public class CrusherBlockEntity extends BlockEntity
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, CrusherBlockEntity be) {
-        // Online = member of a valid network (one formed core). Offline —
-        // orphan or faulted component — falls back to vanilla parity:
+        // Online = member of a valid network (one formed core). Offline â€”
+        // orphan or faulted component â€” falls back to vanilla parity:
         // furnace-grade time, half yield, modules inert (design).
         Network network = NetworkManager.networkOf(be);
         boolean online = network != null && network.isValid();
@@ -259,10 +274,12 @@ public class CrusherBlockEntity extends BlockEntity
         // Hopper-like flow: the output streams into adjacent machines.
         ItemFlow.pushOutput(level, pos, be, OUTPUT_SLOT, be.faceConfig);
 
+        int effectiveTier = MachineTiers.effectiveTier(
+                network, be.machineTier);
         RecipeHolder<CrushingRecipe> holder = be.items.get(INPUT_SLOT).isEmpty() ? null
                 : be.quickCheck.getRecipeFor(new SingleRecipeInput(be.items.get(INPUT_SLOT)), level).orElse(null);
         int yieldModules = holder == null || !online ? 0 : be.countModules(ModuleType.YIELD);
-        if (holder == null || !be.canOutput(holder.value().result(), online, yieldModules)) {
+        if (holder == null || !be.canOutput(holder.value().result(), online, yieldModules, effectiveTier)) {
             be.stopWork(level, pos, state);
             return;
         }
@@ -270,9 +287,11 @@ public class CrusherBlockEntity extends BlockEntity
         CrushingRecipe recipe = holder.value();
         int speedModules = online ? be.countModules(ModuleType.SPEED) : 0;
         int efficiencyModules = online ? be.countModules(ModuleType.EFFICIENCY) : 0;
-        // Speed: x1.5 per module => time x2/(2+n). Efficiency: x0.8 per module.
+        // Speed: x1.5 per module => time x2/(2+n), then the tier doubling
+        // (energy per op unchanged â€” faster just draws more per tick).
         be.totalTime = online
-                ? Math.max(1, recipe.time() * 2 / (2 + speedModules))
+                ? Math.max(1, recipe.time() * 2 / ((2 + speedModules)
+                        * MachineTiers.speedFactor(effectiveTier)))
                 : Math.max(recipe.time(), KoiosBalance.DISCONNECTED_TIME_TICKS);
         int energyPerOp = KoiosBalance.scaledEnergyCost(level,
                 recipe.energy() * EFFICIENCY_NUM[efficiencyModules] / 25);
@@ -283,11 +302,11 @@ public class CrusherBlockEntity extends BlockEntity
             be.consumedLastTick = energyPerTick;
             starvedNow = false;
             if (++be.progress >= be.totalTime) {
-                be.craft(holder, online, yieldModules);
+                be.craft(holder, online, yieldModules, effectiveTier);
                 be.progress = 0;
             }
         } else {
-            // No energy: stay lit and wait — the next push may refill us.
+            // No energy: stay lit and wait â€” the next push may refill us.
             be.consumedLastTick = 0;
             starvedNow = true;
         }
@@ -347,15 +366,20 @@ public class CrusherBlockEntity extends BlockEntity
         return !faceConfig.isManual(face) || faceConfig.allows(face, Flow.ENERGY, false);
     }
 
-    /** Quarter-items produced per operation: x2 recipes fall back to 1:1 offline. */
-    private static int craftQuarters(ItemStack result, boolean online, int yieldModules) {
+    /**
+     * Quarter-items produced per operation: x2 recipes fall back to 1:1
+     * offline. The tier yield ladder (x2/x3/x3/x4 base, design 2026-09-30)
+     * multiplies on top through the same accumulator.
+     */
+    private static int craftQuarters(ItemStack result, boolean online, int yieldModules, int effectiveTier) {
         return online
                 ? result.getCount() * (4 + yieldModules)
+                        * MachineTiers.yieldNum(effectiveTier) / 2
                 : Math.max(1, result.getCount() / 2) * 4;
     }
 
-    private boolean canOutput(ItemStack result, boolean online, int yieldModules) {
-        int prospective = (yieldQuarters + craftQuarters(result, online, yieldModules)) / 4;
+    private boolean canOutput(ItemStack result, boolean online, int yieldModules, int effectiveTier) {
+        int prospective = (yieldQuarters + craftQuarters(result, online, yieldModules, effectiveTier)) / 4;
         ItemStack current = items.get(OUTPUT_SLOT);
         if (current.isEmpty()) {
             return prospective <= result.getMaxStackSize();
@@ -368,9 +392,10 @@ public class CrusherBlockEntity extends BlockEntity
      * Evolving yield multiplier (design): +25% per yield module on top of the
      * recipe result (x2 recipe -> x2.5 -> x3), carried in quarter-items.
      */
-    private void craft(RecipeHolder<CrushingRecipe> holder, boolean online, int yieldModules) {
+    private void craft(RecipeHolder<CrushingRecipe> holder, boolean online, int yieldModules,
+            int effectiveTier) {
         ItemStack result = holder.value().result();
-        yieldQuarters += craftQuarters(result, online, yieldModules);
+        yieldQuarters += craftQuarters(result, online, yieldModules, effectiveTier);
         int crafted = yieldQuarters / 4;
         yieldQuarters %= 4;
         items.get(INPUT_SLOT).shrink(1);
@@ -497,7 +522,7 @@ public class CrusherBlockEntity extends BlockEntity
     @Override
     public boolean canPlaceItemThroughFace(int slot, ItemStack stack, Direction side) {
         // Automated insertion (hoppers, machine flow) only takes what this
-        // machine can actually process — players stay free in the GUI.
+        // machine can actually process â€” players stay free in the GUI.
         return slot == INPUT_SLOT && allowsItem(side, false) && isProcessable(stack);
     }
 

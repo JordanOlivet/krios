@@ -55,37 +55,22 @@ public final class ModBlocks {
                     .sound(SoundType.DEEPSLATE)));
 
     public static final Supplier<Block> GENERATOR = registerWithItem("generator",
-            () -> new GeneratorBlock(BlockBehaviour.Properties.of()
-                    .mapColor(MapColor.METAL)
-                    .requiresCorrectToolForDrops()
-                    .strength(3.5F, 6.0F)
-                    .sound(SoundType.METAL)
-                    // Sculpted model (graphics pass): not a full cube.
-                    .noOcclusion()
-                    // The amber core window glows for real at night.
-                    .lightLevel(state -> state.getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.LIT) ? 12 : 0)));
+            () -> new GeneratorBlock(machineProperties(12), 1));
+
+    public static final Supplier<Block> GENERATOR_TIER2 = registerWithItem("generator_tier2",
+            () -> new GeneratorBlock(machineProperties(12), 2));
 
     public static final Supplier<Block> CRUSHER = registerWithItem("crusher",
-            () -> new CrusherBlock(BlockBehaviour.Properties.of()
-                    .mapColor(MapColor.METAL)
-                    .requiresCorrectToolForDrops()
-                    .strength(3.5F, 6.0F)
-                    .sound(SoundType.METAL)
-                    // Sculpted model (graphics pass): not a full cube.
-                    .noOcclusion()
-                    // The maw embers glow for real at night.
-                    .lightLevel(state -> state.getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.LIT) ? 9 : 0)));
+            () -> new CrusherBlock(machineProperties(9), 1));
+
+    public static final Supplier<Block> CRUSHER_TIER2 = registerWithItem("crusher_tier2",
+            () -> new CrusherBlock(machineProperties(9), 2));
 
     public static final Supplier<Block> FURNACE = registerWithItem("furnace",
-            () -> new FurnaceBlock(BlockBehaviour.Properties.of()
-                    .mapColor(MapColor.METAL)
-                    .requiresCorrectToolForDrops()
-                    .strength(3.5F, 6.0F)
-                    .sound(SoundType.METAL)
-                    // Sculpted model (graphics pass): not a full cube.
-                    .noOcclusion()
-                    // The door window glows for real at night.
-                    .lightLevel(state -> state.getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.LIT) ? 11 : 0)));
+            () -> new FurnaceBlock(machineProperties(11), 1));
+
+    public static final Supplier<Block> FURNACE_TIER2 = registerWithItem("furnace_tier2",
+            () -> new FurnaceBlock(machineProperties(11), 2));
 
     public static final Supplier<Block> NEURAL_CASING = registerWithItem("neural_casing",
             () -> new NeuralCasingBlock(BlockBehaviour.Properties.of()
@@ -119,6 +104,21 @@ public final class ModBlocks {
                             .withStyle(ChatFormatting.GRAY));
                 }
             });
+
+    /**
+     * Shared machine block properties: sculpted models (not full cubes) and
+     * a real glow while LIT. Both tiers of a machine share the same shell.
+     */
+    private static BlockBehaviour.Properties machineProperties(int litLight) {
+        return BlockBehaviour.Properties.of()
+                .mapColor(MapColor.METAL)
+                .requiresCorrectToolForDrops()
+                .strength(3.5F, 6.0F)
+                .sound(SoundType.METAL)
+                .noOcclusion()
+                .lightLevel(state -> state.getValue(
+                        net.minecraft.world.level.block.state.properties.BlockStateProperties.LIT) ? litLight : 0);
+    }
 
     private ModBlocks() {
     }

@@ -5,6 +5,8 @@ import io.lakio.krios.industry.koios.KoiosBalance;
 import io.lakio.krios.industry.koios.KoiosCoreBlockEntity;
 import io.lakio.krios.industry.machine.generator.GeneratorBlockEntity;
 import io.lakio.krios.industry.machine.ItemFlow;
+import io.lakio.krios.industry.machine.MachineTiers;
+import io.lakio.krios.industry.machine.TieredMachine;
 import io.lakio.krios.industry.machine.module.ModuleItem;
 import io.lakio.krios.industry.machine.module.ModuleType;
 import io.lakio.krios.industry.network.EnergySink;
@@ -84,7 +86,8 @@ public class FurnaceBlockEntity extends BlockEntity
     /** Single source for the GUI hologram columns and the in-world overlay. */
     public static final short SUPPORTED_FACE_BITS = (short) (PRESET_IN_BITS | PRESET_OUT_BITS);
 
-    private final EnergyBuffer energy = new EnergyBuffer(CAPACITY, 0);
+    private final int machineTier;
+    private final EnergyBuffer energy;
     private final NonNullList<ItemStack> items = NonNullList.withSize(INVENTORY_SIZE, ItemStack.EMPTY);
     private final FaceConfig faceConfig = new FaceConfig();
     private final RecipeManager.CachedCheck<SingleRecipeInput, SmeltingRecipe> quickCheck =
@@ -117,6 +120,10 @@ public class FurnaceBlockEntity extends BlockEntity
                 case 15 -> worldPosition.getY();
                 case 16 -> currentDrawPerTick;
                 case 17 -> starvedLastTick ? 1 : 0;
+                // 18..19: tier plumbing (hardware tier, live effective tier).
+                case 18 -> machineTier;
+                case 19 -> MachineTiers.effectiveTier(
+                        NetworkManager.networkOf(FurnaceBlockEntity.this), machineTier);
                 // 4..9: raw face-config shorts (11 bits, short-safe).
                 default -> index < 10
                         ? faceConfig.bits(Direction.from3DDataValue(index - 4)) : 0;
@@ -136,6 +143,14 @@ public class FurnaceBlockEntity extends BlockEntity
 
     public FurnaceBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.FURNACE.get(), pos, state);
+        machineTier = state.getBlock() instanceof TieredMachine tiered
+                ? tiered.machineTier() : 1;
+        // Hardware buffers scale with the machine tier.
+        energy = new EnergyBuffer(CAPACITY * machineTier, 0);
+    }
+
+    public int machineTier() {
+        return machineTier;
     }
 
     /** Same button channel as the other machines (face*16 + sub). */
@@ -272,9 +287,12 @@ public class FurnaceBlockEntity extends BlockEntity
         int speedModules = online ? be.countModules(ModuleType.SPEED) : 0;
         int efficiencyModules = online ? be.countModules(ModuleType.EFFICIENCY) : 0;
         // Connected baseline: twice furnace speed, then x1.5 per speed
-        // module — cook / (2 + n). Offline: exact vanilla pace.
+        // module — cook / (2 + n) — then the tier doubling (energy per op
+        // unchanged). Offline: exact vanilla pace.
+        int effectiveTier = MachineTiers.effectiveTier(network, be.machineTier);
         be.totalTime = online
-                ? Math.max(1, cookingTime / (2 + speedModules))
+                ? Math.max(1, cookingTime / ((2 + speedModules)
+                        * MachineTiers.speedFactor(effectiveTier)))
                 : Math.max(cookingTime, KoiosBalance.DISCONNECTED_TIME_TICKS);
         int energyPerOp = KoiosBalance.scaledEnergyCost(level,
                 ENERGY_PER_OP * EFFICIENCY_NUM[efficiencyModules] / 25);

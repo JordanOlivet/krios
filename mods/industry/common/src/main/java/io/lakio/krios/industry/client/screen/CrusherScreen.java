@@ -24,7 +24,9 @@ public class CrusherScreen extends MachineTerminalScreen<CrusherMenu> {
     private final StatsPanel statsPanel = new StatsPanel(
             new StatsPanel.Row(StatsPanel.Icon.SPEED,
                     () -> Component.literal("×" + String.format("%.1f",
-                            (2 + moduleCount(ModuleType.SPEED)) / 2.0)),
+                            (2 + moduleCount(ModuleType.SPEED)) / 2.0
+                                    * io.lakio.krios.industry.machine.MachineTiers
+                                            .speedFactor(menu.getEffectiveTier()))),
                     Component.translatable("gui.krios_industry.stats.speed")),
             new StatsPanel.Row(StatsPanel.Icon.ENERGY_MULT,
                     () -> Component.literal("×" + new String[]{"1.0", "0.8", "0.64"}

@@ -35,7 +35,10 @@ public class GeneratorScreen extends MachineTerminalScreen<GeneratorMenu> {
     private final StatsPanel statsPanel = new StatsPanel(
             new StatsPanel.Row(StatsPanel.Icon.OUTPUT,
                     () -> Component.literal((menu.isBurning()
-                            ? GeneratorBlockEntity.GENERATION_PER_TICK : 0) + " E/t"),
+                            ? GeneratorBlockEntity.GENERATION_PER_TICK
+                                    * io.lakio.krios.industry.machine.MachineTiers
+                                            .speedFactor(menu.getEffectiveTier())
+                            : 0) + " E/t"),
                     Component.translatable("gui.krios_industry.stats.output")),
             new StatsPanel.Row(StatsPanel.Icon.STORED,
                     () -> Component.literal(menu.getEnergyStored() + " / " + menu.getEnergyCapacity() + " E"),

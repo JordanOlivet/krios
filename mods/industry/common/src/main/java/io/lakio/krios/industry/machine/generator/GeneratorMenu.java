@@ -17,8 +17,8 @@ import net.minecraft.world.item.ItemStack;
 public class GeneratorMenu extends AbstractContainerMenu implements MachineMenu {
 
     public static final int FUEL_SLOT = 0;
-    /** 0..3 machine values + 6 face-config shorts + network status + pos (5). */
-    public static final int DATA_COUNT = 16;
+    /** 0..3 machine values + 6 face shorts + status + pos (5) + tiers (2). */
+    public static final int DATA_COUNT = 18;
 
     private final Container container;
     private final ContainerData data;
@@ -108,8 +108,18 @@ public class GeneratorMenu extends AbstractContainerMenu implements MachineMenu 
 
     /** 0..width pixels of stored energy (gauge). */
     public int getEnergyProgress(int width) {
-        int progress = (int) ((long) getEnergyStored() * width / GeneratorBlockEntity.CAPACITY);
+        int progress = (int) ((long) getEnergyStored() * width / getEnergyCapacity());
         return Math.max(0, Math.min(width, progress));
+    }
+
+    /** Hardware tier of this machine (buffer size, recipes). */
+    public int getMachineTier() {
+        return Math.max(1, data.get(16));
+    }
+
+    /** Effective tier = min(machine, core), live (performance). */
+    public int getEffectiveTier() {
+        return Math.max(1, data.get(17));
     }
 
     /** Reassembled from the low/high 16-bit pair (ContainerData syncs shorts). */
@@ -118,7 +128,7 @@ public class GeneratorMenu extends AbstractContainerMenu implements MachineMenu 
     }
 
     public int getEnergyCapacity() {
-        return GeneratorBlockEntity.CAPACITY;
+        return GeneratorBlockEntity.CAPACITY * getMachineTier();
     }
 
     /** KOIOS level of the network controller; 0 while offline. */

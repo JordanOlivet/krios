@@ -22,8 +22,11 @@ public final class ModCreativeTabs {
                         output.accept(ModBlocks.NEURITE_ORE.get());
                         output.accept(ModBlocks.DEEPSLATE_NEURITE_ORE.get());
                         output.accept(ModBlocks.GENERATOR.get());
+                        output.accept(ModBlocks.GENERATOR_TIER2.get());
                         output.accept(ModBlocks.CRUSHER.get());
+                        output.accept(ModBlocks.CRUSHER_TIER2.get());
                         output.accept(ModBlocks.FURNACE.get());
+                        output.accept(ModBlocks.FURNACE_TIER2.get());
                         output.accept(ModBlocks.NEURAL_CASING.get());
                         output.accept(ModBlocks.NEURAL_CONDUIT.get());
                         output.accept(ModBlocks.KOIOS_CORE.get());
@@ -36,6 +39,7 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.YIELD_MODULE.get());
                         output.accept(ModItems.CALIBRATOR.get());
                         output.accept(ModItems.COMPUTE_CHIP.get());
+                        output.accept(ModItems.UPGRADE_KIT_TIER2.get());
                     })
                     .build());
 
