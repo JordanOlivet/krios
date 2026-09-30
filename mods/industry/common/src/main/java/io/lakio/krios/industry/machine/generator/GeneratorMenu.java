@@ -33,8 +33,9 @@ public class GeneratorMenu extends AbstractContainerMenu implements MachineMenu 
         this.container = container;
         this.data = data;
 
-        // 256-wide codex terminal layout (MachineTerminalScreen).
-        addSlot(new Slot(container, FUEL_SLOT, 120, 46) {
+        // 256-wide codex terminal layout (MachineTerminalScreen); the
+        // bar/flame/slot column sits centered between header and voice.
+        addSlot(new Slot(container, FUEL_SLOT, 120, 60) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return Services.PLATFORM.getBurnTime(stack) > 0;

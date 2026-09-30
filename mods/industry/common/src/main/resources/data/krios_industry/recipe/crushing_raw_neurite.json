@@ -2,6 +2,6 @@
   "type": "krios_industry:crushing",
   "ingredient": { "item": "krios_industry:raw_neurite" },
   "result": { "id": "krios_industry:neurite_dust", "count": 2 },
-  "energy": 1200,
+  "energy": 600,
   "time": 120
 }

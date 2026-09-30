@@ -66,7 +66,7 @@ public class GeneratorScreen extends MachineTerminalScreen<GeneratorMenu> {
 
     @Override
     protected int energyBarY() {
-        return 20;
+        return 32;
     }
 
     @Override
@@ -93,7 +93,7 @@ public class GeneratorScreen extends MachineTerminalScreen<GeneratorMenu> {
         // Bottom row sits just above the fuel slot; the flame keeps its
         // base and loses rows from the tip as the fuel runs out.
         int left = leftPos + WORK_CENTER_X - FLAME[0].length() / 2;
-        int bottom = topPos + 42;
+        int bottom = topPos + 56;
         for (int row = FLAME.length - burn; row < FLAME.length; row++) {
             int y = bottom - (FLAME.length - 1 - row);
             String line = FLAME[row];

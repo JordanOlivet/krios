@@ -2,6 +2,6 @@
   "type": "krios_industry:crushing",
   "ingredient": { "tag": "c:ores/neurite" },
   "result": { "id": "krios_industry:raw_neurite", "count": 2 },
-  "energy": 1600,
+  "energy": 800,
   "time": 160
 }
