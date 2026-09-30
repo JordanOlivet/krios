@@ -19,13 +19,32 @@ import net.minecraft.world.inventory.Slot;
 public abstract class MachineTerminalScreen<T extends AbstractContainerMenu & MachineMenu>
         extends KriosTerminalScreen<T> {
 
-    protected static final int ENERGY_BAR_X = 8;
-    protected static final int ENERGY_BAR_Y = 24;
-    protected static final int ENERGY_BAR_WIDTH = 8;
-    protected static final int ENERGY_BAR_HEIGHT = 62;
     /** Center of the 256px work area, for machine layouts. */
     protected static final int WORK_CENTER_X = 128;
     private static final int VOICE_Y = 92;
+
+    // Energy gauge geometry: vertical on the left rail by default; the
+    // generator overrides everything — its gauge is the showcase, a wide
+    // horizontal bar across the top (agreed layout, kept through ADR-014).
+    protected int energyBarX() {
+        return 8;
+    }
+
+    protected int energyBarY() {
+        return 24;
+    }
+
+    protected int energyBarWidth() {
+        return 8;
+    }
+
+    protected int energyBarHeight() {
+        return 62;
+    }
+
+    protected boolean energyBarHorizontal() {
+        return false;
+    }
 
     protected MachineTerminalScreen(T menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
@@ -99,10 +118,10 @@ public abstract class MachineTerminalScreen<T extends AbstractContainerMenu & Ma
         for (AnnexPanel panel : annexPanels()) {
             panel.renderTabTooltip(guiGraphics, font, leftPos, topPos, imageWidth, mouseX, mouseY);
         }
-        int barX = leftPos + ENERGY_BAR_X;
-        int barY = topPos + ENERGY_BAR_Y;
-        if (mouseX >= barX && mouseX < barX + ENERGY_BAR_WIDTH
-                && mouseY >= barY && mouseY < barY + ENERGY_BAR_HEIGHT) {
+        int barX = leftPos + energyBarX();
+        int barY = topPos + energyBarY();
+        if (mouseX >= barX && mouseX < barX + energyBarWidth()
+                && mouseY >= barY && mouseY < barY + energyBarHeight()) {
             guiGraphics.renderTooltip(font,
                     Component.literal(menu.getEnergyStored() + " / " + menu.getEnergyCapacity() + " E"),
                     mouseX, mouseY);
@@ -123,16 +142,26 @@ public abstract class MachineTerminalScreen<T extends AbstractContainerMenu & Ma
                 drawSlotFrame(guiGraphics, leftPos + slot.x - 1, topPos + slot.y - 1);
             }
         }
-        // Energy gauge: vertical, left rail (local buffer, amber).
-        int x = leftPos + ENERGY_BAR_X;
-        int y = topPos + ENERGY_BAR_Y;
-        guiGraphics.fill(x - 1, y - 1, x + ENERGY_BAR_WIDTH + 1, y + ENERGY_BAR_HEIGHT + 1, 0xFF0C0E13);
-        guiGraphics.fill(x, y, x + ENERGY_BAR_WIDTH, y + ENERGY_BAR_HEIGHT, 0xFF12151B);
-        int fill = menu.getEnergyProgress(ENERGY_BAR_HEIGHT);
-        if (fill > 0) {
-            guiGraphics.fill(x, y + ENERGY_BAR_HEIGHT - fill, x + ENERGY_BAR_WIDTH, y + ENERGY_BAR_HEIGHT, 0xFFFFB03A);
-            guiGraphics.fill(x, y + ENERGY_BAR_HEIGHT - fill, x + ENERGY_BAR_WIDTH,
-                    y + ENERGY_BAR_HEIGHT - fill + 1, 0xFFFFD98A);
+        // Energy gauge (local buffer, amber): vertical fills bottom-up,
+        // horizontal fills left-to-right, bright line on the leading edge.
+        int x = leftPos + energyBarX();
+        int y = topPos + energyBarY();
+        int w = energyBarWidth();
+        int h = energyBarHeight();
+        guiGraphics.fill(x - 1, y - 1, x + w + 1, y + h + 1, 0xFF0C0E13);
+        guiGraphics.fill(x, y, x + w, y + h, 0xFF12151B);
+        if (energyBarHorizontal()) {
+            int fill = menu.getEnergyProgress(w);
+            if (fill > 0) {
+                guiGraphics.fill(x, y, x + fill, y + h, 0xFFFFB03A);
+                guiGraphics.fill(x + fill - 1, y, x + fill, y + h, 0xFFFFD98A);
+            }
+        } else {
+            int fill = menu.getEnergyProgress(h);
+            if (fill > 0) {
+                guiGraphics.fill(x, y + h - fill, x + w, y + h, 0xFFFFB03A);
+                guiGraphics.fill(x, y + h - fill, x + w, y + h - fill + 1, 0xFFFFD98A);
+            }
         }
         renderWork(guiGraphics);
     }

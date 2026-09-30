@@ -9,6 +9,26 @@ import net.minecraft.world.item.ItemStack;
 
 public class GeneratorScreen extends MachineTerminalScreen<GeneratorMenu> {
 
+    /**
+     * Pixel flame above the fuel slot, feed-style pixel map: 1 = amber
+     * body, 2 = bright core. Rows disappear from the top as the burn runs
+     * out (vanilla furnace read).
+     */
+    private static final String[] FLAME = {
+            ".....1...",
+            "....11...",
+            "....11.1.",
+            "...111.1.",
+            "...1211..",
+            "..11211..",
+            "..122211.",
+            ".1122211.",
+            ".1222211.",
+            ".1122211.",
+            ".112211..",
+            "..11111..",
+    };
+
     private final HologramFacePanel facePanel = new HologramFacePanel(
             HologramFacePanel.columnsFor(GeneratorBlockEntity.SUPPORTED_FACE_BITS));
 
@@ -37,19 +57,53 @@ public class GeneratorScreen extends MachineTerminalScreen<GeneratorMenu> {
         return facePanel;
     }
 
+    // The generator's gauge is its showcase: wide horizontal bar across
+    // the top of the work area (agreed layout), not the left-rail sliver.
+    @Override
+    protected int energyBarX() {
+        return 8;
+    }
+
+    @Override
+    protected int energyBarY() {
+        return 20;
+    }
+
+    @Override
+    protected int energyBarWidth() {
+        return 240;
+    }
+
+    @Override
+    protected int energyBarHeight() {
+        return 8;
+    }
+
+    @Override
+    protected boolean energyBarHorizontal() {
+        return true;
+    }
+
     @Override
     protected void renderWork(GuiGraphics guiGraphics) {
-        // Pixel flame above the fuel slot, height following the burn.
         if (!menu.isBurning()) {
             return;
         }
-        int burn = menu.getBurnProgress(12);
-        int baseX = leftPos + WORK_CENTER_X;
-        int baseY = topPos + 42;
-        for (int i = 0; i < burn; i++) {
-            int half = Math.max(1, (12 - i) / 2);
-            int color = i < 4 ? 0xFFFFB03A : i < 8 ? 0xFFFFC964 : 0xFFFFE0A0;
-            guiGraphics.fill(baseX - half, baseY - i, baseX + half, baseY - i + 1, color);
+        int burn = menu.getBurnProgress(FLAME.length);
+        // Bottom row sits just above the fuel slot; the flame keeps its
+        // base and loses rows from the tip as the fuel runs out.
+        int left = leftPos + WORK_CENTER_X - FLAME[0].length() / 2;
+        int bottom = topPos + 42;
+        for (int row = FLAME.length - burn; row < FLAME.length; row++) {
+            int y = bottom - (FLAME.length - 1 - row);
+            String line = FLAME[row];
+            for (int col = 0; col < line.length(); col++) {
+                char pixel = line.charAt(col);
+                if (pixel != '.') {
+                    guiGraphics.fill(left + col, y, left + col + 1, y + 1,
+                            pixel == '2' ? 0xFFFFE0A0 : 0xFFFFB03A);
+                }
+            }
         }
     }
 
