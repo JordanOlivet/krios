@@ -22,7 +22,7 @@ tools\run-client.bat [neoforge|fabric]   # from repo root: launch a dev client f
 
 No unit tests yet; verification = build green + dev-server boot (registration and datapack errors surface in `logs/latest.log`) + manual client play. GameTest is planned once machines warrant it.
 
-Windows gotchas: a backgrounded/killed gradle `runServer` orphans the child JVM. After automated smoke tests, sweep leftovers: `Get-CimInstance Win32_Process -Filter "Name = 'java.exe'" | Where-Object { $_.CommandLine -match 'krios' }`. Also, run-dir config files (`eula.txt`, `server.properties`) must be ASCII/no-BOM — a PowerShell `>` redirect writes a UTF-8 BOM and the server then reads the first key as `﻿eula` and refuses the EULA.
+Windows gotchas: a backgrounded/killed gradle `runServer` orphans the child JVM. After automated smoke tests, sweep leftovers: `Get-CimInstance Win32_Process -Filter "Name = 'java.exe'" | Where-Object { $_.CommandLine -match 'krios' }`. Also, run-dir config files (`eula.txt`, `server.properties`) must be ASCII/no-BOM — a PowerShell `>` redirect writes a UTF-8 BOM and the server then reads the first key as `﻿eula` and refuses the EULA. The same trap has a second door: never round-trip source files through Windows PowerShell 5.1 text cmdlets (`Get-Content -Raw` without `-Encoding` reads UTF-8 as ANSI and mangles non-ASCII like em-dashes; `Set-Content -Encoding utf8` writes a BOM javac rejects) — use the dedicated edit tools or Python for bulk text surgery.
 
 ## Architecture (mods/industry)
 
