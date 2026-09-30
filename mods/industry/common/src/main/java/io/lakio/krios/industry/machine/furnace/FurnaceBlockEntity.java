@@ -60,9 +60,14 @@ public class FurnaceBlockEntity extends BlockEntity
     public static final int MODULE_SLOT_COUNT = 2;
     public static final int MODULE_SLOT_LAST = MODULE_SLOT_FIRST + MODULE_SLOT_COUNT - 1;
     public static final int INVENTORY_SIZE = MODULE_SLOT_LAST + 1;
-    public static final int CAPACITY = 20_000;
+    /** 10 smelts of buffer (energy-anchor scale, 2026-09-30). */
+    public static final int CAPACITY = 4_000;
     public static final int PULL_PER_TICK = 400;
-    /** Flat energy per smelt (vanilla recipes carry no energy cost). */
+    /**
+     * Flat energy per smelt (vanilla recipes carry no energy cost). At the
+     * generator's 2 E/t this is exactly one vanilla smelt's worth of coal
+     * (200 cook ticks x 2) — the energy anchor holds end to end.
+     */
     public static final int ENERGY_PER_OP = 400;
 
     // Efficiency: x0.8 energy per module, as a 25ths ratio (integer math).

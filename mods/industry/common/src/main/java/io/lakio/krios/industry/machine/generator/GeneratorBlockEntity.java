@@ -41,8 +41,16 @@ public class GeneratorBlockEntity extends BlockEntity
         io.lakio.krios.industry.machine.ConfigurableFaces,
         io.lakio.krios.industry.machine.EnergyStats {
 
-    public static final int CAPACITY = 100_000;
-    public static final int GENERATION_PER_TICK = 40;
+    /** ~2.5 coals of buffer; a full generator idles unlit (ADR-012). */
+    public static final int CAPACITY = 8_000;
+    /**
+     * Energy anchor (design 2026-09-30): a fuel is worth exactly its
+     * vanilla smelting value. Burn time is the vanilla burn time, so at
+     * 2 E/t one coal (1600 ticks) = 3,200 E = 8 induction smelts at
+     * 400 E — the same 8 smelts coal buys in a stone furnace. Gains come
+     * from modules and parallel generators, never from fuel alchemy.
+     */
+    public static final int GENERATION_PER_TICK = 2;
     public static final int MAX_EXTRACT_PER_TICK = 400;
 
     // Primitive runtime state (ADR-012). No object allocation on the tick path.

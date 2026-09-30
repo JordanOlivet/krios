@@ -52,7 +52,8 @@ public class CrusherBlockEntity extends BlockEntity
     public static final int MODULE_SLOT_COUNT = 2;
     public static final int MODULE_SLOT_LAST = MODULE_SLOT_FIRST + MODULE_SLOT_COUNT - 1;
     public static final int INVENTORY_SIZE = MODULE_SLOT_LAST + 1;
-    public static final int CAPACITY = 20_000;
+    /** ~2.5 heavy crushes of buffer (energy-anchor scale, 2026-09-30). */
+    public static final int CAPACITY = 4_000;
     public static final int PULL_PER_TICK = 400;
 
     // Efficiency: x0.8 energy per module, as a 25ths ratio (integer math).
