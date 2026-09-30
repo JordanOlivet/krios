@@ -83,17 +83,17 @@ Diegetic, assumed: opening a machine UI = connecting to a KOIOS terminal. Vanill
 - **Blueprint projection via the Calibrator**: pick a structure (KOIOS core, any future multiblock), click the ground → anchored holographic blueprint; correctly placed blocks fill the ghost as you build. The construction guide *is* the hologram. Ecosystem-wide.
 - **Core avatar hologram**: the monolith's centerpiece (see Multiblocks).
 
-## In-game guide — "KOIOS Archives"
+## In-game guide — the "Codex" (renamed 2026-09-30, ex "KOIOS Archives")
 
-In-house, no Ponder/Patchouli dependency. Phased:
+In-house, no Ponder/Patchouli dependency. Renamed to **Codex**: a living compendium (past *and* projected — see the tier projections below), converging with the "codex terminal" UI vocabulary. Phased:
 
 1. **v1 — terminal-style entries**: one entry per machine/mechanic (role, how it works, stats, low-fi diagrams). One screen per entry — a guide, not a wiki.
 2. **v2 — blueprint holograms** for structures (above).
-3. **v3 — animated scenes** (ponder-like) only if the ecosystem's size justifies it.
+3. **v3 — animated scenes** (ponder-like) only if the ecosystem's size justifies it; the graphic tier ladder (t1→t4 nodes) lands here.
 
-The guide **is KOIOS explaining its own ecosystem**: entries grow richer with the core's level — a young AI gives basics, an evolved one gives details, stats, secrets. The guide's progression is the AI's progression.
+The guide **is KOIOS explaining its own ecosystem**: entries grow richer with the core's level — a young AI gives basics, an evolved one gives details, stats, secrets. The guide's progression is the AI's progression. **Tier visibility is three-banded** (2026-09-30): current tier mastered (first person), next tier as *Projections* (dimmed amber, conditional phrasing — the AI extrapolates, it does not know), further tiers as corrupted/insufficient-data lines.
 
-Never mandatory: JEI keeps recipes, the game stays discoverable without the Archives.
+Never mandatory: JEI keeps recipes, the game stays discoverable without the Codex.
 
 ## Sound
 

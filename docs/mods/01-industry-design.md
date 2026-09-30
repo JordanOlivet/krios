@@ -125,11 +125,14 @@ Settled (design session, 2026-09-25):
   screen). The Calibrator handles what has no UI of its own or needs
   in-world orientation/interaction: cables, and later wireless modules
   bridging two blocks. (Its dedicated diagnostic UI stays, see above.)
-- **Cable tiers follow core tiers**: each core tier brings its own cable
-  with higher transfer rates. The **last** tier (and only it) ships both
-  its cable *and* the wireless unlock, both with effectively unlimited
-  rates — the endgame choice is aesthetic, not mechanical: organic cable
-  runs vs clean wireless, the player picks their factory's look.
+- ~~**Cable tiers follow core tiers**~~ — revised 2026-09-30 (tier
+  model session): **cables are pure connectivity, forever** — one Neural
+  Conduit, no per-cable transfer rates. Per-link flow accounting would be
+  per-tick work proportional to cable length (against ADR-012), and the
+  last tier debrides everything anyway. Limits live at the endpoints
+  (machine I/O caps from the machine tier; an optional per-network budget
+  from the core tier). The last tier still ships the wireless unlock as
+  the aesthetic/comfort choice: organic cable runs vs clean wireless.
 - **Tiers ship as complete slices** (2026-09-25): everything a tier
   contains (cable, machines, unlocks, recipes) is designed and lands
   together when that tier is implemented — no tier content drip-fed in
@@ -185,9 +188,58 @@ Ecosystem-wide AD in `../ART-DIRECTION.md` (**binding** — ADR-014). Industry s
 
 Production order: 1) silhouettes + thin cables, 2) terminal chrome + per-machine stats, 3) face-config hologram, 4) KOIOS life, 5) monolith sculpt + avatar hologram, 6) Archives v1.
 
+## Tier model & tier 2 (design session 2026-09-30)
+
+The tier system, settled ahead of the tier 2 slice. One rule founds everything:
+
+- **Effective tier = min(machine tier, core tier)**. Hardware performs, software caps — in both directions: a tier 1 machine on a tier 2 network keeps working exactly as before (upgrade it to benefit), a tier 2 machine on a tier 1 network is capped at tier 1. Scales to tiers 3-4 with no new concept.
+
+### Machines across tiers (Mekanism-style ladder)
+
+- **Per-tier machine variants**; a tier N machine recipe costs the tier N-1 machine + bulk tier N-1 materials (plain datapack recipes — ADR-007). **No craft gating by KOIOS level**: the min() rule is the effective gate (a tier 2 machine crafted early just performs at tier 1), mirroring the module precedent (craft open, gate at use). Recipe-book advancements may still reveal them at the right moment.
+- **In-situ upgrade via consumable upgrade kit** (tier N kit, right-click on the machine, consumed): upgrades in place preserving inventory, modules, energy and face config — the only path that preserves face config, since break/re-place is factory-new by design. No Calibrator mode; the kit is the gesture. The Calibrator keeps its roles (read, configure, project).
+- **New machine at tier 2: Solar Panel** — passive generator, day only, lower output than the tier 2 fuel generator but a larger buffer. Tickless via scheduled ticks at dawn/dusk (ADR-012).
+
+### Critical breakthrough (the tier-up ritual)
+
+- Prerequisite: **XP at the tier's cap — a threshold, never consumed** ("XP is never lost" holds). Cost: a crafted **compute chip** (bulk tier N-1 outputs only, per the anti chicken-and-egg rule), **consumed** on use.
+- Two gestures, same effect: a dedicated slot in the core UI, or right-click the formed structure with the chip. A big in-world animation marks the moment (block-event channel, BER sequence — no custom packets).
+
+### Levels beyond 5 (continuous numbering)
+
+- The breakthrough unlocks the next stretch of the curve. Tier 2: **N6/N7/N8 unlock the Mk II modules** (Speed II, Efficiency II, Yield II; the new energy-production module slots into this ladder — placement decided at the numbers pass), **N9 = critical toward tier 3**. `levelForXp` stays monotonic; the KoiosData component gains the core's tier.
+
+### Energy across tiers
+
+- **A fuel's energy value is constant across tiers** (one coal = 25,600 E, always — the 2026-09-30 energy scale holds). A higher-tier generator produces more E/t by **burning faster**, plus a larger buffer, plus **module slots** (the generator stops being deliberately boring at tier 2).
+- **New module type: energy production** (+% energy per fuel) — the only way to extract more from the same fuel.
+- All numbers sized on park ratios (machines per generator), per the energy-scale method.
+
+### Yield across tiers
+
+- Base yield rides the machine tier through the quarter-item accumulator (ADR-006, deterministic): **t1 ×2, t2 ×3, t3 ×3 (rest tier), t4 ×4**; yield modules stack on top. Tier 3 breathes so it can shine elsewhere.
+
+### Item transport (tier 2 flagship) and network limits
+
+- **Cables = pure connectivity, forever** (revised from "cable tiers follow core tiers", see Network section): one Neural Conduit, no per-cable rates, no cable zoo. Limits live at the endpoints — machine I/O caps come from the machine tier; if a global ceiling is ever needed it is a **per-network budget from the core tier** (one number, allocation-free). The last tier's wireless unlock remains the aesthetic/comfort choice.
+- **The network routes items between machines** at tier 2: both endpoints are nodes with face config; the network moves N items/tick between configured faces as batch arithmetic — items never physically travel through cables (ADR-006/012 by construction).
+- **Adjacent inventories only, in Industry**: machine faces exchange with touching containers (chests, third-party mods) through the standard platform item APIs (vanilla Container/WorldlyContainer, NeoForge ItemHandler capability, Fabric Transfer API — same dual-adapter pattern as energy). The insertion discipline (recipe check) applies in both directions. **Pulling from a passive container uses scheduled wake-ups** (~1-2 s, only on machines with a pull-configured face — the first client of the long-promised scheduled wake-ups). Exposing *remote* inventories to the network (import/export buses, "the network sees every chest") is out of Industry's scope: a dedicated block later, or krios_storage's opening move.
+
+### Codex (the guide, renamed from "KOIOS Archives")
+
+- Player-facing rename to **Codex** — a codex is a living compendium (past *and* projected), the internal UI vocabulary already says "codex terminals" (ADR-014), and players know the word. Internal class names migrate opportunistically.
+- **Three-band tier visibility, diegetically justified** (Koios, the inquisitive intellect, extrapolates): current tier = *mastered* (first person, normal styling); next tier = **Projections** (distinct styling — dimmed amber, conditional phrasing — with the breakthrough prerequisite shown: the actionable carrot); beyond = corrupted/insufficient-data lines showing only that the ladder has 4 rungs.
+- The Projections entry unlocks as XP approaches the cap — KOIOS starts "dreaming" of its next form.
+- Presentation: a **"Progression" Codex entry ships with the tier 2 slice**; a graphic tier ladder is absorbed into Codex v3 later; the core's critical notice points to the Codex; existing machine entries carry a one-line contextual projection ("Projection t2: yield ×3" in the crusher entry).
+
 ## Open questions (implementation-time)
 
 - Ore names final check (Chronite/Neurite still placeholders-by-default).
-- Critical level 5 cost (items + XP) — decided when tier 2 ships.
+- ~~Critical level 5 cost (items + XP)~~ — mechanism settled 2026-09-30
+  (see "Tier model & tier 2"): XP cap is a threshold (never consumed) +
+  a compute chip (bulk tier 1 outputs) consumed via core slot or
+  right-click. Still open for the tier 2 numbers pass: the chip's exact
+  recipe, N6-N9 XP curve values, tier display names, solar/t2 generator
+  ratios, Mk II module magnitudes and the energy module's ladder slot.
 - ~~Furnace module slot count~~ — settled 2026-09-29: 2 slots, same as the crusher (tier 1 standard). Built as the Induction Furnace over vanilla smelting recipes (2x furnace speed connected, exact vanilla parity offline, flat 400 E/smelt).
 - ~~Avatar hologram timing~~ — settled 2026-09-29: the hologram body (pedestal projecting the AI's head) is the last-tier evolution of the core structure; until then the monolith keeps its screen face.
