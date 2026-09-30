@@ -4,7 +4,6 @@ import io.lakio.krios.industry.machine.furnace.FurnaceBlockEntity;
 import io.lakio.krios.industry.machine.furnace.FurnaceMenu;
 import io.lakio.krios.industry.machine.module.ModuleItem;
 import io.lakio.krios.industry.machine.module.ModuleType;
-import io.lakio.krios.industry.network.Flow;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
@@ -16,9 +15,7 @@ public class FurnaceScreen extends MachineTerminalScreen<FurnaceMenu> {
     private static final int ARROW_Y = 47;
 
     private final HologramFacePanel facePanel = new HologramFacePanel(
-            new HologramFacePanel.Column(Flow.ENERGY, false),
-            new HologramFacePanel.Column(Flow.ITEM, false),
-            new HologramFacePanel.Column(Flow.ITEM, true));
+            HologramFacePanel.columnsFor(FurnaceBlockEntity.SUPPORTED_FACE_BITS));
 
     private final ModuleBayPanel moduleBay = new ModuleBayPanel(
             FurnaceBlockEntity.MODULE_SLOT_COUNT, menu::setModuleBayOpen);

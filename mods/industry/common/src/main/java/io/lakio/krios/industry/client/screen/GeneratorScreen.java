@@ -2,7 +2,6 @@ package io.lakio.krios.industry.client.screen;
 
 import io.lakio.krios.industry.machine.generator.GeneratorBlockEntity;
 import io.lakio.krios.industry.machine.generator.GeneratorMenu;
-import io.lakio.krios.industry.network.Flow;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
@@ -11,8 +10,7 @@ import net.minecraft.world.item.ItemStack;
 public class GeneratorScreen extends MachineTerminalScreen<GeneratorMenu> {
 
     private final HologramFacePanel facePanel = new HologramFacePanel(
-            new HologramFacePanel.Column(Flow.ENERGY, true),
-            new HologramFacePanel.Column(Flow.ITEM, false));
+            HologramFacePanel.columnsFor(GeneratorBlockEntity.SUPPORTED_FACE_BITS));
 
     private final StatsPanel statsPanel = new StatsPanel(
             new StatsPanel.Row(StatsPanel.Icon.OUTPUT,

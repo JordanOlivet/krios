@@ -20,6 +20,9 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.MenuProvider;
@@ -34,7 +37,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 public class GeneratorBlockEntity extends BlockEntity
-        implements Container, MenuProvider, NetworkNode, EnergyPort, FlowPorts,
+        implements Container, MenuProvider, NetworkNode, EnergyPort,
+        io.lakio.krios.industry.machine.ConfigurableFaces,
         io.lakio.krios.industry.machine.EnergyStats {
 
     public static final int CAPACITY = 100_000;
@@ -87,6 +91,8 @@ public class GeneratorBlockEntity extends BlockEntity
     // Directions this machine supports, for the one-click presets.
     private static final short PRESET_IN_BITS = (short) FaceConfig.flowBits(Flow.ITEM, false);
     private static final short PRESET_OUT_BITS = (short) FaceConfig.flowBits(Flow.ENERGY, true);
+    /** Single source for the GUI hologram columns and the in-world overlay. */
+    public static final short SUPPORTED_FACE_BITS = (short) (PRESET_IN_BITS | PRESET_OUT_BITS);
 
     /** Same button channel as the crusher (face*16 + sub, 9..12 = presets). */
     public boolean handleFaceButton(int id) {
@@ -115,6 +121,7 @@ public class GeneratorBlockEntity extends BlockEntity
             return false;
         }
         setChanged();
+        syncFacesToClients();
         return true;
     }
 
@@ -196,11 +203,28 @@ public class GeneratorBlockEntity extends BlockEntity
     }
 
     @Override
+    public short supportedFaceBits() {
+        return SUPPORTED_FACE_BITS;
+    }
+
+    @Override
     public void faceConfigDirty() {
         // Never setChanged() here: auto-config can run during chunk load
         // and the comparator scan would sync-load chunks (deadlock).
         if (level != null) {
             NetworkManager.markUnsaved(level, worldPosition);
+            syncFacesToClients();
+        }
+    }
+
+    /**
+     * Face contract to watching clients (in-world Calibrator overlay).
+     * Safe where setChanged is not: blockChanged only queues on an already
+     * present chunk holder, no comparator scan, no chunk loading.
+     */
+    private void syncFacesToClients() {
+        if (level != null && !level.isClientSide) {
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
         }
     }
 
@@ -409,6 +433,27 @@ public class GeneratorBlockEntity extends BlockEntity
     @Override
     public void clearContent() {
         items.clear();
+    }
+
+    // --- Client sync: the face contract rides the vanilla BE update tag
+    // (chunk load + sendBlockUpdated) for the in-world Calibrator overlay;
+    // everything else stays menu-synced. ---
+
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag tag = new CompoundTag();
+        faceConfig.save(tag);
+        if (!tag.contains("Faces")) {
+            // All-virgin still ships: an empty tag would be dropped and a
+            // client that saw manual bits would keep them after a reset.
+            tag.putIntArray("Faces", new int[6]);
+        }
+        return tag;
+    }
+
+    @Override
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 
     // --- Persistence ---

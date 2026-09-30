@@ -47,6 +47,38 @@ public class HologramFacePanel extends AnnexPanel {
         }
     }
 
+    /** Columns derived from a machine's supported-bits mask (ConfigurableFaces). */
+    public static Column[] columnsFor(short supportedBits) {
+        List<Column> derived = new ArrayList<>();
+        for (Flow flow : Flow.VALUES) {
+            for (boolean out : new boolean[]{false, true}) {
+                if (FaceConfig.allowsBits(supportedBits, flow, out)) {
+                    derived.add(new Column(flow, out));
+                }
+            }
+        }
+        return derived.toArray(new Column[0]);
+    }
+
+    /**
+     * Effective badge alpha for one column of a face's bits, or -1 hidden:
+     * manual = allowed flows full strength, default/auto = every supported
+     * flow stays vanilla-open (dim), auto-routed ones brighter. Shared with
+     * the in-world Calibrator overlay so both views read the same.
+     */
+    public static int badgeAlpha(int faceBits, Flow flow, boolean out) {
+        boolean allowed = FaceConfig.allowsBits(faceBits, flow, out);
+        if (FaceConfig.isManualBits(faceBits)) {
+            return allowed ? 0xE0 : -1;
+        }
+        return FaceConfig.isConfiguredBits(faceBits) && allowed ? 0x98 : 0x50;
+    }
+
+    /** Badge palette (amber = energy, cyan = items), shared with the overlay. */
+    public static int flowColor(Flow flow) {
+        return flow == Flow.ENERGY ? 0xFFB03A : 0x31D8FF;
+    }
+
     /** Internal click result: consumed by the panel, no menu button to send. */
     public static final int CLICK_CONSUMED = -2;
 
@@ -404,7 +436,6 @@ public class HologramFacePanel extends AnnexPanel {
      */
     private void renderBadges(PoseStack pose, VertexConsumer vc, Direction dir, int faceBits) {
         boolean manual = FaceConfig.isManualBits(faceBits);
-        boolean configured = FaceConfig.isConfiguredBits(faceBits);
         Vector3f n = new Vector3f(dir.getStepX(), dir.getStepY(), dir.getStepZ());
         // Skip faces turned away from the viewer: guiOverlay has no depth
         // test, so a back-face badge would bleed through the machine.
@@ -420,21 +451,17 @@ public class HologramFacePanel extends AnnexPanel {
             v.negate();
         }
 
-        // The badges show the EFFECTIVE state, always: manual = allowed flows
-        // full strength (red cross when fully blocked); default/auto = every
-        // supported flow stays vanilla-open (dim), auto-routed ones brighter.
+        // The badges show the EFFECTIVE state, always (badgeAlpha): manual =
+        // allowed flows full strength (red cross when fully blocked);
+        // default/auto = every supported flow stays vanilla-open (dim),
+        // auto-routed ones brighter.
         List<Column> shown = new ArrayList<>();
         List<Integer> alphas = new ArrayList<>();
         for (Column column : columns) {
-            boolean allowed = FaceConfig.allowsBits(faceBits, column.flow(), column.out());
-            if (manual) {
-                if (allowed) {
-                    shown.add(column);
-                    alphas.add(0xE0);
-                }
-            } else {
+            int alpha = badgeAlpha(faceBits, column.flow(), column.out());
+            if (alpha >= 0) {
                 shown.add(column);
-                alphas.add(configured && allowed ? 0x98 : 0x50);
+                alphas.add(alpha);
             }
         }
         if (manual && shown.isEmpty()) {
@@ -445,9 +472,8 @@ public class HologramFacePanel extends AnnexPanel {
         float start = -spread * (shown.size() - 1) / 2F;
         for (int i = 0; i < shown.size(); i++) {
             Column column = shown.get(i);
-            int color = column.flow() == Flow.ENERGY ? 0xFFB03A : 0x31D8FF;
             arrowBadge(pose, vc, n, u, v, start + i * spread, column.out(),
-                    (alphas.get(i) << 24) | color);
+                    (alphas.get(i) << 24) | flowColor(column.flow()));
         }
     }
 
