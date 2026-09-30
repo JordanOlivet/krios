@@ -63,6 +63,8 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
     private static final int TEXT_WRAP_PX = (int) (2.3F / TEXT_SCALE);
     private static final int BOOT_TICKS = 50;
     private static final int PULSE_TICKS = 12;
+    /** Aggregated pulses stretch the LED flash, up to a near-solid 1/s. */
+    private static final int PULSE_MAX_EXTRA_TICKS = 7;
     private static final int LEVEL_UP_TICKS = 30;
 
     private final Font font;
@@ -306,8 +308,10 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
         }
 
         // Activity LED, bottom-right: calm ~1 Hz pulse, bright flash while a
-        // learning pulse plays (blink replacement — stable geometry).
-        if (pulseT < PULSE_TICKS) {
+        // learning pulse plays (blink replacement — stable geometry). Pulses
+        // aggregate server-side (max ~1/s); the batch size stretches the
+        // flash so a busy factory reads busier without extra events.
+        if (pulseT < PULSE_TICKS + Math.min(core.getClientPulseOps() - 1, PULSE_MAX_EXTRA_TICKS)) {
             quad(pose, vc, 1.16F, -1.40F, 0.16F, 0.16F, Z_FEATURES,
                     56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.62F, 0.94F, 1F, 1F);
         } else {

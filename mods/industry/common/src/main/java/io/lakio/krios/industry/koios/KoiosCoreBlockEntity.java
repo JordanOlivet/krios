@@ -48,7 +48,10 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
     public static final int EVENT_PULSE = 1;
     public static final int EVENT_LEVEL_UP = 2;
     public static final int EVENT_BOOT = 3;
-    private static final int PULSE_MIN_INTERVAL_TICKS = 8;
+    // Art direction: learning pulses aggregate at scale, max ~1/s. Ops
+    // accumulate between pulses and ride the event param so the client can
+    // read batch size (a busy factory keeps the activity LED lit longer).
+    private static final int PULSE_MIN_INTERVAL_TICKS = 20;
 
     private int xp;
     private int koiosLevel = 1;
@@ -56,6 +59,8 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
     @Nullable
     private Direction screenSide;
     private long lastPulseGameTime;
+    /** Ops since the last pulse fired; visual only, never saved. */
+    private int pendingPulseOps;
     /**
      * Derived from the graph, never saved: true while this core shares a
      * component with another active controller (one core per network). The
@@ -67,6 +72,8 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
     private long clientBootStart;
     private long clientPulseStart;
     private long clientLevelUpStart;
+    /** Batch size behind the running pulse (event param, min 1). */
+    private int clientPulseOps = 1;
     /** Diversity received via update tag (client); -1 = compute locally. */
     private int clientDiversity = -1;
     private int clientEnergyPermille = 1000;
@@ -188,9 +195,14 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
             return;
         }
         long now = level.getGameTime();
+        pendingPulseOps += count;
         if (now - lastPulseGameTime >= PULSE_MIN_INTERVAL_TICKS) {
             lastPulseGameTime = now;
-            level.blockEvent(worldPosition, getBlockState().getBlock(), EVENT_PULSE, 0);
+            // Capped: the client only needs a coarse busy read, and 255
+            // keeps the param byte-safe on any packet encoding.
+            level.blockEvent(worldPosition, getBlockState().getBlock(), EVENT_PULSE,
+                    Math.min(pendingPulseOps, 255));
+            pendingPulseOps = 0;
         }
         if (koiosLevel > previousLevel) {
             level.playSound(null, worldPosition, SoundEvents.PLAYER_LEVELUP, SoundSource.BLOCKS, 0.7F, 1.3F);
@@ -453,6 +465,7 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
         switch (id) {
             case EVENT_PULSE -> {
                 clientPulseStart = now;
+                clientPulseOps = Math.max(1, param);
                 return true;
             }
             case EVENT_LEVEL_UP -> {
@@ -471,6 +484,10 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
 
     public long getClientBootStart() {
         return clientBootStart;
+    }
+
+    public int getClientPulseOps() {
+        return clientPulseOps;
     }
 
     public long getClientPulseStart() {
