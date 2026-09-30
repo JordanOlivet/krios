@@ -80,13 +80,17 @@ public class CalibratorItem extends Item {
     private static InteractionResult handleBlueprint(UseOnContext context) {
         Level level = context.getLevel();
         if (level.isClientSide) {
+            // Single definition today; a picker arrives with the second
+            // multiblock (Blueprint.ALL is the menu).
+            Blueprint blueprint = Blueprint.KOIOS_CORE;
             boolean placed = io.lakio.krios.industry.client.BlueprintState
-                    .toggle(context.getClickedPos());
+                    .toggle(context.getClickedPos(), blueprint);
             Player player = context.getPlayer();
             if (player != null) {
-                player.displayClientMessage(Component.translatable(placed
-                        ? "gui.krios_industry.calibrator.blueprint_set"
-                        : "gui.krios_industry.calibrator.blueprint_cleared"), true);
+                player.displayClientMessage(placed
+                        ? Component.translatable("gui.krios_industry.calibrator.blueprint_set",
+                                Component.translatable(blueprint.nameKey()))
+                        : Component.translatable("gui.krios_industry.calibrator.blueprint_cleared"), true);
             }
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
@@ -97,5 +101,6 @@ public class CalibratorItem extends Item {
         super.appendHoverText(stack, context, tooltip, flag);
         tooltip.add(Component.translatable(getDescriptionId() + ".desc").withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.translatable(getDescriptionId() + ".blueprint").withStyle(ChatFormatting.DARK_AQUA));
+        tooltip.add(Component.translatable(getDescriptionId() + ".overlay").withStyle(ChatFormatting.DARK_AQUA));
     }
 }

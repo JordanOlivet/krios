@@ -1,5 +1,6 @@
 package io.lakio.krios.industry.client;
 
+import io.lakio.krios.industry.tool.Blueprint;
 import net.minecraft.core.BlockPos;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,24 +14,33 @@ public final class BlueprintState {
 
     @Nullable
     private static BlockPos anchor;
+    @Nullable
+    private static Blueprint blueprint;
 
     @Nullable
     public static BlockPos anchor() {
         return anchor;
     }
 
+    @Nullable
+    public static Blueprint blueprint() {
+        return blueprint;
+    }
+
     /** Returns true when the toggle PLACED a blueprint (false = cleared). */
-    public static boolean toggle(BlockPos clicked) {
-        if (clicked.equals(anchor)) {
-            anchor = null;
+    public static boolean toggle(BlockPos clicked, Blueprint definition) {
+        if (clicked.equals(anchor) && definition == blueprint) {
+            clear();
             return false;
         }
         anchor = clicked.immutable();
+        blueprint = definition;
         return true;
     }
 
     public static void clear() {
         anchor = null;
+        blueprint = null;
     }
 
     private BlueprintState() {

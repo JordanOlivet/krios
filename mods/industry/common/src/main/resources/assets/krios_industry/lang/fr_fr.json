@@ -132,7 +132,9 @@
   "gui.krios_industry.koios.section.unlocks": "DÉBLOCAGES",
   "gui.krios_industry.koios.section.xp": "XP DONNÉES",
   "item.krios_industry.calibrator.blueprint": "Sneak + clic au sol : projeter un blueprint de construction",
-  "gui.krios_industry.calibrator.blueprint_set": "Blueprint projeté — construis dans l’hologramme",
+  "item.krios_industry.calibrator.overlay": "En main : les machines proches révèlent leurs contrats de faces",
+  "gui.krios_industry.calibrator.blueprint_set": "Blueprint projeté : %s — construis dans l’hologramme",
   "gui.krios_industry.calibrator.blueprint_cleared": "Blueprint retiré",
-  "gui.krios_industry.calibrator.blueprint_complete": "Structure complète"
+  "gui.krios_industry.calibrator.blueprint_complete": "Structure complète",
+  "gui.krios_industry.blueprint.koios_core": "Cœur K.O.I.O.S."
 }

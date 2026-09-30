@@ -132,7 +132,9 @@
   "gui.krios_industry.koios.section.unlocks": "UNLOCKS",
   "gui.krios_industry.koios.section.xp": "DATA XP",
   "item.krios_industry.calibrator.blueprint": "Sneak-click the ground: project a construction blueprint",
-  "gui.krios_industry.calibrator.blueprint_set": "Blueprint projected — build inside the hologram",
+  "item.krios_industry.calibrator.overlay": "Held: nearby machines reveal their face contracts",
+  "gui.krios_industry.calibrator.blueprint_set": "Blueprint projected: %s — build inside the hologram",
   "gui.krios_industry.calibrator.blueprint_cleared": "Blueprint cleared",
-  "gui.krios_industry.calibrator.blueprint_complete": "Structure complete"
+  "gui.krios_industry.calibrator.blueprint_complete": "Structure complete",
+  "gui.krios_industry.blueprint.koios_core": "K.O.I.O.S. Core"
 }

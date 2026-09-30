@@ -11,8 +11,10 @@ import net.minecraft.world.level.block.Block;
 /**
  * Holographic construction blueprints (art direction: the construction
  * guide IS the hologram). Pure data — offsets from the anchor block the
- * player clicked, the structure standing on top of it. Rendering and state
- * live client-side; future multiblocks add their own definitions here.
+ * player clicked, the structure standing on top of it. Rendering and
+ * state live client-side. A future multiblock ships as one more
+ * definition in {@link #ALL}; the Calibrator grows a picker once there is
+ * something to pick between.
  */
 public final class Blueprint {
 
@@ -20,26 +22,45 @@ public final class Blueprint {
     public record Cell(BlockPos offset, Supplier<Block> block) {
     }
 
-    private static List<Cell> koiosCore;
-
     /** The 3x3x3 KOIOS core shell: 26 casings around the core, centered. */
-    public static List<Cell> koiosCore() {
-        if (koiosCore == null) {
-            List<Cell> cells = new ArrayList<>(27);
-            for (int dy = 1; dy <= 3; dy++) {
-                for (int dx = -1; dx <= 1; dx++) {
-                    for (int dz = -1; dz <= 1; dz++) {
-                        boolean center = dx == 0 && dz == 0 && dy == 2;
-                        cells.add(new Cell(new BlockPos(dx, dy, dz),
-                                center ? ModBlocks.KOIOS_CORE : ModBlocks.NEURAL_CASING));
-                    }
-                }
-            }
-            koiosCore = List.copyOf(cells);
-        }
-        return koiosCore;
+    public static final Blueprint KOIOS_CORE = new Blueprint(
+            "gui.krios_industry.blueprint.koios_core", Blueprint::buildKoiosCore);
+
+    public static final List<Blueprint> ALL = List.of(KOIOS_CORE);
+
+    private final String nameKey;
+    private final Supplier<List<Cell>> factory;
+    /** Built on first use — block suppliers must not resolve at class load. */
+    private List<Cell> cells;
+
+    private Blueprint(String nameKey, Supplier<List<Cell>> factory) {
+        this.nameKey = nameKey;
+        this.factory = factory;
     }
 
-    private Blueprint() {
+    /** Lang key of the structure's display name (actionbar, future picker). */
+    public String nameKey() {
+        return nameKey;
+    }
+
+    public List<Cell> cells() {
+        if (cells == null) {
+            cells = List.copyOf(factory.get());
+        }
+        return cells;
+    }
+
+    private static List<Cell> buildKoiosCore() {
+        List<Cell> cells = new ArrayList<>(27);
+        for (int dy = 1; dy <= 3; dy++) {
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dz = -1; dz <= 1; dz++) {
+                    boolean center = dx == 0 && dz == 0 && dy == 2;
+                    cells.add(new Cell(new BlockPos(dx, dy, dz),
+                            center ? ModBlocks.KOIOS_CORE : ModBlocks.NEURAL_CASING));
+                }
+            }
+        }
+        return cells;
     }
 }

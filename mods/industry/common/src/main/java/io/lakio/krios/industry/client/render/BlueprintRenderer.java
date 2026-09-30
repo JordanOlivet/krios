@@ -25,14 +25,15 @@ public final class BlueprintRenderer {
 
     public static void render(PoseStack poseStack, float partialTick) {
         BlockPos anchor = BlueprintState.anchor();
+        Blueprint blueprint = BlueprintState.blueprint();
         Minecraft minecraft = Minecraft.getInstance();
-        if (anchor == null || minecraft.level == null) {
+        if (anchor == null || blueprint == null || minecraft.level == null) {
             return;
         }
         Vec3 camera = minecraft.gameRenderer.getMainCamera().getPosition();
         MultiBufferSource.BufferSource buffers = minecraft.renderBuffers().bufferSource();
         boolean complete = true;
-        for (Blueprint.Cell cell : Blueprint.koiosCore()) {
+        for (Blueprint.Cell cell : blueprint.cells()) {
             BlockPos target = anchor.offset(cell.offset());
             BlockState want = cell.block().get().defaultBlockState();
             BlockState have = minecraft.level.getBlockState(target);
