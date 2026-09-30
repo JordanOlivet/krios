@@ -575,6 +575,24 @@ def module(glyph_px, glyph_color):
     return img
 
 
+def compute_chip():
+    """Breakthrough chip: wide dark package, copper pin rows, bright
+    neurite die with cyan traces (software = crystal/cyan glow)."""
+    img = Img(16, 16)
+    img.rect(2, 4, 13, 11, SCREEN)
+    img.outline(2, 4, 13, 11, METAL_EDGE)
+    for x in range(3, 13, 2):
+        img.set(x, 3, COPPER)
+        img.set(x, 12, COPPER)
+    img.rect(6, 6, 9, 9, CYAN_DIM)
+    img.rect(7, 7, 8, 8, CYAN)
+    img.set(7, 7, CYAN_HI)
+    for x in (4, 11):
+        img.set(x, 6, CYAN_DIM)
+        img.set(x, 9, CYAN_DIM)
+    return img
+
+
 SPEED_GLYPH = [(6, 6), (7, 7), (6, 8), (8, 6), (9, 7), (8, 8), (6, 9), (8, 9)]
 EFFICIENCY_GLYPH = [(8, 5), (7, 6), (8, 6), (7, 7), (8, 7), (9, 7), (7, 8), (8, 8), (7, 9)]
 YIELD_GLYPH = [(8, 5), (8, 6), (8, 7), (8, 8), (8, 9), (6, 7), (7, 7), (9, 7), (10, 7)]
@@ -796,6 +814,7 @@ def main():
         "item/neurite_dust.png": neurite_dust(),
         "item/chronite_shard.png": chronite_shard(),
         "item/calibrator.png": calibrator(),
+        "item/compute_chip.png": compute_chip(),
         "item/speed_module.png": module(SPEED_GLYPH, CYAN),
         "item/efficiency_module.png": module(EFFICIENCY_GLYPH, ENERGY),
         "item/yield_module.png": module(YIELD_GLYPH, CYAN_HI),

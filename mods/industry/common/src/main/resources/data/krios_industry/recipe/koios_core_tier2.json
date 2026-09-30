@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "NPN",
+    "PKP",
+    "NPN"
+  ],
+  "key": {
+    "N": { "item": "krios_industry:neurite_ingot" },
+    "P": { "item": "krios_industry:compute_chip" },
+    "K": { "item": "krios_industry:koios_core" }
+  },
+  "result": {
+    "id": "krios_industry:koios_core",
+    "count": 1,
+    "components": {
+      "krios_industry:koios_data": { "xp": 42000, "window": [], "tier": 2 }
+    }
+  }
+}

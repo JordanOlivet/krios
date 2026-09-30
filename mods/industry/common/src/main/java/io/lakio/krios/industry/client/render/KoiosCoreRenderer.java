@@ -66,6 +66,8 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
     /** Aggregated pulses stretch the LED flash, up to a near-solid 1/s. */
     private static final int PULSE_MAX_EXTRA_TICKS = 7;
     private static final int LEVEL_UP_TICKS = 30;
+    /** The critical breakthrough: static burst then a long warm flash. */
+    private static final int TIER_UP_TICKS = 70;
 
     private final Font font;
 
@@ -257,7 +259,9 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
                 ? time - core.getClientLevelUpStart() : Float.MAX_VALUE;
         float pulseT = core.getClientPulseStart() > 0
                 ? time - core.getClientPulseStart() : Float.MAX_VALUE;
-        boolean celebrating = levelUpT < LEVEL_UP_TICKS;
+        float tierUpT = core.getClientTierUpStart() > 0
+                ? time - core.getClientTierUpStart() : Float.MAX_VALUE;
+        boolean celebrating = levelUpT < LEVEL_UP_TICKS || tierUpT < TIER_UP_TICKS;
 
         // Eyes track the nearest player (horizontal screens only).
         float lookU = 0;
@@ -324,12 +328,23 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
         }
 
 
-        // Level-up flash overlay. Learning pulses no longer flash the whole
-        // screen (it read as constant blinking with machines running) — the
-        // activity LED's bright flash carries that event instead.
-        if (celebrating) {
-            float a = (1F - levelUpT / LEVEL_UP_TICKS) * 0.35F;
-            quad(pose, vc, -1.5F, -1.5F, 3F, 3F, Z_FLASH, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 1F, 1F, 1F, a);
+        // Level-up / tier-up flash overlays. Learning pulses no longer flash
+        // the whole screen (it read as constant blinking with machines
+        // running) — the activity LED's bright flash carries that event.
+        // A tier-up opens on a static burst (the AI reboots into its new
+        // substrate) then holds a longer, warmer flash than a level-up.
+        if (tierUpT < 16) {
+            renderBootStatic(pose, vc, tierUpT);
+        }
+        float flashA = levelUpT < LEVEL_UP_TICKS ? (1F - levelUpT / LEVEL_UP_TICKS) * 0.35F : 0F;
+        boolean tierFlash = tierUpT < TIER_UP_TICKS
+                && (1F - tierUpT / TIER_UP_TICKS) * 0.55F > flashA;
+        if (tierFlash) {
+            flashA = (1F - tierUpT / TIER_UP_TICKS) * 0.55F;
+        }
+        if (flashA > 0) {
+            quad(pose, vc, -1.5F, -1.5F, 3F, 3F, Z_FLASH, 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS,
+                    1F, tierFlash ? 0.84F : 1F, tierFlash ? 0.5F : 1F, flashA);
         }
 
         // KOIOS's phrase, bottom center — one short line, fading out past a
@@ -371,7 +386,8 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
             return Component.translatable("gui.krios_industry.koios.phrase.repetitive");
         }
         int koiosLevel = core.getKoiosLevel();
-        if (koiosLevel < KoiosBalance.MAX_CLASSIC_LEVEL
+        if (koiosLevel < KoiosBalance.maxClassicLevel(core.getTier())
+                && koiosLevel + 1 < KoiosBalance.LEVEL_XP.length
                 && core.getXp() >= KoiosBalance.LEVEL_XP[koiosLevel + 1] * 0.8) {
             return Component.translatable("gui.krios_industry.koios.phrase.almost");
         }

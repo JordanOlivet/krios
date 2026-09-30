@@ -48,12 +48,16 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
     public static final int EVENT_PULSE = 1;
     public static final int EVENT_LEVEL_UP = 2;
     public static final int EVENT_BOOT = 3;
+    /** Critical breakthrough paid: the big tier-up sequence (param = new tier). */
+    public static final int EVENT_TIER_UP = 4;
     // Art direction: learning pulses aggregate at scale, max ~1/s. Ops
     // accumulate between pulses and ride the event param so the client can
     // read batch size (a busy factory keeps the activity LED lit longer).
     private static final int PULSE_MIN_INTERVAL_TICKS = 20;
 
     private int xp;
+    /** Hardware tier of this core (1..MAX_TIER); rides KoiosData on drops. */
+    private int tier = 1;
     private int koiosLevel = 1;
     /** Which face of the shell displays the AI's head; null = none yet. */
     @Nullable
@@ -72,6 +76,7 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
     private long clientBootStart;
     private long clientPulseStart;
     private long clientLevelUpStart;
+    private long clientTierUpStart;
     /** Batch size behind the running pulse (event param, min 1). */
     private int clientPulseOps = 1;
     /** Diversity received via update tag (client); -1 = compute locally. */
@@ -102,6 +107,7 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
                 // 7..8: network energy health (KOIOS alerts).
                 case 7 -> networkEnergyPermille();
                 case 8 -> networkEnergyDeficit() ? 1 : 0;
+                case 9 -> tier;
                 default -> 0;
             };
         }
@@ -183,13 +189,13 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
         if (!isFormed()) {
             return;
         }
-        int cap = KoiosBalance.xpCap();
+        int cap = KoiosBalance.xpCap(tier);
         for (int i = 0; i < count && xp < cap; i++) {
             xp = Math.min(cap, xp + KoiosBalance.scaledOpXp(level, baseXp, diversityFactorPermille(key)));
             pushWindow(key);
         }
         int previousLevel = koiosLevel;
-        koiosLevel = KoiosBalance.levelForXp(xp);
+        koiosLevel = KoiosBalance.levelForXp(xp, tier);
         setChanged();
         if (level == null) {
             return;
@@ -224,19 +230,60 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
      * the diversity window. Lowering XP is allowed (re-testing gates).
      */
     public void setXpAdmin(int newXp) {
-        int clamped = Math.max(0, Math.min(KoiosBalance.xpCap(), newXp));
+        int clamped = Math.max(0, Math.min(KoiosBalance.xpCap(tier), newXp));
         if (clamped == xp) {
             return;
         }
         int previousLevel = koiosLevel;
         xp = clamped;
-        koiosLevel = KoiosBalance.levelForXp(xp);
+        koiosLevel = KoiosBalance.levelForXp(xp, tier);
         setChanged();
         if (level != null && koiosLevel > previousLevel) {
             level.playSound(null, worldPosition, SoundEvents.PLAYER_LEVELUP, SoundSource.BLOCKS, 0.7F, 1.3F);
             level.blockEvent(worldPosition, getBlockState().getBlock(), EVENT_LEVEL_UP, koiosLevel);
         }
         syncToClients();
+    }
+
+    /** Admin tier set (testing); recomputes the level, clamps XP down never. */
+    public void setTierAdmin(int newTier) {
+        tier = Math.max(1, Math.min(KoiosBalance.MAX_TIER, newTier));
+        koiosLevel = KoiosBalance.levelForXp(xp, tier);
+        setChanged();
+        syncToClients();
+    }
+
+    public int getTier() {
+        return tier;
+    }
+
+    /**
+     * XP sits at the tier's critical threshold: the breakthrough is
+     * payable — or announced as coming soon while the next tier's curve
+     * does not exist yet.
+     */
+    public boolean isCriticalPending() {
+        return isFormed() && tier < KoiosBalance.MAX_TIER && xp >= KoiosBalance.xpCap(tier);
+    }
+
+    /**
+     * The critical breakthrough (design 2026-09-30): XP is a threshold —
+     * never consumed — and the caller consumes the compute chip on true.
+     * The new tier reopens the level curve (the paid critical level is
+     * acquired on the spot) and fires the in-world tier-up sequence.
+     */
+    public boolean tryBreakthrough() {
+        if (!isCriticalPending() || !KoiosBalance.hasTierCurve(tier + 1) || level == null) {
+            return false;
+        }
+        tier++;
+        koiosLevel = KoiosBalance.levelForXp(xp, tier);
+        setChanged();
+        level.playSound(null, worldPosition, SoundEvents.BEACON_ACTIVATE, SoundSource.BLOCKS, 1.0F, 1.1F);
+        level.playSound(null, worldPosition, SoundEvents.PLAYER_LEVELUP, SoundSource.BLOCKS, 0.8F, 0.9F);
+        level.blockEvent(worldPosition, getBlockState().getBlock(), EVENT_TIER_UP, tier);
+        syncToClients();
+        return true;
     }
 
     public boolean isFormed() {
@@ -476,6 +523,10 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
                 clientBootStart = now;
                 return true;
             }
+            case EVENT_TIER_UP -> {
+                clientTierUpStart = now;
+                return true;
+            }
             default -> {
                 return super.triggerEvent(id, param);
             }
@@ -498,12 +549,17 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
         return clientLevelUpStart;
     }
 
+    public long getClientTierUpStart() {
+        return clientTierUpStart;
+    }
+
     // --- Persistence and client sync ---
 
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.putInt("DataXp", xp);
+        tag.putInt("Tier", tier);
         if (screenSide != null) {
             tag.putInt("ScreenSide", screenSide.get3DDataValue());
         }
@@ -517,7 +573,10 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        xp = Math.min(KoiosBalance.xpCap(), tag.getInt("DataXp"));
+        // Pre-tier saves carry no Tier key: they are tier 1 cores.
+        tier = Math.max(1, Math.min(KoiosBalance.MAX_TIER,
+                tag.contains("Tier") ? tag.getInt("Tier") : 1));
+        xp = Math.min(KoiosBalance.xpCap(tier), tag.getInt("DataXp"));
         screenSide = tag.contains("ScreenSide") ? Direction.from3DDataValue(tag.getInt("ScreenSide")) : null;
         if (tag.contains("Div")) {
             clientDiversity = tag.getInt("Div");
@@ -534,7 +593,7 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
         for (int i = 0; i < list.size(); i++) {
             pushWindow(list.getString(i));
         }
-        koiosLevel = KoiosBalance.levelForXp(xp);
+        koiosLevel = KoiosBalance.levelForXp(xp, tier);
     }
 
     /** Chunk-load / sendBlockUpdated payload: what the renderer needs. */
@@ -542,6 +601,7 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = new CompoundTag();
         tag.putInt("DataXp", xp);
+        tag.putInt("Tier", tier);
         tag.putInt("Div", diversityPermille());
         tag.putInt("EnergyMille", networkEnergyPermille());
         tag.putBoolean("Deficit", networkEnergyDeficit());
@@ -564,8 +624,8 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
     @Override
     protected void collectImplicitComponents(DataComponentMap.Builder builder) {
         super.collectImplicitComponents(builder);
-        if (xp > 0) {
-            builder.set(ModDataComponents.KOIOS_DATA.get(), new KoiosData(xp, windowToList()));
+        if (xp > 0 || tier > 1) {
+            builder.set(ModDataComponents.KOIOS_DATA.get(), new KoiosData(xp, windowToList(), tier));
         }
     }
 
@@ -573,14 +633,16 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
     protected void applyImplicitComponents(BlockEntity.DataComponentInput input) {
         super.applyImplicitComponents(input);
         KoiosData data = input.get(ModDataComponents.KOIOS_DATA.get());
-        // Replacement keeps max(existing, item) — XP is never lost (design).
-        if (data != null && data.xp() > xp) {
-            xp = Math.min(KoiosBalance.xpCap(), data.xp());
+        // Replacement keeps max(existing, item) — tier first, then XP; the
+        // progression is never lost (design).
+        if (data != null && data.outranks(tier, xp)) {
+            tier = Math.max(1, Math.min(KoiosBalance.MAX_TIER, data.tier()));
+            xp = Math.min(KoiosBalance.xpCap(tier), data.xp());
             resetWindow();
             for (String key : data.window()) {
                 pushWindow(key);
             }
-            koiosLevel = KoiosBalance.levelForXp(xp);
+            koiosLevel = KoiosBalance.levelForXp(xp, tier);
         }
     }
 
@@ -589,5 +651,6 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
         super.removeComponentsFromTag(tag);
         tag.remove("DataXp");
         tag.remove("Window");
+        tag.remove("Tier");
     }
 }

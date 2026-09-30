@@ -36,6 +36,9 @@ public final class ModItems {
     public static final Supplier<Item> CALIBRATOR = register("calibrator",
             () -> new CalibratorItem(new Item.Properties().stacksTo(1)));
 
+    public static final Supplier<Item> COMPUTE_CHIP = register("compute_chip",
+            () -> new io.lakio.krios.industry.koios.ComputeChipItem(new Item.Properties().stacksTo(16)));
+
     private ModItems() {
     }
 

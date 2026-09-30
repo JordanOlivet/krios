@@ -40,12 +40,15 @@ public class NeuralCasingBlock extends Block implements NetworkConductor {
         builder.add(FORMED);
     }
 
-    /** The Calibrator overrides the block's own right-click (diagnostic). */
+    /** The Calibrator and the compute chip override the block's own right-click. */
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level,
             BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         if (stack.getItem() instanceof CalibratorItem) {
             return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
+        }
+        if (stack.getItem() instanceof ComputeChipItem) {
+            return ComputeChipItem.useOnStructure(stack, level, pos, player);
         }
         return super.useItemOn(stack, state, level, pos, player, hand, hit);
     }

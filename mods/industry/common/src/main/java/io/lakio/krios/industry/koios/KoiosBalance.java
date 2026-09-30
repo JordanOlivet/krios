@@ -29,13 +29,22 @@ public final class KoiosBalance {
     // ~500 mono-recipe ops to reach N2 with slow tier 1 machines.
     public static final int DIVERSITY_FLOOR_PERMILLE = 200;
 
-    /** Highest classic level reachable through data XP alone (tier 1). */
-    public static final int MAX_CLASSIC_LEVEL = 4;
-    /** Critical level gating tier 2 (items + XP; locked until tier 2 ships). */
-    public static final int CRITICAL_LEVEL = 5;
+    /**
+     * Tier ladder (design 2026-09-30): continuous level numbering, four
+     * classic levels then one critical level per tier. Tier 1 = N1-N4
+     * classic, N5 critical (paid with a compute chip, XP is a threshold
+     * and is never consumed). Tier 2 = N6-N8 classic (Mk II modules),
+     * N9 critical toward tier 3.
+     */
+    public static final int MAX_TIER = 4;
 
-    /** Cumulative data XP required to reach each level (index = level). */
-    public static final int[] LEVEL_XP = {0, 0, 500, 1500, 3500, 6500};
+    /**
+     * Cumulative data XP required to reach each level (index = level).
+     * Extended per tier as its content ships; a tier-up is only possible
+     * while the NEXT tier's curve exists (see {@link #hasTierCurve}).
+     */
+    public static final int[] LEVEL_XP = {0, 0, 500, 1500, 3500, 6500,
+            12_000, 20_000, 30_000, 42_000};
 
     public static final int SPEED_UNLOCK_LEVEL = 2;
     public static final int EFFICIENCY_UNLOCK_LEVEL = 3;
@@ -56,17 +65,42 @@ public final class KoiosBalance {
     public static final int CORE_RANGE = 32;
     public static final int CORE_RANGE_SQ = CORE_RANGE * CORE_RANGE;
 
-    public static int levelForXp(int xp) {
+    /** The critical level closing a tier: 5, 9, 13... (one per boundary). */
+    public static int criticalLevel(int tier) {
+        return 1 + 4 * tier;
+    }
+
+    /** Highest classic level reachable through data XP alone at this tier. */
+    public static int maxClassicLevel(int tier) {
+        return criticalLevel(tier) - 1;
+    }
+
+    /** The next tier's curve is defined — its content shipped. */
+    public static boolean hasTierCurve(int tier) {
+        return criticalLevel(tier) < LEVEL_XP.length;
+    }
+
+    /**
+     * Level for an XP total at a given core tier. A freshly upgraded core
+     * lands ON its previous critical level (paid, acquired) and climbs the
+     * new classic stretch from there.
+     */
+    public static int levelForXp(int xp, int tier) {
         int level = 1;
-        while (level < MAX_CLASSIC_LEVEL && xp >= LEVEL_XP[level + 1]) {
+        while (level < maxClassicLevel(tier)
+                && level + 1 < LEVEL_XP.length && xp >= LEVEL_XP[level + 1]) {
             level++;
         }
         return level;
     }
 
-    /** Data XP accrual stops at the critical threshold until it is paid. */
-    public static int xpCap() {
-        return LEVEL_XP[CRITICAL_LEVEL];
+    /**
+     * Data XP accrual stops at the tier's critical threshold until the
+     * breakthrough is paid; the final defined level caps the last tier.
+     */
+    public static int xpCap(int tier) {
+        int critical = criticalLevel(tier);
+        return LEVEL_XP[Math.min(critical, LEVEL_XP.length - 1)];
     }
 
     /**

@@ -64,9 +64,14 @@ public final class KoiosCommand {
                                         IntegerArgumentType.getInteger(context, "amount")))))
                 .then(Commands.literal("level")
                         .then(Commands.argument("level",
-                                        IntegerArgumentType.integer(1, KoiosBalance.MAX_CLASSIC_LEVEL))
+                                        IntegerArgumentType.integer(1, KoiosBalance.LEVEL_XP.length - 1))
                                 .executes(context -> setLevel(context.getSource(),
                                         IntegerArgumentType.getInteger(context, "level")))))
+                .then(Commands.literal("tier")
+                        .then(Commands.argument("tier",
+                                        IntegerArgumentType.integer(1, KoiosBalance.MAX_TIER))
+                                .executes(context -> setTier(context.getSource(),
+                                        IntegerArgumentType.getInteger(context, "tier")))))
                 .then(Commands.literal("energy")
                         .executes(context -> energy(context.getSource())));
     }
@@ -133,7 +138,8 @@ public final class KoiosCommand {
         }
         source.sendSuccess(() -> Component.translatable("commands.krios_industry.koios.info",
                 core.getBlockPos().toShortString(), core.getKoiosLevel(),
-                core.getXp(), KoiosBalance.xpCap(), core.diversityPermille() / 10), false);
+                core.getXp(), KoiosBalance.xpCap(core.getTier()), core.diversityPermille() / 10,
+                core.getTier()), false);
         return 1;
     }
 
@@ -147,7 +153,7 @@ public final class KoiosCommand {
         int gained = core.getXp() - before;
         source.sendSuccess(() -> Component.translatable("commands.krios_industry.koios.xp_added",
                 gained, core.getBlockPos().toShortString(), core.getKoiosLevel(),
-                core.getXp(), KoiosBalance.xpCap()), true);
+                core.getXp(), KoiosBalance.xpCap(core.getTier())), true);
         return 1;
     }
 
@@ -156,9 +162,23 @@ public final class KoiosCommand {
         if (core == null) {
             return noCore(source);
         }
+        // XP is clamped to the core's tier cap: reaching N6+ needs the tier
+        // first (/krios_industry koios tier 2).
         core.setXpAdmin(KoiosBalance.LEVEL_XP[newLevel]);
         source.sendSuccess(() -> Component.translatable("commands.krios_industry.koios.level_set",
                 core.getBlockPos().toShortString(), core.getKoiosLevel(), core.getXp()), true);
+        return 1;
+    }
+
+    /** Admin/testing shortcut around the compute-chip ritual. */
+    private static int setTier(CommandSourceStack source, int newTier) {
+        KoiosCoreBlockEntity core = target(source);
+        if (core == null) {
+            return noCore(source);
+        }
+        core.setTierAdmin(newTier);
+        source.sendSuccess(() -> Component.translatable("commands.krios_industry.koios.tier_set",
+                core.getBlockPos().toShortString(), core.getTier(), core.getKoiosLevel()), true);
         return 1;
     }
 

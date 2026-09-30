@@ -11,10 +11,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.Nullable;
 
-/** Display-only menu: no item slots, nine synced values. */
+/** Display-only menu: no item slots, ten synced values. */
 public class KoiosCoreMenu extends AbstractContainerMenu {
 
-    public static final int DATA_COUNT = 9;
+    public static final int DATA_COUNT = 10;
 
     private final ContainerData data;
     @Nullable
@@ -80,17 +80,27 @@ public class KoiosCoreMenu extends AbstractContainerMenu {
         return (data.get(4) << 16) | (data.get(3) & 0xFFFF);
     }
 
-    /** True once XP sits at the critical threshold (tier 2 gate, locked in MVP). */
+    /** Hardware tier of the core (1..MAX_TIER). */
+    public int getTier() {
+        return Math.max(1, data.get(9));
+    }
+
+    /** True once XP sits at this tier's critical threshold. */
     public boolean isCriticalPending() {
-        return getXp() >= KoiosBalance.xpCap();
+        return getTier() < KoiosBalance.MAX_TIER && getXp() >= KoiosBalance.xpCap(getTier());
+    }
+
+    /** The paid breakthrough exists in game (next tier's curve shipped). */
+    public boolean isBreakthroughAvailable() {
+        return KoiosBalance.hasTierCurve(getTier() + 1);
     }
 
     public int getLevelFloorXp() {
-        return KoiosBalance.LEVEL_XP[Math.min(KoiosBalance.CRITICAL_LEVEL, getKoiosLevel())];
+        return KoiosBalance.LEVEL_XP[Math.min(KoiosBalance.criticalLevel(getTier()), getKoiosLevel())];
     }
 
     public int getNextLevelXp() {
-        return KoiosBalance.LEVEL_XP[Math.min(KoiosBalance.CRITICAL_LEVEL, getKoiosLevel() + 1)];
+        return KoiosBalance.LEVEL_XP[Math.min(KoiosBalance.criticalLevel(getTier()), getKoiosLevel() + 1)];
     }
 
     /** 0..width pixels of progress toward the next level (XP bar). */

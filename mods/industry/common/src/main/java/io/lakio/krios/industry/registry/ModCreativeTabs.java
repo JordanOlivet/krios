@@ -35,6 +35,7 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.EFFICIENCY_MODULE.get());
                         output.accept(ModItems.YIELD_MODULE.get());
                         output.accept(ModItems.CALIBRATOR.get());
+                        output.accept(ModItems.COMPUTE_CHIP.get());
                     })
                     .build());
 

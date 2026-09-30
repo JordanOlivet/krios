@@ -138,6 +138,11 @@ public class KoiosCoreScreen extends KriosTerminalScreen<KoiosCoreMenu> {
         y += LINE_HEIGHT;
         guiGraphics.drawString(font, Component.translatable("gui.krios_industry.koios.level", menu.getKoiosLevel()),
                 8, y, COLOR_TEXT, false);
+        // Hardware tier, right-aligned on the level line (dual axis reads
+        // in one glance: software level left, hardware tier right).
+        Component tierLine = Component.translatable("gui.krios_industry.koios.tier", menu.getTier());
+        guiGraphics.drawString(font, tierLine, imageWidth - 8 - font.width(tierLine), y,
+                COLOR_CRITICAL, false);
         y += LINE_HEIGHT;
         guiGraphics.drawString(font,
                 Component.translatable("gui.krios_industry.koios.diversity", menu.getDiversityPermille() / 10),
@@ -155,12 +160,17 @@ public class KoiosCoreScreen extends KriosTerminalScreen<KoiosCoreMenu> {
         y = drawUnlock(guiGraphics, "gui.krios_industry.koios.unlock.yield", KoiosBalance.YIELD_UNLOCK_LEVEL, y);
         y += 3;
 
-        // Critical notice (the voice lives under the XP gauge, terminal-style).
+        // Critical notice (the voice lives under the XP gauge, terminal-style):
+        // actionable when the next tier exists, "coming soon" otherwise.
         if (menu.isCriticalPending()) {
             guiGraphics.fill(8, y, imageWidth - 8, y + 1, 0xFF262B35);
             y += 6;
-            guiGraphics.drawWordWrap(font, Component.translatable("gui.krios_industry.koios.critical"),
-                    8, y, imageWidth - 16, COLOR_CRITICAL);
+            Component notice = menu.isBreakthroughAvailable()
+                    ? Component.translatable("gui.krios_industry.koios.critical.ready",
+                            KoiosBalance.criticalLevel(menu.getTier()))
+                    : Component.translatable("gui.krios_industry.koios.critical.locked",
+                            KoiosBalance.criticalLevel(menu.getTier()), menu.getTier() + 1);
+            guiGraphics.drawWordWrap(font, notice, 8, y, imageWidth - 16, COLOR_CRITICAL);
         }
 
         // Data-XP gauge, bottom, full width.

@@ -203,7 +203,7 @@ The tier system, settled ahead of the tier 2 slice. One rule founds everything:
 ### Critical breakthrough (the tier-up ritual)
 
 - Prerequisite: **XP at the tier's cap — a threshold, never consumed** ("XP is never lost" holds). Cost: a crafted **compute chip** (bulk tier N-1 outputs only, per the anti chicken-and-egg rule), **consumed** on use.
-- Two gestures, same effect: a dedicated slot in the core UI, or right-click the formed structure with the chip. A big in-world animation marks the moment (block-event channel, BER sequence — no custom packets).
+- Gesture (revised at implementation, 2026-09-30): **right-click the formed structure with the chip** — any casing face, the structure acts as one block. The originally considered core-UI slot was dropped: the core terminal is display-only (no player inventory), a lone slot there would be unusable without rebuilding a validated screen. The terminal's critical notice carries the actionable prompt instead. A big in-world animation marks the moment (block-event channel, BER sequence — no custom packets).
 
 ### Levels beyond 5 (continuous numbering)
 
