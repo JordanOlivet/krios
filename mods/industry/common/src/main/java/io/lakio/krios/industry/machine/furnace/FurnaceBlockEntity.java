@@ -55,9 +55,15 @@ public class FurnaceBlockEntity extends BlockEntity
         io.lakio.krios.industry.machine.ConfigurableFaces,
         io.lakio.krios.industry.machine.EnergyStats {
 
-    public static final int INPUT_SLOT = 0;
-    public static final int OUTPUT_SLOT = 1;
-    public static final int MODULE_SLOT_FIRST = 2;
+    /**
+     * Parallel process columns this machine LINE can host — the tier 2
+     * ceiling for now (grows to 4/8 when tiers 3/4 ship, indices reshuffle
+     * then). Layout: inputs, then outputs, then modules.
+     */
+    public static final int PROCESS_SLOTS = 2;
+    public static final int INPUT_FIRST = 0;
+    public static final int OUTPUT_FIRST = PROCESS_SLOTS;
+    public static final int MODULE_SLOT_FIRST = PROCESS_SLOTS * 2;
     /** Tier knob: bump the count and menu/screen/bay all follow. */
     public static final int MODULE_SLOT_COUNT = 2;
     public static final int MODULE_SLOT_LAST = MODULE_SLOT_FIRST + MODULE_SLOT_COUNT - 1;
@@ -75,8 +81,8 @@ public class FurnaceBlockEntity extends BlockEntity
     // Efficiency: x0.8 energy per module, as a 25ths ratio (integer math).
     private static final int[] EFFICIENCY_NUM = {25, 20, 16};
 
-    private static final int[] SLOTS_TOP_SIDES = {INPUT_SLOT};
-    private static final int[] SLOTS_DOWN = {OUTPUT_SLOT};
+    private static final int[] SLOTS_TOP_SIDES = {0, 1};
+    private static final int[] SLOTS_DOWN = {OUTPUT_FIRST, OUTPUT_FIRST + 1};
     private static final int[] NO_SLOTS = {};
 
     // Presets: directions this machine supports (energy in, items in/out).
@@ -92,23 +98,27 @@ public class FurnaceBlockEntity extends BlockEntity
     private final FaceConfig faceConfig = new FaceConfig();
     private final RecipeManager.CachedCheck<SingleRecipeInput, SmeltingRecipe> quickCheck =
             RecipeManager.createCheck(RecipeType.SMELTING);
-    private int progress;
-    private int totalTime;
-    /** Current demand in E/t, for diagnostics; 0 while idle. */
+    // Per-column runtime state (parallel processing, design 2026-09-30):
+    // each column is an independent input -> output pair with its own
+    // progress and deterministic yield carry (ADR-006).
+    private final int[] progress = new int[PROCESS_SLOTS];
+    private final int[] columnTime = new int[PROCESS_SLOTS];
+    private final int[] yieldQuarters = new int[PROCESS_SLOTS];
+    /** Current demand in E/t, all columns summed; 0 while idle. */
     private int currentDrawPerTick;
     /** E actually consumed on the last work tick (0 = idle or starved). */
     private int consumedLastTick;
-    /** Working but the last consume failed — frozen for lack of energy. */
+    /** Some column could not pay its tick — frozen for lack of energy. */
     private boolean starvedLastTick;
-    // Yield accumulator in quarter-items (ADR-006, same scheme as the crusher).
-    private int yieldQuarters;
+    /** Input distribution: false = fill first (default), true = balance. */
+    private boolean inputBalance;
 
     private final ContainerData dataAccess = new ContainerData() {
         @Override
         public int get(int index) {
             return switch (index) {
-                case 0 -> progress;
-                case 1 -> totalTime;
+                case 0 -> progress[0];
+                case 1 -> columnTime[0];
                 case 2 -> energy.getStored() & 0xFFFF;
                 case 3 -> (energy.getStored() >> 16) & 0xFFFF;
                 case 10 -> networkKoiosLevel();
@@ -124,6 +134,10 @@ public class FurnaceBlockEntity extends BlockEntity
                 case 18 -> machineTier;
                 case 19 -> MachineTiers.effectiveTier(
                         NetworkManager.networkOf(FurnaceBlockEntity.this), machineTier);
+                // 20..21: second process column (progress, time).
+                case 20 -> progress[1];
+                case 21 -> columnTime[1];
+                case 22 -> inputBalance ? 1 : 0;
                 // 4..9: raw face-config shorts (11 bits, short-safe).
                 default -> index < 10
                         ? faceConfig.bits(Direction.from3DDataValue(index - 4)) : 0;
@@ -153,8 +167,18 @@ public class FurnaceBlockEntity extends BlockEntity
         return machineTier;
     }
 
+    /** Physical columns this machine's tier provides (fillable slots). */
+    private int activePhysicalColumns() {
+        return Math.min(PROCESS_SLOTS, MachineTiers.processSlots(machineTier));
+    }
+
     /** Same button channel as the other machines (face*16 + sub). */
     public boolean handleFaceButton(int id) {
+        if (id == io.lakio.krios.industry.machine.MachineMenu.BUTTON_TOGGLE_DISTRIBUTION) {
+            inputBalance = !inputBalance;
+            setChanged();
+            return true;
+        }
         int faceIndex = id / 16;
         int sub = id % 16;
         if (faceIndex < 0 || faceIndex > 5) {
@@ -270,46 +294,62 @@ public class FurnaceBlockEntity extends BlockEntity
         if (!online) {
             be.pullEnergyFromContacts(level, pos);
         }
-        // Hopper-like flow: the output streams into adjacent machines.
-        ItemFlow.pushOutput(level, pos, be, OUTPUT_SLOT, be.faceConfig);
-
-        RecipeHolder<SmeltingRecipe> holder = be.items.get(INPUT_SLOT).isEmpty() ? null
-                : be.quickCheck.getRecipeFor(new SingleRecipeInput(be.items.get(INPUT_SLOT)), level).orElse(null);
-        ItemStack result = holder == null ? ItemStack.EMPTY
-                : holder.value().getResultItem(level.registryAccess());
-        int yieldModules = holder == null || !online ? 0 : be.countModules(ModuleType.YIELD);
-        if (holder == null || result.isEmpty() || !be.canOutput(result, yieldModules)) {
-            be.stopWork(level, pos, state);
-            return;
+        // Hopper-like flow: every output column streams into adjacent machines.
+        for (int column = 0; column < PROCESS_SLOTS; column++) {
+            ItemFlow.pushOutput(level, pos, be, OUTPUT_FIRST + column, be.faceConfig);
         }
 
-        int cookingTime = Math.max(1, holder.value().getCookingTime());
+        // Parallel processing (design 2026-09-30): the effective tier gates
+        // how many columns RUN; each active column smelts at the baseline
+        // pace — cook / (2 + speed modules) — and energy per op is
+        // unchanged, so the draw sums over active columns.
+        int effectiveTier = MachineTiers.effectiveTier(network, be.machineTier);
+        int activeColumns = Math.min(PROCESS_SLOTS, MachineTiers.processSlots(effectiveTier));
         int speedModules = online ? be.countModules(ModuleType.SPEED) : 0;
         int efficiencyModules = online ? be.countModules(ModuleType.EFFICIENCY) : 0;
-        // Connected baseline: twice furnace speed, then x1.5 per speed
-        // module — cook / (2 + n) — then the tier doubling (energy per op
-        // unchanged). Offline: exact vanilla pace.
-        int effectiveTier = MachineTiers.effectiveTier(network, be.machineTier);
-        be.totalTime = online
-                ? Math.max(1, cookingTime / ((2 + speedModules)
-                        * MachineTiers.speedFactor(effectiveTier)))
-                : Math.max(cookingTime, KoiosBalance.DISCONNECTED_TIME_TICKS);
-        int energyPerOp = KoiosBalance.scaledEnergyCost(level,
-                ENERGY_PER_OP * EFFICIENCY_NUM[efficiencyModules] / 25);
-        int energyPerTick = Math.max(1, energyPerOp / be.totalTime);
-        be.currentDrawPerTick = energyPerTick;
-        boolean starvedNow;
-        if (be.energy.consume(energyPerTick)) {
-            be.consumedLastTick = energyPerTick;
-            starvedNow = false;
-            if (++be.progress >= be.totalTime) {
-                be.craft(holder, result, yieldModules);
-                be.progress = 0;
+        int yieldModules = online ? be.countModules(ModuleType.YIELD) : 0;
+
+        int draw = 0;
+        int consumed = 0;
+        boolean anyWorking = false;
+        boolean starvedNow = false;
+        for (int column = 0; column < PROCESS_SLOTS; column++) {
+            ItemStack input = be.items.get(INPUT_FIRST + column);
+            RecipeHolder<SmeltingRecipe> holder = column >= activeColumns || input.isEmpty() ? null
+                    : be.quickCheck.getRecipeFor(new SingleRecipeInput(input), level).orElse(null);
+            ItemStack result = holder == null ? ItemStack.EMPTY
+                    : holder.value().getResultItem(level.registryAccess());
+            if (holder == null || result.isEmpty() || !be.canOutput(column, result, yieldModules)) {
+                be.progress[column] = 0;
+                be.columnTime[column] = 0;
+                continue;
             }
-        } else {
-            // No energy: stay lit and wait — the next push may refill us.
-            be.consumedLastTick = 0;
-            starvedNow = true;
+            anyWorking = true;
+            int cookingTime = Math.max(1, holder.value().getCookingTime());
+            be.columnTime[column] = online
+                    ? Math.max(1, cookingTime / (2 + speedModules))
+                    : Math.max(cookingTime, KoiosBalance.DISCONNECTED_TIME_TICKS);
+            int energyPerOp = KoiosBalance.scaledEnergyCost(level,
+                    ENERGY_PER_OP * EFFICIENCY_NUM[efficiencyModules] / 25);
+            int energyPerTick = Math.max(1, energyPerOp / be.columnTime[column]);
+            draw += energyPerTick;
+            if (be.energy.consume(energyPerTick)) {
+                consumed += energyPerTick;
+                if (++be.progress[column] >= be.columnTime[column]) {
+                    be.craft(column, holder, result, yieldModules);
+                    be.progress[column] = 0;
+                }
+            } else {
+                // No energy: this column stays frozen and waits — the next
+                // push may refill us.
+                starvedNow = true;
+            }
+        }
+        be.currentDrawPerTick = draw;
+        be.consumedLastTick = consumed;
+        if (!anyWorking) {
+            be.stopWork(level, pos, state);
+            return;
         }
         if (starvedNow != be.starvedLastTick) {
             be.starvedLastTick = starvedNow;
@@ -368,9 +408,9 @@ public class FurnaceBlockEntity extends BlockEntity
         return result.getCount() * (4 + yieldModules);
     }
 
-    private boolean canOutput(ItemStack result, int yieldModules) {
-        int prospective = (yieldQuarters + craftQuarters(result, yieldModules)) / 4;
-        ItemStack current = items.get(OUTPUT_SLOT);
+    private boolean canOutput(int column, ItemStack result, int yieldModules) {
+        int prospective = (yieldQuarters[column] + craftQuarters(result, yieldModules)) / 4;
+        ItemStack current = items.get(OUTPUT_FIRST + column);
         if (current.isEmpty()) {
             return prospective <= result.getMaxStackSize();
         }
@@ -378,16 +418,17 @@ public class FurnaceBlockEntity extends BlockEntity
                 && current.getCount() + prospective <= current.getMaxStackSize();
     }
 
-    private void craft(RecipeHolder<SmeltingRecipe> holder, ItemStack result, int yieldModules) {
-        yieldQuarters += craftQuarters(result, yieldModules);
-        int crafted = yieldQuarters / 4;
-        yieldQuarters %= 4;
-        items.get(INPUT_SLOT).shrink(1);
-        ItemStack current = items.get(OUTPUT_SLOT);
+    private void craft(int column, RecipeHolder<SmeltingRecipe> holder, ItemStack result,
+            int yieldModules) {
+        yieldQuarters[column] += craftQuarters(result, yieldModules);
+        int crafted = yieldQuarters[column] / 4;
+        yieldQuarters[column] %= 4;
+        items.get(INPUT_FIRST + column).shrink(1);
+        ItemStack current = items.get(OUTPUT_FIRST + column);
         if (current.isEmpty()) {
             ItemStack out = result.copy();
             out.setCount(crafted);
-            items.set(OUTPUT_SLOT, out);
+            items.set(OUTPUT_FIRST + column, out);
         } else {
             current.grow(crafted);
         }
@@ -398,7 +439,8 @@ public class FurnaceBlockEntity extends BlockEntity
     }
 
     private void stopWork(Level level, BlockPos pos, BlockState state) {
-        progress = 0;
+        java.util.Arrays.fill(progress, 0);
+        java.util.Arrays.fill(columnTime, 0);
         currentDrawPerTick = 0;
         consumedLastTick = 0;
         if (starvedLastTick) {
@@ -443,10 +485,15 @@ public class FurnaceBlockEntity extends BlockEntity
 
     /** Called when any slot changes while the furnace is off. */
     private void tryWake() {
-        if (level != null && !level.isClientSide
-                && !getBlockState().getValue(BlockStateProperties.LIT)
-                && !items.get(INPUT_SLOT).isEmpty()) {
-            level.setBlock(worldPosition, getBlockState().setValue(BlockStateProperties.LIT, true), 3);
+        if (level == null || level.isClientSide
+                || getBlockState().getValue(BlockStateProperties.LIT)) {
+            return;
+        }
+        for (int column = 0; column < PROCESS_SLOTS; column++) {
+            if (!items.get(INPUT_FIRST + column).isEmpty()) {
+                level.setBlock(worldPosition, getBlockState().setValue(BlockStateProperties.LIT, true), 3);
+                return;
+            }
         }
     }
 
@@ -469,7 +516,9 @@ public class FurnaceBlockEntity extends BlockEntity
     /** A neighbor changed (placed/removed/mutated): try to flow and wake. */
     public void onNeighborChanged() {
         if (level != null && !level.isClientSide) {
-            ItemFlow.pushOutput(level, worldPosition, this, OUTPUT_SLOT, faceConfig);
+            for (int column = 0; column < PROCESS_SLOTS; column++) {
+                ItemFlow.pushOutput(level, worldPosition, this, OUTPUT_FIRST + column, faceConfig);
+            }
             tryWake();
         }
     }
@@ -503,8 +552,12 @@ public class FurnaceBlockEntity extends BlockEntity
     @Override
     public boolean canPlaceItemThroughFace(int slot, ItemStack stack, Direction side) {
         // Automated insertion (hoppers, machine flow) only takes what this
-        // machine can actually smelt — players stay free in the GUI.
-        return slot == INPUT_SLOT && allowsItem(side, false) && isProcessable(stack);
+        // machine can actually smelt — players stay free in the GUI — and
+        // only into the column the distribution mode elects.
+        return slot >= INPUT_FIRST && slot < INPUT_FIRST + PROCESS_SLOTS
+                && allowsItem(side, false) && isProcessable(stack)
+                && slot == io.lakio.krios.industry.machine.InputDistribution.chooseColumn(
+                        this, INPUT_FIRST, activePhysicalColumns(), stack, inputBalance);
     }
 
     private boolean isProcessable(ItemStack stack) {
@@ -514,7 +567,7 @@ public class FurnaceBlockEntity extends BlockEntity
 
     @Override
     public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
-        return slot == OUTPUT_SLOT && allowsItem(side, true);
+        return slot >= OUTPUT_FIRST && slot < OUTPUT_FIRST + PROCESS_SLOTS && allowsItem(side, true);
     }
 
     @Override
@@ -563,7 +616,7 @@ public class FurnaceBlockEntity extends BlockEntity
 
     @Override
     public boolean canPlaceItem(int slot, ItemStack stack) {
-        return slot == INPUT_SLOT;
+        return slot >= INPUT_FIRST && slot < INPUT_FIRST + PROCESS_SLOTS;
     }
 
     @Override
@@ -605,8 +658,9 @@ public class FurnaceBlockEntity extends BlockEntity
         ContainerHelper.saveAllItems(tag, items, registries);
         energy.save(tag);
         faceConfig.save(tag);
-        tag.putInt("Progress", progress);
-        tag.putInt("YieldQuarters", yieldQuarters);
+        tag.putIntArray("Progress", progress.clone());
+        tag.putIntArray("YieldQuarters", yieldQuarters.clone());
+        tag.putBoolean("InputBalance", inputBalance);
     }
 
     @Override
@@ -615,7 +669,15 @@ public class FurnaceBlockEntity extends BlockEntity
         ContainerHelper.loadAllItems(tag, items, registries);
         energy.load(tag);
         faceConfig.load(tag);
-        progress = tag.getInt("Progress");
-        yieldQuarters = tag.getInt("YieldQuarters");
+        // Pre-parallel saves stored plain ints here: getIntArray answers
+        // empty and both arrays stay zeroed — a mid-craft op restarts.
+        loadColumns(tag.getIntArray("Progress"), progress);
+        loadColumns(tag.getIntArray("YieldQuarters"), yieldQuarters);
+        inputBalance = tag.getBoolean("InputBalance");
+    }
+
+    private static void loadColumns(int[] saved, int[] target) {
+        java.util.Arrays.fill(target, 0);
+        System.arraycopy(saved, 0, target, 0, Math.min(saved.length, target.length));
     }
 }

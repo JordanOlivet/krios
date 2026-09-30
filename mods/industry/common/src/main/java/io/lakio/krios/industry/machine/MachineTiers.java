@@ -17,8 +17,22 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class MachineTiers {
 
-    /** Throughput multiplier per effective tier: 1, 2, 4, 8. */
+    /**
+     * Generator throughput multiplier per effective tier: 1, 2, 4, 8 —
+     * rate AND burn speed together, so a fuel's total energy is constant.
+     */
     public static int speedFactor(int tier) {
+        return 1 << (tier - 1);
+    }
+
+    /**
+     * Parallel process columns per tier: 1, 2, 4, 8 (Mekanism-factory
+     * reference, settled 2026-09-30 evening). Processing machines gain
+     * COLUMNS with tiers, not speed — per-column pace stays the baseline
+     * (2x vanilla + modules) and energy per op is unchanged, so the park
+     * ratio holds while operations become visibly parallel.
+     */
+    public static int processSlots(int tier) {
         return 1 << (tier - 1);
     }
 

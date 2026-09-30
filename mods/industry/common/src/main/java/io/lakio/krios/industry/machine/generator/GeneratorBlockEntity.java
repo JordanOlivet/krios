@@ -46,11 +46,11 @@ public class GeneratorBlockEntity extends BlockEntity
     /** ~2 coals of reserve; a full generator idles unlit (ADR-012). */
     public static final int CAPACITY = 50_000;
     /**
-     * Energy scale (design 2026-09-30, revised after play â€” the strict
+     * Energy scale (design 2026-09-30, revised after play — the strict
      * vanilla-parity anchor starved everything): one generator feeds a
      * small machine park, 4 induction furnaces at full speed (4 E/t
      * each) or ~3 crushers. Burn time stays vanilla, so one coal
-     * (1600 ticks) = 25,600 E = 64 induction smelts â€” 8x its stone
+     * (1600 ticks) = 25,600 E = 64 induction smelts — 8x its stone
      * furnace value; that multiplier is the tech reward.
      */
     public static final int GENERATION_PER_TICK = 16;
@@ -256,7 +256,7 @@ public class GeneratorBlockEntity extends BlockEntity
 
     /**
      * Face contract for external energy extraction (FE/TRE adapters and the
-     * disconnected contact transfer). Only a MANUAL config restricts â€”
+     * disconnected contact transfer). Only a MANUAL config restricts —
      * virgin and auto-configured faces keep vanilla behavior (exposed).
      */
     public boolean allowsEnergyExtract(Direction side) {
@@ -266,7 +266,7 @@ public class GeneratorBlockEntity extends BlockEntity
     public static void serverTick(Level level, BlockPos pos, BlockState state, GeneratorBlockEntity be) {
         // Only reachable while LIT (the block registers no ticker otherwise).
         // Tier doubling: rate AND burn speed scale together, so a fuel's
-        // total energy never changes â€” higher tiers just deliver it faster.
+        // total energy never changes — higher tiers just deliver it faster.
         Network network = NetworkManager.networkOf(be);
         int factor = MachineTiers.speedFactor(
                 MachineTiers.effectiveTier(network, be.machineTier));
@@ -283,7 +283,7 @@ public class GeneratorBlockEntity extends BlockEntity
     /**
      * Proactive distribution (design: buffers fill as soon as energy
      * exists): while burning, the surplus streams into the network's sinks,
-     * or into touching consumers offline â€” idle machines charge without
+     * or into touching consumers offline — idle machines charge without
      * having to tick (ADR-012 stays intact: only the producer is awake).
      */
     private void distributeEnergy(Level level, BlockPos pos, Network network) {
@@ -370,7 +370,7 @@ public class GeneratorBlockEntity extends BlockEntity
         }
         // Burn cycles feed the KOIOS diversity window keyed by fuel item, so
         // varied fuels teach more than a coal monoculture. Reported to this
-        // machine's network controller â€” no controller, no learning.
+        // machine's network controller — no controller, no learning.
         Network network = NetworkManager.networkOf(this);
         if (network != null && network.controller() instanceof KoiosCoreBlockEntity core) {
             core.reportOperations(
@@ -392,7 +392,7 @@ public class GeneratorBlockEntity extends BlockEntity
     }
 
     /**
-     * A full generator idles unlit and resumes when a drain frees room â€”
+     * A full generator idles unlit and resumes when a drain frees room —
      * consumers poke it after pulling (v0 adjacency; the network's scheduled
      * wake-ups take over later).
      */

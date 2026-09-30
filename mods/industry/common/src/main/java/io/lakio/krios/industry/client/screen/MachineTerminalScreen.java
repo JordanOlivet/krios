@@ -23,6 +23,17 @@ public abstract class MachineTerminalScreen<T extends AbstractContainerMenu & Ma
     protected static final int WORK_CENTER_X = 128;
     private static final int VOICE_Y = 92;
 
+    // Input-distribution toggle, left of the process columns (machines
+    // with parallel columns only).
+    private static final int DIST_X = 82;
+    private static final int DIST_Y = 46;
+    private static final int DIST_SIZE = 14;
+
+    /** Machines with parallel process columns show the distribution toggle. */
+    protected boolean hasDistributionToggle() {
+        return false;
+    }
+
     // Energy gauge geometry: vertical on the left rail by default; the
     // generator overrides everything — its gauge is the showcase, a wide
     // horizontal bar across the top (agreed layout, kept through ADR-014).
@@ -126,6 +137,11 @@ public abstract class MachineTerminalScreen<T extends AbstractContainerMenu & Ma
                     Component.literal(menu.getEnergyStored() + " / " + menu.getEnergyCapacity() + " E"),
                     mouseX, mouseY);
         }
+        if (isDistributionToggleHit(mouseX, mouseY)) {
+            guiGraphics.renderTooltip(font, Component.translatable(menu.isInputBalance()
+                    ? "gui.krios_industry.distribution.balance"
+                    : "gui.krios_industry.distribution.fill_first"), mouseX, mouseY);
+        }
         renderTerminalOverlays(guiGraphics, mouseX, mouseY);
     }
 
@@ -164,12 +180,60 @@ public abstract class MachineTerminalScreen<T extends AbstractContainerMenu & Ma
             }
         }
         renderWork(guiGraphics);
+        if (hasDistributionToggle()) {
+            drawDistributionToggle(guiGraphics);
+        }
+    }
+
+    /**
+     * Input-distribution toggle: two mini input bars — fill first shows a
+     * full and an empty one, balance shows two half-filled equals.
+     */
+    private void drawDistributionToggle(GuiGraphics gui) {
+        int x = leftPos + DIST_X;
+        int y = topPos + DIST_Y;
+        gui.fill(x, y, x + DIST_SIZE, y + DIST_SIZE, 0xFF0C0E13);
+        gui.fill(x + 1, y + 1, x + DIST_SIZE - 1, y + DIST_SIZE - 1, 0xFF1B202A);
+        boolean balance = menu.isInputBalance();
+        // Left and right mini bars, filled from the bottom.
+        int leftFill = balance ? 5 : 10;
+        int rightFill = balance ? 5 : 0;
+        gui.fill(x + 3, y + 2, x + 6, y + 12, 0xFF262B35);
+        gui.fill(x + 8, y + 2, x + 11, y + 12, 0xFF262B35);
+        if (leftFill > 0) {
+            gui.fill(x + 3, y + 12 - leftFill, x + 6, y + 12, 0xFF31D8FF);
+        }
+        if (rightFill > 0) {
+            gui.fill(x + 8, y + 12 - rightFill, x + 11, y + 12, 0xFF31D8FF);
+        }
+    }
+
+    private boolean isDistributionToggleHit(double mouseX, double mouseY) {
+        int x = leftPos + DIST_X;
+        int y = topPos + DIST_Y;
+        return hasDistributionToggle() && mouseX >= x && mouseX < x + DIST_SIZE
+                && mouseY >= y && mouseY < y + DIST_SIZE;
     }
 
     /** 18x18 codex slot frame at absolute (x, y). */
     protected static void drawSlotFrame(GuiGraphics gui, int x, int y) {
         gui.fill(x, y, x + 18, y + 18, 0xFF0C0E13);
         gui.fill(x + 1, y + 1, x + 17, y + 17, 0xFF1B202A);
+    }
+
+    /**
+     * Vertical process-column bar (Mekanism-style): dim skeleton, cyan
+     * fill growing downward from input to output. x is the COLUMN's slot
+     * x (18px); the 6px bar centers itself.
+     */
+    protected static void drawColumnProgress(GuiGraphics gui, int x, int y, int height, int progress) {
+        int barX = x + 6;
+        gui.fill(barX, y, barX + 6, y + height, 0xFF262B35);
+        if (progress > 0) {
+            gui.fill(barX, y, barX + 6, y + Math.min(height, progress), 0xFF31D8FF);
+            gui.fill(barX, y + Math.min(height, progress) - 1, barX + 6,
+                    y + Math.min(height, progress), 0xFF9FF0FF);
+        }
     }
 
     /**
@@ -208,6 +272,11 @@ public abstract class MachineTerminalScreen<T extends AbstractContainerMenu & Ma
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (isCloseCrossHit(mouseX, mouseY)) {
             onClose();
+            return true;
+        }
+        if (isDistributionToggleHit(mouseX, mouseY)) {
+            minecraft.gameMode.handleInventoryButtonClick(menu.containerId,
+                    MachineMenu.BUTTON_TOGGLE_DISTRIBUTION);
             return true;
         }
         for (AnnexPanel panel : annexPanels()) {

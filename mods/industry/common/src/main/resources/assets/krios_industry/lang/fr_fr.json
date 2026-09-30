@@ -52,6 +52,8 @@
   "item.krios_industry.upgrade_kit_tier2.use": "Clic droit sur une machine : amélioration sur place, config et contenu conservés",
   "gui.krios_industry.upgrade_kit.done": "Machine améliorée au tier %s",
   "gui.krios_industry.upgrade_kit.wrong_tier": "Ce kit tier %s demande une machine tier %s",
+  "gui.krios_industry.distribution.fill_first": "Distribution des entrées : remplir la première colonne, puis la suivante",
+  "gui.krios_industry.distribution.balance": "Distribution des entrées : répartir équitablement entre les colonnes",
   "gui.krios_industry.koios.diversity": "Variété des opérations : %s %%",
   "gui.krios_industry.koios.fault_detail": "Plusieurs cœurs sur un même réseau",
   "gui.krios_industry.koios.fault_title": "ERREUR RÉSEAU",

@@ -11,8 +11,6 @@ import net.minecraft.world.item.ItemStack;
 
 public class FurnaceScreen extends MachineTerminalScreen<FurnaceMenu> {
 
-    private static final int ARROW_X = 120;
-    private static final int ARROW_Y = 47;
 
     private final HologramFacePanel facePanel = new HologramFacePanel(
             HologramFacePanel.columnsFor(FurnaceBlockEntity.SUPPORTED_FACE_BITS));
@@ -22,11 +20,10 @@ public class FurnaceScreen extends MachineTerminalScreen<FurnaceMenu> {
 
     // Module effects are visible container slots — no extra sync needed.
     private final StatsPanel statsPanel = new StatsPanel(
+            // Per-column pace: tiers add COLUMNS, modules add speed.
             new StatsPanel.Row(StatsPanel.Icon.SPEED,
                     () -> Component.literal("×" + String.format("%.1f",
-                            (2 + moduleCount(ModuleType.SPEED)) / 2.0
-                                    * io.lakio.krios.industry.machine.MachineTiers
-                                            .speedFactor(menu.getEffectiveTier()))),
+                            (2 + moduleCount(ModuleType.SPEED)) / 2.0)),
                     Component.translatable("gui.krios_industry.stats.speed")),
             new StatsPanel.Row(StatsPanel.Icon.ENERGY_MULT,
                     () -> Component.literal("×" + new String[]{"1.0", "0.8", "0.64"}
@@ -72,16 +69,28 @@ public class FurnaceScreen extends MachineTerminalScreen<FurnaceMenu> {
     }
 
     @Override
+    protected boolean hasDistributionToggle() {
+        return true;
+    }
+
+    @Override
     protected void renderWork(GuiGraphics guiGraphics) {
-        drawProgressArrow(guiGraphics, leftPos + ARROW_X, topPos + ARROW_Y, menu.getProgress(22));
+        // One vertical bar per active process column (parallel columns).
+        for (int column = 0; column < menu.activeColumns(); column++) {
+            drawColumnProgress(guiGraphics, leftPos + FurnaceMenu.PROCESS_COL_X[column],
+                    topPos + FurnaceMenu.PROCESS_BAR_Y, FurnaceMenu.PROCESS_BAR_H,
+                    menu.getColumnProgress(column, FurnaceMenu.PROCESS_BAR_H));
+        }
     }
 
     @Override
     protected Component workingPhrase() {
-        ItemStack input = menu.getSlot(0).getItem();
-        if (menu.isWorking() && !input.isEmpty()) {
-            return Component.translatable("gui.krios_industry.voice.furnace.working",
-                    input.getHoverName());
+        for (int column = 0; column < menu.activeColumns(); column++) {
+            ItemStack input = menu.getSlot(column).getItem();
+            if (menu.isColumnWorking(column) && !input.isEmpty()) {
+                return Component.translatable("gui.krios_industry.voice.furnace.working",
+                        input.getHoverName());
+            }
         }
         return null;
     }

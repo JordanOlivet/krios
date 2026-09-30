@@ -209,6 +209,29 @@ The tier system, settled ahead of the tier 2 slice. One rule founds everything:
 
 - The breakthrough unlocks the next stretch of the curve. Tier 2: **N6/N7/N8 unlock the Mk II modules** (Speed II, Efficiency II, Yield II; the new energy-production module slots into this ladder — placement decided at the numbers pass), **N9 = critical toward tier 3**. `levelForXp` stays monotonic; the KoiosData component gains the core's tier.
 
+### Parallel processing slots (settled 2026-09-30, evening)
+
+- **For processing machines, a tier brings SLOTS, not speed** (Mekanism
+  factory reference): **1 / 2 / 4 / 8** parallel process columns at
+  t1/t2/t3/t4 — powers of two, per the doubling invariant. Each column
+  runs at the baseline pace (2× vanilla + shared modules); speed gains
+  beyond that are the modules' job. Energy per operation is unchanged —
+  draw scales naturally with active columns, so the macro-economy is
+  identical to a speed doubling (a fully loaded Mk II furnace pulls
+  8 E/t; the park ratio holds) while reading as visible parallel
+  operations (the batch pillar, on screen).
+- The min rule gates the ACTIVE columns: a Mk II machine on a tier 1
+  core processes on one column; the machine's own tier gates which
+  slots exist physically (fillable). Generators are not processors:
+  they keep the rate/burn-speed doubling (and the solar panel follows).
+- UI: vertical columns (input → progress → output) in the terminals'
+  reserved work center, Mekanism-style; px iteration from screenshots.
+- Noted for later, not designed: a core-UI slot returns with the
+  network item link (AE2 wireless-terminal style); a module-system
+  rework (Mekanism-style mixed modules with per-type caps) is on the
+  user's mind but not settled — the current system is not fully
+  satisfying either.
+
 ### Energy across tiers
 
 - **A fuel's energy value is constant across tiers** (one coal = 25,600 E, always — the 2026-09-30 energy scale holds). A higher-tier generator produces more E/t by **burning faster**, plus a larger buffer, plus **module slots** (the generator stops being deliberately boring at tier 2).

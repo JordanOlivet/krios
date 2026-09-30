@@ -16,8 +16,8 @@ import net.minecraft.world.item.ItemStack;
 
 public class CrusherMenu extends AbstractContainerMenu implements MachineMenu {
 
-    /** 0..3 machine values + 6 face shorts + status + pos (5) + draw + starved. */
-    public static final int DATA_COUNT = 20;
+    /** Machine values + faces + status + pos + draw/starved + tiers + column 2 + distribution. */
+    public static final int DATA_COUNT = 23;
 
     private final Container container;
     private final ContainerData data;
@@ -40,14 +40,19 @@ public class CrusherMenu extends AbstractContainerMenu implements MachineMenu {
         this.container = container;
         this.data = data;
 
-        // 256-wide codex terminal layout (MachineTerminalScreen).
-        addSlot(new Slot(container, CrusherBlockEntity.INPUT_SLOT, 98, 46));
-        addSlot(new Slot(container, CrusherBlockEntity.OUTPUT_SLOT, 148, 46) {
-            @Override
-            public boolean mayPlace(ItemStack stack) {
-                return false;
-            }
-        });
+        // Process columns (Mekanism-style, vertical): input on top, output
+        // below, one pair per column. Columns beyond the machine's tier are
+        // inert and hidden via Slot#isActive (the module-bay trick). All
+        // inputs first so menu indices mirror the container layout and the
+        // shift-click ranges stay contiguous.
+        for (int column = 0; column < CrusherBlockEntity.PROCESS_SLOTS; column++) {
+            addSlot(new ProcessSlot(container, CrusherBlockEntity.INPUT_FIRST + column,
+                    PROCESS_COL_X[column], PROCESS_IN_Y, column, true));
+        }
+        for (int column = 0; column < CrusherBlockEntity.PROCESS_SLOTS; column++) {
+            addSlot(new ProcessSlot(container, CrusherBlockEntity.OUTPUT_FIRST + column,
+                    PROCESS_COL_X[column], PROCESS_OUT_Y, column, false));
+        }
         for (int i = 0; i < CrusherBlockEntity.MODULE_SLOT_COUNT; i++) {
             addSlot(new ModuleSlot(container, CrusherBlockEntity.MODULE_SLOT_FIRST + i,
                     MODULE_SLOT_X, MODULE_SLOT_Y + i * MODULE_SLOT_STEP));
@@ -85,7 +90,7 @@ public class CrusherMenu extends AbstractContainerMenu implements MachineMenu {
                 if (!moveItemStackTo(stack, MODULE_SLOT_START, PLAYER_START, false)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (!moveItemStackTo(stack, CrusherBlockEntity.INPUT_SLOT, 1, false)) {
+            } else if (!moveToInputs(stack)) {
                 return ItemStack.EMPTY;
             }
             if (stack.isEmpty()) {
@@ -95,6 +100,72 @@ public class CrusherMenu extends AbstractContainerMenu implements MachineMenu {
             }
         }
         return result;
+    }
+
+    /** Columns this machine physically has (menu visibility + routing). */
+    public int activeColumns() {
+        return Math.min(CrusherBlockEntity.PROCESS_SLOTS,
+                io.lakio.krios.industry.machine.MachineTiers.processSlots(getMachineTier()));
+    }
+
+    /** Input distribution mode (synced); false = fill first (default). */
+    @Override
+    public boolean isInputBalance() {
+        return data.get(22) != 0;
+    }
+
+    /**
+     * Shift-click routing honoring the distribution mode: one elected
+     * column at a time (item by item in balance mode, so the spread stays
+     * even) — hoppers and players behave identically.
+     */
+    private boolean moveToInputs(ItemStack stack) {
+        boolean moved = false;
+        while (!stack.isEmpty()) {
+            int slot = io.lakio.krios.industry.machine.InputDistribution.chooseColumn(
+                    container, CrusherBlockEntity.INPUT_FIRST, activeColumns(), stack, isInputBalance());
+            if (slot < 0) {
+                break;
+            }
+            if (!isInputBalance()) {
+                if (!moveItemStackTo(stack, slot, slot + 1, false)) {
+                    break;
+                }
+                moved = true;
+                continue;
+            }
+            ItemStack unit = stack.copyWithCount(1);
+            if (moveItemStackTo(unit, slot, slot + 1, false) && unit.isEmpty()) {
+                stack.shrink(1);
+                moved = true;
+            } else {
+                break;
+            }
+        }
+        return moved;
+    }
+
+    /** A process column's input or output; hidden past the machine's tier. */
+    private class ProcessSlot extends Slot {
+
+        private final int column;
+        private final boolean input;
+
+        ProcessSlot(Container container, int slot, int x, int y, int column, boolean input) {
+            super(container, slot, x, y);
+            this.column = column;
+            this.input = input;
+        }
+
+        @Override
+        public boolean mayPlace(ItemStack stack) {
+            return input && column < activeColumns();
+        }
+
+        @Override
+        public boolean isActive() {
+            return column < activeColumns();
+        }
     }
 
     /**
@@ -151,14 +222,21 @@ public class CrusherMenu extends AbstractContainerMenu implements MachineMenu {
         return false;
     }
 
-    /** 0..width pixels of crushing progress (arrow). */
-    public int getProgress(int width) {
-        int total = Math.max(1, data.get(1));
-        return Math.min(width, data.get(0) * width / total);
+    /** 0..width pixels of a column's crushing progress (vertical bar). */
+    public int getColumnProgress(int column, int width) {
+        int base = column == 0 ? 0 : 20;
+        int total = Math.max(1, data.get(base + 1));
+        return Math.min(width, data.get(base) * width / total);
+    }
+
+    /** A column is mid-recipe (bar visible / voice line). */
+    public boolean isColumnWorking(int column) {
+        int base = column == 0 ? 0 : 20;
+        return data.get(base) > 0;
     }
 
     public boolean isWorking() {
-        return data.get(0) > 0;
+        return isColumnWorking(0) || isColumnWorking(1);
     }
 
     /** 0..width pixels of stored energy (gauge). */

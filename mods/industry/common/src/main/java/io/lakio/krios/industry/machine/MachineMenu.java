@@ -19,6 +19,28 @@ public interface MachineMenu {
     int MODULE_SLOT_Y = 109;
     int MODULE_SLOT_STEP = 22;
 
+    /**
+     * Process column geometry (Mekanism-style vertical columns in the work
+     * center: input on top, progress bar, output below). Shared by the
+     * crusher/furnace menus and screens; indexes follow the column order.
+     */
+    int[] PROCESS_COL_X = {105, 135};
+    int PROCESS_IN_Y = 26;
+    int PROCESS_OUT_Y = 64;
+    int PROCESS_BAR_Y = 47;
+    int PROCESS_BAR_H = 14;
+
+    /**
+     * Vanilla menu-button id (outside the face channel, faces use 0..95)
+     * toggling the input distribution between fill-first and balance.
+     */
+    int BUTTON_TOGGLE_DISTRIBUTION = 100;
+
+    /** Input distribution mode (synced); false = fill first (default). */
+    default boolean isInputBalance() {
+        return false;
+    }
+
     /** Raw face-config bits for face 0..5 (decode via FaceConfig statics). */
     int faceBits(int face);
 

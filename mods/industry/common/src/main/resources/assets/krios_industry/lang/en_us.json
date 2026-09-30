@@ -52,6 +52,8 @@
   "item.krios_industry.upgrade_kit_tier2.use": "Right-click a machine: upgrade it in place, config and contents kept",
   "gui.krios_industry.upgrade_kit.done": "Machine upgraded to tier %s",
   "gui.krios_industry.upgrade_kit.wrong_tier": "This tier %s kit needs a tier %s machine",
+  "gui.krios_industry.distribution.fill_first": "Input distribution: fill the first column, then the next",
+  "gui.krios_industry.distribution.balance": "Input distribution: spread evenly across columns",
   "gui.krios_industry.koios.diversity": "Operation variety: %s%%",
   "gui.krios_industry.koios.fault_detail": "Multiple cores on one network",
   "gui.krios_industry.koios.fault_title": "NETWORK ERROR",
