@@ -199,8 +199,9 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
         float v0 = (48 + (frame * 5) % 8) / ATLAS;
         float alpha = 0.6F + 0.3F * ((frame % 4) / 3F);
         quad(pose, vc, -1.5F, -1.5F, 3F, 3F, Z_STATIC, 0, v0, 48 / ATLAS, v0 + 8 / ATLAS, 1, 1, 1, alpha);
-        // Activity LED goes red and blinks hard on a fault.
-        quad(pose, vc, 1.19F, -1.37F, 0.10F, 0.10F, Z_FEATURES,
+        // Activity LED goes red and blinks hard on a fault (same spot as
+        // the calm dot: harmonized 0.13 pulse-state margin, shared center).
+        quad(pose, vc, 1.24F, -1.34F, 0.10F, 0.10F, Z_FEATURES,
                 56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.9F, 0.28F, 0.30F, frame % 10 < 5 ? 0.95F : 0.35F);
         // Red panel: bright border quad below a darker inner quad.
         quad(pose, vc, -1.35F, -0.7F, 2.7F, 1.4F, Z_FLASH,
@@ -311,12 +312,14 @@ public class KoiosCoreRenderer implements BlockEntityRenderer<KoiosCoreBlockEnti
         // learning pulse plays (blink replacement — stable geometry). Pulses
         // aggregate server-side (max ~1/s); the batch size stretches the
         // flash so a busy factory reads busier without extra events.
+        // Harmonized 0.13 margin to the screen's right and bottom edges in
+        // the pulse state; the calm dot shares the same center.
         if (pulseT < PULSE_TICKS + Math.min(core.getClientPulseOps() - 1, PULSE_MAX_EXTRA_TICKS)) {
-            quad(pose, vc, 1.16F, -1.40F, 0.16F, 0.16F, Z_FEATURES,
+            quad(pose, vc, 1.21F, -1.37F, 0.16F, 0.16F, Z_FEATURES,
                     56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.62F, 0.94F, 1F, 1F);
         } else {
             float ledA = 0.45F + 0.35F * Mth.sin(time * 0.3F);
-            quad(pose, vc, 1.19F, -1.37F, 0.10F, 0.10F, Z_FEATURES,
+            quad(pose, vc, 1.24F, -1.34F, 0.10F, 0.10F, Z_FEATURES,
                     56 / ATLAS, 0, 64 / ATLAS, 8 / ATLAS, 0.19F, 0.85F, 1F, ledA);
         }
 
