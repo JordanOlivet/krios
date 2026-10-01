@@ -22,8 +22,12 @@ public class KriosIndustry implements ModInitializer {
         // access (complete contract); virgin faces stay exposed.
         EnergyStorage.SIDED.registerForBlockEntity(
                 (generator, direction) -> direction == null || generator.allowsEnergyExtract(direction)
-                        ? new ExtractOnlyEnergyAdapter(generator) : null,
+                        ? new ExtractOnlyEnergyAdapter(generator.getEnergy(), generator::setChanged) : null,
                 ModBlockEntities.GENERATOR.get());
+        // Solar panel: no face config (v1 scope), every side is extractable.
+        EnergyStorage.SIDED.registerForBlockEntity(
+                (solar, direction) -> new ExtractOnlyEnergyAdapter(solar.getEnergy(), solar::setChanged),
+                ModBlockEntities.SOLAR_PANEL.get());
         // Ore veins: features/placements are datapack JSONs in common; only
         // the biome injection is loader code (NeoForge does it via a
         // biome_modifier JSON instead).

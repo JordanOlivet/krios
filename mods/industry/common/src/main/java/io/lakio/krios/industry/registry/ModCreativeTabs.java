@@ -23,6 +23,7 @@ public final class ModCreativeTabs {
                         output.accept(ModBlocks.DEEPSLATE_NEURITE_ORE.get());
                         output.accept(ModBlocks.GENERATOR.get());
                         output.accept(ModBlocks.GENERATOR_TIER2.get());
+                        output.accept(ModBlocks.SOLAR_PANEL.get());
                         output.accept(ModBlocks.CRUSHER.get());
                         output.accept(ModBlocks.CRUSHER_TIER2.get());
                         output.accept(ModBlocks.FURNACE.get());

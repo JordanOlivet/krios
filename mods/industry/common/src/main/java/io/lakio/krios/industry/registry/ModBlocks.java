@@ -60,6 +60,16 @@ public final class ModBlocks {
     public static final Supplier<Block> GENERATOR_TIER2 = registerWithItem("generator_tier2",
             () -> new GeneratorBlock(machineProperties(12), 2));
 
+    public static final Supplier<Block> SOLAR_PANEL = registerWithItem("solar_panel",
+            () -> new io.lakio.krios.industry.machine.solar.SolarPanelBlock(
+                    BlockBehaviour.Properties.of()
+                            .mapColor(MapColor.METAL)
+                            .requiresCorrectToolForDrops()
+                            .strength(3.0F, 4.0F)
+                            .sound(SoundType.METAL)
+                            // Low slab silhouette (design 2026-10-01).
+                            .noOcclusion()));
+
     public static final Supplier<Block> CRUSHER = registerWithItem("crusher",
             () -> new CrusherBlock(machineProperties(9), 1));
 

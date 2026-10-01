@@ -393,6 +393,45 @@ def crusher_maw(lit, frame=0):
     return img
 
 
+def solar_panel_top():
+    """Photovoltaic cell grid: 3x3 cyan cells in a gunmetal frame, one
+    amber status pip bottom-right. Flat slab top (solar_panel.json)."""
+    img = Img(16, 16)
+    img.noise_rect(0, 0, 16, 16, METAL, 3, 91)
+    img.outline(0, 0, 16, 16, METAL_EDGE)
+    for cy in range(3):
+        for cx in range(3):
+            x = 1 + cx * 5
+            y = 1 + cy * 5
+            img.rect(x, y, 4, 4, CYAN_DIM)
+            img.rect(x, y, 4, 1, CYAN)
+            img.set(x + 3, y, CYAN_HI)
+            img.set(x, y + 3, SCREEN)
+    img.set(14, 14, ENERGY)
+    return img
+
+
+def solar_panel_side():
+    """Only rows 12-15 show (the 4px slab band in solar_panel.json):
+    cell layer edge-on over the metal skirt."""
+    img = Img(16, 16)
+    img.rect(0, 12, 16, 4, METAL)
+    img.rect(0, 12, 16, 1, CYAN_DIM)
+    img.rect(0, 13, 16, 1, METAL_EDGE)
+    img.rect(0, 15, 16, 1, JOINT)
+    for x in (3, 12):
+        img.set(x, 14, METAL_EDGE)
+    return img
+
+
+def solar_panel_bottom():
+    img = Img(16, 16)
+    img.noise_rect(0, 0, 16, 16, JOINT, 3, 93)
+    img.outline(0, 0, 16, 16, METAL_EDGE)
+    img.outline(4, 4, 8, 8, METAL_EDGE)
+    return img
+
+
 def stack_frames(frames):
     """Vertical strip for a vanilla animated texture (+ .mcmeta)."""
     img = Img(16, 16 * len(frames))
@@ -823,6 +862,9 @@ def main():
         "block/crusher_maw.png": crusher_maw(False),
         "block/crusher_maw_lit.png": stack_frames([crusher_maw(True, f) for f in range(3)]),
         "block/neural_conduit.png": neural_conduit(),
+        "block/solar_panel_top.png": solar_panel_top(),
+        "block/solar_panel_side.png": solar_panel_side(),
+        "block/solar_panel_bottom.png": solar_panel_bottom(),
         "block/neurite_ore.png": ore(VANILLA_STONE_PX, CYAN, CYAN_HI, CYAN_DIM),
         "block/deepslate_neurite_ore.png": ore(VANILLA_DEEPSLATE_PX, CYAN, CYAN_HI, CYAN_DIM),
         "block/chronite_ore.png": ore(VANILLA_STONE_PX, ENERGY, ENERGY_HI, COPPER_D),

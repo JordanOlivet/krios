@@ -21,6 +21,11 @@ public final class ModBlockEntities {
             () -> Services.REGISTRAR.createBlockEntityType(GeneratorBlockEntity::new,
                     ModBlocks.GENERATOR.get(), ModBlocks.GENERATOR_TIER2.get()));
 
+    public static final Supplier<BlockEntityType<io.lakio.krios.industry.machine.solar.SolarPanelBlockEntity>> SOLAR_PANEL =
+            register("solar_panel", () -> Services.REGISTRAR.createBlockEntityType(
+                    io.lakio.krios.industry.machine.solar.SolarPanelBlockEntity::new,
+                    ModBlocks.SOLAR_PANEL.get()));
+
     public static final Supplier<BlockEntityType<CrusherBlockEntity>> CRUSHER = register("crusher",
             () -> Services.REGISTRAR.createBlockEntityType(CrusherBlockEntity::new,
                     ModBlocks.CRUSHER.get(), ModBlocks.CRUSHER_TIER2.get()));

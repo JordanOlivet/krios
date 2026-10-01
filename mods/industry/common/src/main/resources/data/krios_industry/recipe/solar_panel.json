@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "GGG",
+    "NPN",
+    "SIS"
+  ],
+  "key": {
+    "G": { "tag": "c:glass_blocks" },
+    "N": { "item": "krios_industry:neurite_ingot" },
+    "P": { "item": "krios_industry:compute_chip" },
+    "S": { "item": "krios_industry:chronite_shard" },
+    "I": { "tag": "c:ingots/iron" }
+  },
+  "result": { "id": "krios_industry:solar_panel", "count": 1 }
+}

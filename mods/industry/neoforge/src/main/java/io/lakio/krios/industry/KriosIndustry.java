@@ -36,6 +36,9 @@ public class KriosIndustry {
         event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ModBlockEntities.GENERATOR.get(),
                 (generator, side) -> side == null || generator.allowsEnergyExtract(side)
                         ? new ExtractOnlyEnergyStorage(generator.getEnergy()) : null);
+        // Solar panel: no face config (v1 scope), every side is extractable.
+        event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ModBlockEntities.SOLAR_PANEL.get(),
+                (solar, side) -> new ExtractOnlyEnergyStorage(solar.getEnergy()));
     }
 
     /** FE view of the internal buffer: neighbors may pull, never push. */
