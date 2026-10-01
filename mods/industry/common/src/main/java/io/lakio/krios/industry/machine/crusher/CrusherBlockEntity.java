@@ -10,6 +10,7 @@ import io.lakio.krios.industry.machine.TieredMachine;
 import io.lakio.krios.industry.network.EnergySink;
 import io.lakio.krios.industry.network.FaceConfig;
 import io.lakio.krios.industry.network.Flow;
+import io.lakio.krios.industry.network.ItemSink;
 import io.lakio.krios.industry.network.Network;
 import io.lakio.krios.industry.network.NetworkManager;
 import io.lakio.krios.industry.network.NetworkNode;
@@ -43,7 +44,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 public class CrusherBlockEntity extends BlockEntity
-        implements WorldlyContainer, MenuProvider, NetworkNode, EnergySink,
+        implements WorldlyContainer, MenuProvider, NetworkNode, EnergySink, ItemSink,
         io.lakio.krios.industry.machine.ConfigurableFaces,
         io.lakio.krios.industry.machine.EnergyStats {
 
@@ -182,6 +183,8 @@ public class CrusherBlockEntity extends BlockEntity
         }
         setChanged();
         syncFacesToClients();
+        // A manual item face may just have appeared: enter the wake chain.
+        ItemFlow.scheduleWake(level, worldPosition, faceConfig);
         return true;
     }
 
@@ -532,7 +535,36 @@ public class CrusherBlockEntity extends BlockEntity
                 ItemFlow.pushOutput(level, worldPosition, this, OUTPUT_FIRST + column, faceConfig);
             }
             tryWake();
+            ItemFlow.scheduleWake(level, worldPosition, faceConfig);
         }
+    }
+
+    /** Network batch delivery (tier 2 transport): same discipline as hoppers. */
+    @Override
+    public int insertNetworkItems(ItemStack stack, int max) {
+        return level == null ? 0
+                : ItemFlow.insertFromNetwork(level, worldPosition, this, this, stack, max);
+    }
+
+    /**
+     * Scheduled wake (ADR-017): service the manual item faces — push
+     * leftover outputs, pull one batch — then keep the chain alive.
+     */
+    public void scheduledWake() {
+        if (level == null || level.isClientSide) {
+            return;
+        }
+        for (int column = 0; column < PROCESS_SLOTS; column++) {
+            ItemFlow.pushOutput(level, worldPosition, this, OUTPUT_FIRST + column, faceConfig);
+        }
+        ItemFlow.pullIntoMachine(level, worldPosition, this, faceConfig, pullBatch());
+        ItemFlow.scheduleWake(level, worldPosition, faceConfig);
+    }
+
+    /** Pull batch from passive containers: base x effective-tier factor. */
+    private int pullBatch() {
+        return KoiosBalance.ITEM_PULL_BATCH_BASE * MachineTiers.speedFactor(
+                MachineTiers.effectiveTier(NetworkManager.networkOf(this), machineTier));
     }
 
     // --- MenuProvider ---

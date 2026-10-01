@@ -156,4 +156,13 @@ public class GeneratorBlock extends BaseEntityBlock
             generator.onNeighborChanged();
         }
     }
+
+    /** Scheduled wake-up (ADR-017): poll the manual item-in faces for fuel. */
+    @Override
+    protected void tick(BlockState state, net.minecraft.server.level.ServerLevel level,
+            BlockPos pos, RandomSource random) {
+        if (level.getBlockEntity(pos) instanceof GeneratorBlockEntity generator) {
+            generator.scheduledWake();
+        }
+    }
 }

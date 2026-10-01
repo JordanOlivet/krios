@@ -153,4 +153,13 @@ public class FurnaceBlock extends BaseEntityBlock
             furnace.onNeighborChanged();
         }
     }
+
+    /** Scheduled wake-up (ADR-017): service the manual item faces. */
+    @Override
+    protected void tick(BlockState state, net.minecraft.server.level.ServerLevel level,
+            BlockPos pos, RandomSource random) {
+        if (level.getBlockEntity(pos) instanceof FurnaceBlockEntity furnace) {
+            furnace.scheduledWake();
+        }
+    }
 }

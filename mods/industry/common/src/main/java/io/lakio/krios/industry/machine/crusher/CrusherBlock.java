@@ -155,4 +155,13 @@ public class CrusherBlock extends BaseEntityBlock
             crusher.onNeighborChanged();
         }
     }
+
+    /** Scheduled wake-up (ADR-017): service the manual item faces. */
+    @Override
+    protected void tick(BlockState state, net.minecraft.server.level.ServerLevel level,
+            BlockPos pos, RandomSource random) {
+        if (level.getBlockEntity(pos) instanceof CrusherBlockEntity crusher) {
+            crusher.scheduledWake();
+        }
+    }
 }

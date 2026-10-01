@@ -59,6 +59,14 @@ public final class KoiosBalance {
     public static final int DISCONNECTED_TIME_TICKS = 200;
 
     /**
+     * Items pulled from an adjacent passive container per scheduled wake
+     * (~1.5 s, ADR-017), times the effective-tier speed factor — 8/16/32/64.
+     * The only transport number: machine-to-machine batches are the
+     * produced lot, uncapped (design 2026-10-01).
+     */
+    public static final int ITEM_PULL_BATCH_BASE = 8;
+
+    /**
      * Search radius of the /koios admin command (nearest active core). XP
      * reporting itself goes through the network graph, not a radius.
      */

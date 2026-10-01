@@ -143,6 +143,15 @@ User-facing commands root at the modid — `/krios_industry config`, `/krios_ind
 
 - Deferred: a shared `/krios <mod> ...` ecosystem root once a second mod ships — Brigadier merges same-name literals, so each mod can graft its section; permission checks must then sit on the mod-section nodes, not the shared root.
 
+## ADR-017 — Scheduled wake-ups ride vanilla scheduled block ticks
+
+**Date**: 2026-10-01 · **Status**: accepted
+
+ADR-012's tickless idle always promised "scheduled wake-ups" for the few jobs that must poll a passive neighbor — first client: pulling items from an adjacent chest (item transport, tier 2). The mechanism is the vanilla scheduler: `Level.scheduleTick(pos, block, delay)` + `BlockBehaviour.tick`. It is per-block, allocation-free, **persisted with the chunk save** (a pending wake survives save/load for free), and costs exactly zero for every machine that has no manual item face.
+
+- Only machines with at least one MANUAL item face reschedule (~30 ticks); the chain is entered from player actions (face-config edits, neighbor changes) and from the wake itself — never from chunk load, where tick scheduling is unsafe; persistence of pending ticks covers reloads.
+- Rejected: a custom per-level wake queue (same semantics, more code, not persisted) and any always-on ticker (ADR-012).
+
 ## Open questions
 
 *(none — next ones will come from design work)*

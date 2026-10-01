@@ -140,6 +140,8 @@ public class GeneratorBlockEntity extends BlockEntity
         }
         setChanged();
         syncFacesToClients();
+        // A manual item face may just have appeared: enter the wake chain.
+        io.lakio.krios.industry.machine.ItemFlow.scheduleWake(level, worldPosition, faceConfig);
         return true;
     }
 
@@ -323,7 +325,22 @@ public class GeneratorBlockEntity extends BlockEntity
         if (level != null && !level.isClientSide) {
             tryResume();
             tryIgnite();
+            io.lakio.krios.industry.machine.ItemFlow.scheduleWake(level, worldPosition, faceConfig);
         }
+    }
+
+    /**
+     * Scheduled wake (ADR-017): poll the manual item-in faces for fuel —
+     * setItem relights the burner — then keep the chain alive.
+     */
+    public void scheduledWake() {
+        if (level == null || level.isClientSide) {
+            return;
+        }
+        io.lakio.krios.industry.machine.ItemFlow.pullIntoSlot(level, worldPosition, this, 0,
+                faceConfig, KoiosBalance.ITEM_PULL_BATCH_BASE * MachineTiers.speedFactor(
+                        MachineTiers.effectiveTier(NetworkManager.networkOf(this), machineTier)));
+        io.lakio.krios.industry.machine.ItemFlow.scheduleWake(level, worldPosition, faceConfig);
     }
 
     // --- Energy diagnostics (Calibrator, KOIOS alerts) ---

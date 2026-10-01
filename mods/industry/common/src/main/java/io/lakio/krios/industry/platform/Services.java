@@ -1,6 +1,7 @@
 package io.lakio.krios.industry.platform;
 
 import io.lakio.krios.industry.Constants;
+import io.lakio.krios.industry.platform.services.IItemAccess;
 import io.lakio.krios.industry.platform.services.IPlatformHelper;
 import io.lakio.krios.industry.platform.services.IRegistrar;
 
@@ -13,6 +14,7 @@ public class Services {
 
     public static final IPlatformHelper PLATFORM = load(IPlatformHelper.class);
     public static final IRegistrar REGISTRAR = load(IRegistrar.class);
+    public static final IItemAccess ITEMS = load(IItemAccess.class);
 
     public static <T> T load(Class<T> clazz) {
 
