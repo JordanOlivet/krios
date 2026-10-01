@@ -33,8 +33,9 @@ The fiction: machines do not merely process matter — they compress time around
 
 | Mod | Working name | Scope | Status |
 |---|---|---|---|
-| **Krios: Industry** | `krios_industry` | Machines, energy generation, new ores, processing/yield chains, speed upgrades | **MVP — in design** |
-| Krios: Storage | `krios_storage` | Digital storage & logistics network (AE2-like) | idea |
+| **Krios: Core** | `krios_core` | The spine: network engine, KOIOS, face contracts, backbone conduit, Calibrator, signature ores, Codex/UI/config infrastructure | **architecture settled (ADR-018), extraction pending** |
+| **Krios: Industry** | `krios_industry` | Machines, energy generation, processing/yield chains, modules & upgrade kits | **MVP — in design** |
+| Krios: Storage | `krios_storage` | Transport cable & run routing, then digital storage & logistics (AE2-like) | opening brief consigned (2026-10-01) |
 | Krios: Exo | `krios_exo` | Upgradeable modular futuristic armor | idea |
 | Krios: Void | `krios_void` | Space exploration (No Man's Sky / EverSpace / Starsector inspiration) | idea |
 | Krios: Construct | `krios_construct` | Futuristic building blocks with function (force-field doors, …) | idea |
@@ -42,7 +43,7 @@ The fiction: machines do not merely process matter — they compress time around
 
 Energy generation ships inside **Krios: Industry** for now; it may split into its own mod later if it grows enough.
 
-The shared library (`libs/core`, working name `krios_core`) hosts what every mod needs: energy abstraction over FE/TRE, registration helpers, batch-processing engine, config/datapack utilities, KOIOS UI language (holograms, data aesthetic).
+~~The shared library (`libs/core`, working name `krios_core`) hosts what every mod needs~~ — revised 2026-10-01 (ADR-018): `krios_core` is a standalone **content mod**, not an embedded library — it owns KOIOS, the network, the face contracts, the backbone conduit, the Calibrator and the signature ores, plus the shared infrastructure (energy abstraction over FE/TRE, registration helpers, config/datapack utilities, the KOIOS UI language). Every content mod hard-depends on it; KOIOS tiers are the ecosystem's shared progression spine.
 
 ## Naming conventions
 

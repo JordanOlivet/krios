@@ -152,6 +152,29 @@ ADR-012's tickless idle always promised "scheduled wake-ups" for the few jobs th
 - Only machines with at least one MANUAL item face reschedule (~30 ticks); the chain is entered from player actions (face-config edits, neighbor changes) and from the wake itself — never from chunk load, where tick scheduling is unsafe; persistence of pending ticks covers reloads.
 - Rejected: a custom per-level wake queue (same semantics, more code, not persisted) and any always-on ticker (ADR-012).
 
+## ADR-018 — krios_core is a content mod: the three-mod ecosystem architecture
+
+**Date**: 2026-10-01 · **Status**: accepted
+
+The item-transport withdrawal (see the industry design doc, revision 2026-10-01) exposed the real boundary: Industry kept fencing features off as "krios_storage territory", and KOIOS has grown into the ecosystem's spine (tiers, ritual, network governance) — no longer an Industry subsystem. The ecosystem is therefore three mods with a settled ownership map, and `krios_core` is a standalone **content mod** ("Krios: Core"), not the jar-in-jar library ADR-009 imagined — registered content cannot be embedded twice, and core owns blocks and items. It is a hard dependency of every Krios content mod, auto-resolved by launchers; ADR-009's versioning and tagging (`core/vX.Y.Z`) are unchanged, its jar-in-jar line is superseded.
+
+- **Ownership map** — `krios_core`: network engine, KOIOS complete (structure, casings, XP/levels/tiers, ritual, diversity, AI head), face-config system, Neural Conduit (backbone), Calibrator, blueprint/projection system, chronite/neurite ores + worldgen, compute chip, Codex framework, the ADR-014 UI chrome, command and config infrastructure. `krios_industry`: machines, modules, upgrade kits, batteries, machine recipes, LOCAL item flow (adjacency + manual passive-container exchange). `krios_storage`: transport cable, run-scoped routing, then buses/digitization/remote access (opening brief consigned 2026-10-01).
+- **KOIOS tiers are the ecosystem's progression spine**: each content mod hangs its features on core tiers (cable transport = a core tier 2 unlock, shipped by storage). "Tiers ship as complete slices" becomes per-mod slices aligned on the shared skeleton.
+- **Content mods never depend on each other** — only on core. Cross-mod recipes ride `c:` tags (ADR-008).
+- **Inter-mod contract**: plain Java API in core — report operations (key, count, base XP), read level/effective tier, declare flow ports and face config, energy port/sink interfaces, scheduled-wake helper (ADR-017). The progression curve and diversity live in core; per-operation XP values and machine rates stay in each mod.
+- **Sequencing**: finish Industry's tier-2 queue first (solar, Mk II modules, energy module, Codex), then extract core — the ADR-013 trigger honored at last: the second consumer is krios_storage's start — then storage v0. Builds stay per-mod in the monorepo, linked by Gradle composite build (`includeBuild`); CI keeps one thin caller per mod.
+- **Accepted cost**: KOIOS content changes namespace (`krios_industry:*` → `krios_core:*`); pre-release test worlds break, assumed knowingly.
+
+## ADR-019 — Layered difficulty config: global in core, per-mod overrides
+
+**Date**: 2026-10-01 · **Status**: accepted
+
+Extends ADR-015 (mechanism untouched: per-world properties, decimals in file / permille ints in logic, lazy per-server cache, in-game editing per ADR-016). The **shared difficulty vocabulary** (`energy_cost`, `xp_rate`, later the yield curve) lives in core's `serverconfig/krios_core-server.properties` — the global layer. Each mod's own file may **override** any shared knob; an absent key means *inherit*. Mod-private knobs exist only in their mod's file.
+
+- Resolution order: mod override → global → built-in default. The `scaled*` helpers move to core and resolve per calling mod.
+- `/krios_core config <knob>` edits the global; `/krios_<mod> config <knob>` edits that mod's override, with an `inherit` action to drop it; displays always show the effective value and its origin.
+- One knob turns the whole ecosystem for pack makers; full per-mod granularity stays available (the P3 trade-off dissolved, session 2026-10-01).
+
 ## Open questions
 
 *(none — next ones will come from design work)*
