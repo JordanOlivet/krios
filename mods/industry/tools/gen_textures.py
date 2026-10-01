@@ -412,15 +412,19 @@ def solar_panel_top():
 
 
 def solar_panel_side():
-    """Only rows 12-15 show (the 4px slab band in solar_panel.json):
-    cell layer edge-on over the metal skirt."""
+    """Full machine flank (full-cube model): rows 0-3 the cell deck
+    edge-on, body with copper risers below, skirt at the base."""
     img = Img(16, 16)
-    img.rect(0, 12, 16, 4, METAL)
-    img.rect(0, 12, 16, 1, CYAN_DIM)
-    img.rect(0, 13, 16, 1, METAL_EDGE)
-    img.rect(0, 15, 16, 1, JOINT)
-    for x in (3, 12):
-        img.set(x, 14, METAL_EDGE)
+    img.rect(0, 0, 16, 1, CYAN_DIM)
+    img.rect(0, 1, 16, 1, METAL_EDGE)
+    img.rect(0, 2, 16, 1, METAL)
+    img.rect(0, 3, 16, 1, JOINT)
+    img.noise_rect(0, 4, 16, 10, METAL, 4, 95)
+    for x in (2, 13):
+        img.rect(x, 5, 1, 8, COPPER_D)
+        img.set(x, 6, COPPER)
+    img.rect(0, 14, 16, 2, JOINT)
+    img.rect(0, 14, 16, 1, METAL_EDGE)
     return img
 
 

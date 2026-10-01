@@ -11,6 +11,7 @@ import io.lakio.krios.industry.client.screen.CrusherScreen;
 import io.lakio.krios.industry.client.screen.FurnaceScreen;
 import io.lakio.krios.industry.client.screen.GeneratorScreen;
 import io.lakio.krios.industry.client.screen.KoiosCoreScreen;
+import io.lakio.krios.industry.client.screen.SolarPanelScreen;
 import io.lakio.krios.industry.registry.ModBlockEntities;
 import io.lakio.krios.industry.registry.ModMenus;
 import net.fabricmc.api.ClientModInitializer;
@@ -23,6 +24,7 @@ public class KriosIndustryClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         MenuScreens.register(ModMenus.GENERATOR.get(), GeneratorScreen::new);
+        MenuScreens.register(ModMenus.SOLAR_PANEL.get(), SolarPanelScreen::new);
         MenuScreens.register(ModMenus.CRUSHER.get(), CrusherScreen::new);
         MenuScreens.register(ModMenus.FURNACE.get(), FurnaceScreen::new);
         MenuScreens.register(ModMenus.KOIOS_CORE.get(), KoiosCoreScreen::new);

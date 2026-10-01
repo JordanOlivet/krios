@@ -9,6 +9,7 @@ import io.lakio.krios.industry.client.screen.CrusherScreen;
 import io.lakio.krios.industry.client.screen.FurnaceScreen;
 import io.lakio.krios.industry.client.screen.GeneratorScreen;
 import io.lakio.krios.industry.client.screen.KoiosCoreScreen;
+import io.lakio.krios.industry.client.screen.SolarPanelScreen;
 import io.lakio.krios.industry.registry.ModBlockEntities;
 import io.lakio.krios.industry.registry.ModMenus;
 import net.minecraft.client.resources.model.BakedModel;
@@ -30,6 +31,7 @@ public final class KriosIndustryClient {
     @SubscribeEvent
     public static void onRegisterScreens(RegisterMenuScreensEvent event) {
         event.register(ModMenus.GENERATOR.get(), GeneratorScreen::new);
+        event.register(ModMenus.SOLAR_PANEL.get(), SolarPanelScreen::new);
         event.register(ModMenus.CRUSHER.get(), CrusherScreen::new);
         event.register(ModMenus.FURNACE.get(), FurnaceScreen::new);
         event.register(ModMenus.KOIOS_CORE.get(), KoiosCoreScreen::new);

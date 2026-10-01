@@ -18,6 +18,10 @@ public final class ModMenus {
     public static final Supplier<MenuType<GeneratorMenu>> GENERATOR = register("generator",
             () -> Services.REGISTRAR.createMenuType(GeneratorMenu::new));
 
+    public static final Supplier<MenuType<io.lakio.krios.industry.machine.solar.SolarPanelMenu>> SOLAR_PANEL =
+            register("solar_panel", () -> Services.REGISTRAR.createMenuType(
+                    io.lakio.krios.industry.machine.solar.SolarPanelMenu::new));
+
     public static final Supplier<MenuType<CrusherMenu>> CRUSHER = register("crusher",
             () -> Services.REGISTRAR.createMenuType(CrusherMenu::new));
 
