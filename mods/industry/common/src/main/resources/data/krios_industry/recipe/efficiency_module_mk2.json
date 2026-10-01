@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " C ",
+    "NMN",
+    " C "
+  ],
+  "key": {
+    "C": {
+      "item": "krios_industry:chronite_shard"
+    },
+    "N": {
+      "item": "krios_industry:neurite_ingot"
+    },
+    "M": {
+      "item": "krios_industry:efficiency_module"
+    }
+  },
+  "result": {
+    "id": "krios_industry:efficiency_module_mk2",
+    "count": 1
+  }
+}

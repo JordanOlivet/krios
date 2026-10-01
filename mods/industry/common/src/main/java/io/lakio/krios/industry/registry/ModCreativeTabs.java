@@ -38,6 +38,10 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.SPEED_MODULE.get());
                         output.accept(ModItems.EFFICIENCY_MODULE.get());
                         output.accept(ModItems.YIELD_MODULE.get());
+                        output.accept(ModItems.SPEED_MODULE_MK2.get());
+                        output.accept(ModItems.EFFICIENCY_MODULE_MK2.get());
+                        output.accept(ModItems.YIELD_MODULE_MK2.get());
+                        output.accept(ModItems.ENERGY_MODULE.get());
                         output.accept(ModItems.CALIBRATOR.get());
                         output.accept(ModItems.COMPUTE_CHIP.get());
                         output.accept(ModItems.UPGRADE_KIT_TIER2.get());

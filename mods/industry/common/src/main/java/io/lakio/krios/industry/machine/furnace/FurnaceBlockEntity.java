@@ -64,8 +64,11 @@ public class FurnaceBlockEntity extends BlockEntity
     public static final int INPUT_FIRST = 0;
     public static final int OUTPUT_FIRST = PROCESS_SLOTS;
     public static final int MODULE_SLOT_FIRST = PROCESS_SLOTS * 2;
-    /** Tier knob: bump the count and menu/screen/bay all follow. */
-    public static final int MODULE_SLOT_COUNT = 2;
+    /**
+     * Physical bay ceiling; the machine tier gates how many slots are
+     * ACTIVE (2 per tier — the points model, design 2026-10-01).
+     */
+    public static final int MODULE_SLOT_COUNT = 4;
     public static final int MODULE_SLOT_LAST = MODULE_SLOT_FIRST + MODULE_SLOT_COUNT - 1;
     public static final int INVENTORY_SIZE = MODULE_SLOT_LAST + 1;
     /** 20 smelts of buffer (energy scale 2026-09-30, revised). */
@@ -77,9 +80,6 @@ public class FurnaceBlockEntity extends BlockEntity
      * a heavy crush costs two smelts.
      */
     public static final int ENERGY_PER_OP = 400;
-
-    // Efficiency: x0.8 energy per module, as a 25ths ratio (integer math).
-    private static final int[] EFFICIENCY_NUM = {25, 20, 16};
 
     private static final int[] SLOTS_TOP_SIDES = {0, 1};
     private static final int[] SLOTS_DOWN = {OUTPUT_FIRST, OUTPUT_FIRST + 1};
@@ -307,9 +307,9 @@ public class FurnaceBlockEntity extends BlockEntity
         // unchanged, so the draw sums over active columns.
         int effectiveTier = MachineTiers.effectiveTier(network, be.machineTier);
         int activeColumns = Math.min(PROCESS_SLOTS, MachineTiers.processSlots(effectiveTier));
-        int speedModules = online ? be.countModules(ModuleType.SPEED) : 0;
-        int efficiencyModules = online ? be.countModules(ModuleType.EFFICIENCY) : 0;
-        int yieldModules = online ? be.countModules(ModuleType.YIELD) : 0;
+        int speedPoints = online ? be.modulePoints(ModuleType.SPEED) : 0;
+        int efficiencyPoints = online ? be.modulePoints(ModuleType.EFFICIENCY) : 0;
+        int yieldPoints = online ? be.modulePoints(ModuleType.YIELD) : 0;
 
         int draw = 0;
         int consumed = 0;
@@ -321,7 +321,7 @@ public class FurnaceBlockEntity extends BlockEntity
                     : be.quickCheck.getRecipeFor(new SingleRecipeInput(input), level).orElse(null);
             ItemStack result = holder == null ? ItemStack.EMPTY
                     : holder.value().getResultItem(level.registryAccess());
-            if (holder == null || result.isEmpty() || !be.canOutput(column, result, yieldModules)) {
+            if (holder == null || result.isEmpty() || !be.canOutput(column, result, yieldPoints)) {
                 be.progress[column] = 0;
                 be.columnTime[column] = 0;
                 continue;
@@ -329,16 +329,16 @@ public class FurnaceBlockEntity extends BlockEntity
             anyWorking = true;
             int cookingTime = Math.max(1, holder.value().getCookingTime());
             be.columnTime[column] = online
-                    ? Math.max(1, cookingTime / (2 + speedModules))
+                    ? Math.max(1, cookingTime / (2 + speedPoints))
                     : Math.max(cookingTime, KoiosBalance.DISCONNECTED_TIME_TICKS);
             int energyPerOp = KoiosBalance.scaledEnergyCost(level,
-                    ENERGY_PER_OP * EFFICIENCY_NUM[efficiencyModules] / 25);
+                    ENERGY_PER_OP * KoiosBalance.efficiencyPermille(efficiencyPoints) / 1000);
             int energyPerTick = Math.max(1, energyPerOp / be.columnTime[column]);
             draw += energyPerTick;
             if (be.energy.consume(energyPerTick)) {
                 consumed += energyPerTick;
                 if (++be.progress[column] >= be.columnTime[column]) {
-                    be.craft(column, holder, result, yieldModules);
+                    be.craft(column, holder, result, yieldPoints);
                     be.progress[column] = 0;
                 }
             } else {
@@ -368,14 +368,20 @@ public class FurnaceBlockEntity extends BlockEntity
         }
     }
 
-    private int countModules(ModuleType type) {
-        int count = 0;
+    /** Point total on one axis (points model: Mk I = 1, Mk II = 2). */
+    private int modulePoints(ModuleType type) {
+        int points = 0;
         for (int slot = MODULE_SLOT_FIRST; slot <= MODULE_SLOT_LAST; slot++) {
             if (items.get(slot).getItem() instanceof ModuleItem module && module.getType() == type) {
-                count++;
+                points += module.points();
             }
         }
-        return count;
+        return points;
+    }
+
+    /** Bay slots this machine's tier activates (2 per tier). */
+    public int activeModuleSlots() {
+        return Math.min(MODULE_SLOT_COUNT, 2 * machineTier);
     }
 
     /** Offline contact transfer, same contract as the crusher. */
@@ -406,12 +412,12 @@ public class FurnaceBlockEntity extends BlockEntity
     }
 
     /** Vanilla smelting is 1:1; connected yield modules add +25% each. */
-    private static int craftQuarters(ItemStack result, int yieldModules) {
-        return result.getCount() * (4 + yieldModules);
+    private static int craftQuarters(ItemStack result, int yieldPoints) {
+        return result.getCount() * (4 + yieldPoints);
     }
 
-    private boolean canOutput(int column, ItemStack result, int yieldModules) {
-        int prospective = (yieldQuarters[column] + craftQuarters(result, yieldModules)) / 4;
+    private boolean canOutput(int column, ItemStack result, int yieldPoints) {
+        int prospective = (yieldQuarters[column] + craftQuarters(result, yieldPoints)) / 4;
         ItemStack current = items.get(OUTPUT_FIRST + column);
         if (current.isEmpty()) {
             return prospective <= result.getMaxStackSize();
@@ -421,8 +427,8 @@ public class FurnaceBlockEntity extends BlockEntity
     }
 
     private void craft(int column, RecipeHolder<SmeltingRecipe> holder, ItemStack result,
-            int yieldModules) {
-        yieldQuarters[column] += craftQuarters(result, yieldModules);
+            int yieldPoints) {
+        yieldQuarters[column] += craftQuarters(result, yieldPoints);
         int crafted = yieldQuarters[column] / 4;
         yieldQuarters[column] %= 4;
         items.get(INPUT_FIRST + column).shrink(1);

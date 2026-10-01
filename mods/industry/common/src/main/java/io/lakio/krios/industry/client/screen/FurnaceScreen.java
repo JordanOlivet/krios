@@ -16,21 +16,23 @@ public class FurnaceScreen extends MachineTerminalScreen<FurnaceMenu> {
             HologramFacePanel.columnsFor(FurnaceBlockEntity.SUPPORTED_FACE_BITS));
 
     private final ModuleBayPanel moduleBay = new ModuleBayPanel(
-            FurnaceBlockEntity.MODULE_SLOT_COUNT, menu::setModuleBayOpen);
+            () -> menu.activeModuleSlots(), menu::setModuleBayOpen);
 
     // Module effects are visible container slots — no extra sync needed.
+    // Points model: every row reads the per-axis point total.
     private final StatsPanel statsPanel = new StatsPanel(
             // Per-column pace: tiers add COLUMNS, modules add speed.
             new StatsPanel.Row(StatsPanel.Icon.SPEED,
                     () -> Component.literal("×" + String.format("%.1f",
-                            (2 + moduleCount(ModuleType.SPEED)) / 2.0)),
+                            (2 + modulePoints(ModuleType.SPEED)) / 2.0)),
                     Component.translatable("gui.krios_industry.stats.speed")),
             new StatsPanel.Row(StatsPanel.Icon.ENERGY_MULT,
-                    () -> Component.literal("×" + new String[]{"1.0", "0.8", "0.64"}
-                            [moduleCount(ModuleType.EFFICIENCY)]),
+                    () -> Component.literal("×" + String.format("%.2f",
+                            io.lakio.krios.industry.koios.KoiosBalance.efficiencyPermille(
+                                    modulePoints(ModuleType.EFFICIENCY)) / 1000.0)),
                     Component.translatable("gui.krios_industry.stats.energy")),
             new StatsPanel.Row(StatsPanel.Icon.YIELD,
-                    () -> Component.literal("+" + moduleCount(ModuleType.YIELD) * 25 + " %"),
+                    () -> Component.literal("+" + modulePoints(ModuleType.YIELD) * 25 + " %"),
                     Component.translatable("gui.krios_industry.stats.yield")),
             new StatsPanel.Row(StatsPanel.Icon.OUTPUT,
                     () -> Component.literal(menu.drawPerTick() + " E/t"),
@@ -42,15 +44,15 @@ public class FurnaceScreen extends MachineTerminalScreen<FurnaceMenu> {
         super(menu, playerInventory, title);
     }
 
-    private int moduleCount(ModuleType type) {
-        int count = 0;
+    private int modulePoints(ModuleType type) {
+        int points = 0;
         for (int i = FurnaceBlockEntity.MODULE_SLOT_FIRST; i <= FurnaceBlockEntity.MODULE_SLOT_LAST; i++) {
             if (menu.getSlot(i).getItem().getItem() instanceof ModuleItem module
                     && module.getType() == type) {
-                count++;
+                points += module.points();
             }
         }
-        return count;
+        return points;
     }
 
     @Override

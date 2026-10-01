@@ -603,7 +603,7 @@ def calibrator():
     return img
 
 
-def module(glyph_px, glyph_color):
+def module(glyph_px, glyph_color, mk2=False):
     img = Img(16, 16)
     img.rect(3, 3, 10, 10, METAL)
     img.outline(3, 3, 10, 10, METAL_EDGE)
@@ -615,6 +615,11 @@ def module(glyph_px, glyph_color):
     img.rect(5, 5, 6, 6, GUI_SLOT)
     for x, y in glyph_px:
         img.set(x, y, glyph_color)
+    if mk2:
+        # Mk II mark: two amber pips on the top edge of the body.
+        img.set(10, 4, ENERGY)
+        img.set(12, 4, ENERGY)
+        img.set(12, 3, AMBER_D)
     return img
 
 
@@ -656,6 +661,8 @@ def upgrade_kit():
 
 
 SPEED_GLYPH = [(6, 6), (7, 7), (6, 8), (8, 6), (9, 7), (8, 8), (6, 9), (8, 9)]
+# Lightning bolt (generator energy module).
+ENERGY_GLYPH = [(8, 5), (7, 6), (8, 6), (6, 7), (7, 7), (8, 7), (9, 7), (8, 8), (7, 9)]
 EFFICIENCY_GLYPH = [(8, 5), (7, 6), (8, 6), (7, 7), (8, 7), (9, 7), (7, 8), (8, 8), (7, 9)]
 YIELD_GLYPH = [(8, 5), (8, 6), (8, 7), (8, 8), (8, 9), (6, 7), (7, 7), (9, 7), (10, 7)]
 
@@ -884,6 +891,10 @@ def main():
         "item/speed_module.png": module(SPEED_GLYPH, CYAN),
         "item/efficiency_module.png": module(EFFICIENCY_GLYPH, ENERGY),
         "item/yield_module.png": module(YIELD_GLYPH, CYAN_HI),
+        "item/speed_module_mk2.png": module(SPEED_GLYPH, CYAN, mk2=True),
+        "item/efficiency_module_mk2.png": module(EFFICIENCY_GLYPH, ENERGY, mk2=True),
+        "item/yield_module_mk2.png": module(YIELD_GLYPH, CYAN_HI, mk2=True),
+        "item/energy_module.png": module(ENERGY_GLYPH, ENERGY_HI),
         "gui/crusher.png": gui_crusher(),
         "gui/furnace.png": gui_crusher(),
         "gui/generator.png": gui_generator(),

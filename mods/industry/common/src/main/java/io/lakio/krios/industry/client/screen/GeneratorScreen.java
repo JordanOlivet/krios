@@ -32,12 +32,16 @@ public class GeneratorScreen extends MachineTerminalScreen<GeneratorMenu> {
     private final HologramFacePanel facePanel = new HologramFacePanel(
             HologramFacePanel.columnsFor(GeneratorBlockEntity.SUPPORTED_FACE_BITS));
 
+    private final ModuleBayPanel moduleBay = new ModuleBayPanel(
+            () -> menu.activeModuleSlots(), menu::setModuleBayOpen);
+
     private final StatsPanel statsPanel = new StatsPanel(
             new StatsPanel.Row(StatsPanel.Icon.OUTPUT,
                     () -> Component.literal((menu.isBurning()
                             ? GeneratorBlockEntity.GENERATION_PER_TICK
                                     * io.lakio.krios.industry.machine.MachineTiers
                                             .speedFactor(menu.getEffectiveTier())
+                                    * (4 + energyPoints()) / 4
                             : 0) + " E/t"),
                     Component.translatable("gui.krios_industry.stats.output")),
             new StatsPanel.Row(StatsPanel.Icon.STORED,
@@ -45,14 +49,34 @@ public class GeneratorScreen extends MachineTerminalScreen<GeneratorMenu> {
                     Component.translatable("gui.krios_industry.stats.stored")));
 
     private final AnnexPanel[] annexes = {statsPanel, facePanel};
+    private final AnnexPanel[] annexesWithBay = {statsPanel, moduleBay, facePanel};
 
     public GeneratorScreen(GeneratorMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
     }
 
+    /** Energy-module point total (points model, 2026-10-01). */
+    private int energyPoints() {
+        int points = 0;
+        for (int i = GeneratorBlockEntity.MODULE_SLOT_FIRST; i <= GeneratorBlockEntity.MODULE_SLOT_LAST; i++) {
+            if (menu.getSlot(i).getItem().getItem()
+                            instanceof io.lakio.krios.industry.machine.module.ModuleItem module
+                    && module.getType() == io.lakio.krios.industry.machine.module.ModuleType.ENERGY) {
+                points += module.points();
+            }
+        }
+        return points;
+    }
+
     @Override
     protected AnnexPanel[] annexPanels() {
-        return annexes;
+        // The bay only exists at tier 2+ (t1 stays deliberately boring).
+        return menu.activeModuleSlots() > 0 ? annexesWithBay : annexes;
+    }
+
+    @Override
+    protected ModuleBayPanel moduleBay() {
+        return menu.activeModuleSlots() > 0 ? moduleBay : null;
     }
 
     @Override

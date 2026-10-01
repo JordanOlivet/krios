@@ -268,6 +268,16 @@ The tier system, settled ahead of the tier 2 slice. One rule founds everything:
 - **Identity**: sober name (Solar Panel / « Panneau solaire »). ~~Distinctive low-slab form~~ — revised same day (user): **full machine block, the photovoltaic deck as its top face** — machines stay near-block-size and a full flank meets the conduit arm cleanly. Placeholder textures via gen_textures, Aseprite pass later.
 - ~~**v1 scope**: no GUI and no face config~~ — revised 2026-10-01 (user, first contact): **every block gets a terminal showing its state**, and the panel is a machine of full standing: generator-style terminal (wide energy bar, face hologram, voice line) plus a live production state line (full sun / rain / night / saturated, with the current E/t), and **energy-out face config** (one may refuse to feed a face; auto-config negotiates on contact like the generator; manual contracts gate third-party extraction). **Mk II solar gains boost slots** (generator-style bay) when it ships — the Mk I terminal lays out with that space in mind.
 
+### Modules Mk II, the energy module and the points model (settled 2026-10-01)
+
+- **Points model**: every module contributes POINTS on its axis — Mk I = 1, Mk II = 2 — and every formula takes the axis total (speed: time ×2/(2+pts); efficiency: ×0.8^pts; yield: +25%/pt through the quarter accumulator). Marks mix freely in the same slots, zero special cases; a future last-tier "infinity" module is just an absurd point count (user note).
+- **Slots follow the machine tier**: 2 at t1, 4 at t2 (same isActive mechanics as the process columns — positions fixed, visibility by tier). **No per-type caps**: the slot count is the natural cap; the Mekanism-style capped rework stays on the table.
+- **Caveat, consigned (user)**: the slot-module paradigm itself only half-pleases — adopted because it is the genre default. A deeper, more Krios-native rethink of "how machines get better" is an OPEN design question for a future session; everything here must stay cheap to migrate.
+- **Mk II crafted FROM Mk I** (+ t2 materials): the module is recalibrated, not discarded — continuity, and a sink for end-of-life Mk I.
+- **Unlock ladder**: **N6 = Speed II + Energy module** (amended by the user from the N7 proposal), **N7 = Efficiency II**, **N8 = Yield II** — yield stays the capstone before the N9 critical.
+- **Energy module** (generator only): +25%/pt energy from the same fuel — rate rises, burn time untouched. **The t1 generator keeps zero slots** (deliberately boring); **t2 gains 2 slots accepting ONLY energy modules** (typed acceptance via the existing server-side mayPlace gate).
+- Recipes placeholder until the t2 numbers pass; bay UI extends vertically, generator t2 gains the bay.
+
 ### Codex (the guide, renamed from "KOIOS Archives")
 
 - Player-facing rename to **Codex** — a codex is a living compendium (past *and* projected), the internal UI vocabulary already says "codex terminals" (ADR-014), and players know the word. Internal class names migrate opportunistically.

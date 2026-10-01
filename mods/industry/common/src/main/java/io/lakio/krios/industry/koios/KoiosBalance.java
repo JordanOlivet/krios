@@ -49,6 +49,24 @@ public final class KoiosBalance {
     public static final int SPEED_UNLOCK_LEVEL = 2;
     public static final int EFFICIENCY_UNLOCK_LEVEL = 3;
     public static final int YIELD_UNLOCK_LEVEL = 4;
+    // Tier 2 ladder (design 2026-10-01): N6 = Speed II + the energy
+    // module (user call), N7 = Efficiency II, N8 = Yield II (capstone).
+    public static final int SPEED2_UNLOCK_LEVEL = 6;
+    public static final int ENERGY_UNLOCK_LEVEL = 6;
+    public static final int EFFICIENCY2_UNLOCK_LEVEL = 7;
+    public static final int YIELD2_UNLOCK_LEVEL = 8;
+
+    /**
+     * Efficiency multiplier per POINT total, permille: ~x0.8 per point
+     * (points model 2026-10-01 — Mk I = 1 pt, Mk II = 2). Sized for the
+     * t2 ceiling (4 slots x 2 pts); clamped above.
+     */
+    private static final int[] EFFICIENCY_PERMILLE =
+            {1000, 800, 640, 512, 410, 328, 262, 210, 168};
+
+    public static int efficiencyPermille(int points) {
+        return EFFICIENCY_PERMILLE[Math.min(points, EFFICIENCY_PERMILLE.length - 1)];
+    }
 
     /**
      * Vanilla parity while disconnected from a valid network (design):

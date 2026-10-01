@@ -1,6 +1,7 @@
 package io.lakio.krios.industry.client.screen;
 
 import java.util.function.Consumer;
+import java.util.function.IntSupplier;
 
 import io.lakio.krios.industry.client.ClientPrefs;
 import io.lakio.krios.industry.machine.MachineMenu;
@@ -28,10 +29,12 @@ public class ModuleBayPanel extends AnnexPanel {
     /** Slot frame top = contentY + TOP_PAD. */
     private static final int DOCK_Y = MachineMenu.MODULE_SLOT_Y - 1 - TITLE_H - TOP_PAD;
 
-    private final int slotCount;
+    // Live supplier: the ACTIVE slot count follows the machine tier and
+    // only syncs after the menu's first data broadcast (points model).
+    private final IntSupplier slotCount;
     private final Consumer<Boolean> menuSync;
 
-    public ModuleBayPanel(int slotCount, Consumer<Boolean> menuSync) {
+    public ModuleBayPanel(IntSupplier slotCount, Consumer<Boolean> menuSync) {
         super(Side.LEFT, DOCK_Y, "gui.krios_industry.modules.title", ClientPrefs.moduleBayOpen());
         this.slotCount = slotCount;
         this.menuSync = menuSync;
@@ -52,7 +55,7 @@ public class ModuleBayPanel extends AnnexPanel {
 
     @Override
     protected int contentHeight() {
-        return TOP_PAD + slotCount * MachineMenu.MODULE_SLOT_STEP - 4;
+        return TOP_PAD + Math.max(1, slotCount.getAsInt()) * MachineMenu.MODULE_SLOT_STEP - 4;
     }
 
     @Override

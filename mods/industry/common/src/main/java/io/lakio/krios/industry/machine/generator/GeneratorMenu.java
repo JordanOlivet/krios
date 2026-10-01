@@ -17,15 +17,22 @@ import net.minecraft.world.item.ItemStack;
 public class GeneratorMenu extends AbstractContainerMenu implements MachineMenu {
 
     public static final int FUEL_SLOT = 0;
+    private static final int MODULE_SLOT_START = GeneratorBlockEntity.MODULE_SLOT_FIRST;
+    private static final int PLAYER_START = GeneratorBlockEntity.INVENTORY_SIZE;
+    private static final int PLAYER_END = PLAYER_START + 36;
     /** 0..3 machine values + 6 face shorts + status + pos (5) + tiers (2). */
     public static final int DATA_COUNT = 18;
 
     private final Container container;
     private final ContainerData data;
+    // Client-side module bay visibility (annex panel); the server instance
+    // stays true so quickMoveStack keeps routing into hidden slots.
+    private boolean moduleBayOpen = true;
 
     /** Client constructor. */
     public GeneratorMenu(int containerId, Inventory playerInventory) {
-        this(containerId, playerInventory, new SimpleContainer(1), new SimpleContainerData(DATA_COUNT));
+        this(containerId, playerInventory, new SimpleContainer(GeneratorBlockEntity.INVENTORY_SIZE),
+                new SimpleContainerData(DATA_COUNT));
     }
 
     public GeneratorMenu(int containerId, Inventory playerInventory, Container container, ContainerData data) {
@@ -41,6 +48,10 @@ public class GeneratorMenu extends AbstractContainerMenu implements MachineMenu 
                 return Services.PLATFORM.getBurnTime(stack) > 0;
             }
         });
+        for (int i = 0; i < GeneratorBlockEntity.MODULE_SLOT_COUNT; i++) {
+            addSlot(new ModuleSlot(container, GeneratorBlockEntity.MODULE_SLOT_FIRST + i,
+                    MachineMenu.MODULE_SLOT_X, MachineMenu.MODULE_SLOT_Y + i * MachineMenu.MODULE_SLOT_STEP, i));
+        }
 
         for (int row = 0; row < 3; ++row) {
             for (int col = 0; col < 9; ++col) {
@@ -61,8 +72,12 @@ public class GeneratorMenu extends AbstractContainerMenu implements MachineMenu 
         if (slot.hasItem()) {
             ItemStack stack = slot.getItem();
             result = stack.copy();
-            if (index == FUEL_SLOT) {
-                if (!moveItemStackTo(stack, 1, 37, true)) {
+            if (index < PLAYER_START) {
+                if (!moveItemStackTo(stack, PLAYER_START, PLAYER_END, true)) {
+                    return ItemStack.EMPTY;
+                }
+            } else if (stack.getItem() instanceof io.lakio.krios.industry.machine.module.ModuleItem) {
+                if (!moveItemStackTo(stack, MODULE_SLOT_START, PLAYER_START, false)) {
                     return ItemStack.EMPTY;
                 }
             } else if (!moveItemStackTo(stack, FUEL_SLOT, 1, false)) {
@@ -75,6 +90,56 @@ public class GeneratorMenu extends AbstractContainerMenu implements MachineMenu 
             }
         }
         return result;
+    }
+
+    @Override
+    public void setModuleBayOpen(boolean open) {
+        moduleBayOpen = open;
+    }
+
+    /** The bay only exists at tier 2+ (t1 stays deliberately boring). */
+    public int activeModuleSlots() {
+        return getMachineTier() >= 2 ? GeneratorBlockEntity.MODULE_SLOT_COUNT : 0;
+    }
+
+    /**
+     * The generator's bay accepts ONLY energy modules (design: the one
+     * way to extract more from the same fuel), KOIOS-gated like every
+     * module insertion. Server-authoritative.
+     */
+    private class ModuleSlot extends Slot {
+
+        private final int bayIndex;
+
+        ModuleSlot(Container container, int slot, int x, int y, int bayIndex) {
+            super(container, slot, x, y);
+            this.bayIndex = bayIndex;
+        }
+
+        @Override
+        public boolean mayPlace(ItemStack stack) {
+            if (!(stack.getItem() instanceof io.lakio.krios.industry.machine.module.ModuleItem module)
+                    || module.getType() != io.lakio.krios.industry.machine.module.ModuleType.ENERGY
+                    || bayIndex >= activeModuleSlots()) {
+                return false;
+            }
+            if (container instanceof GeneratorBlockEntity be
+                    && be.getLevel() != null && !be.getLevel().isClientSide) {
+                return be.networkKoiosLevel() >= module.requiredLevel();
+            }
+            return true;
+        }
+
+        @Override
+        public int getMaxStackSize() {
+            return 1;
+        }
+
+        @Override
+        public boolean isActive() {
+            // Collapsed bay or inert tier slot: hidden, client-side only.
+            return moduleBayOpen && bayIndex < activeModuleSlots();
+        }
     }
 
     @Override

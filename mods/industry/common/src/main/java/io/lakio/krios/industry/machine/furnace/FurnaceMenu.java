@@ -55,7 +55,7 @@ public class FurnaceMenu extends AbstractContainerMenu implements MachineMenu {
         }
         for (int i = 0; i < FurnaceBlockEntity.MODULE_SLOT_COUNT; i++) {
             addSlot(new ModuleSlot(container, FurnaceBlockEntity.MODULE_SLOT_FIRST + i,
-                    MODULE_SLOT_X, MODULE_SLOT_Y + i * MODULE_SLOT_STEP));
+                    MODULE_SLOT_X, MODULE_SLOT_Y + i * MODULE_SLOT_STEP, i));
         }
 
         for (int row = 0; row < 3; ++row) {
@@ -168,25 +168,37 @@ public class FurnaceMenu extends AbstractContainerMenu implements MachineMenu {
         }
     }
 
+    /** Bay slots this machine's tier activates (2 per tier). */
+    public int activeModuleSlots() {
+        return Math.min(FurnaceBlockEntity.MODULE_SLOT_COUNT, 2 * getMachineTier());
+    }
+
     /**
      * The KOIOS gate: a module goes in only when a formed core in range has
-     * the required level. Server-authoritative — the client container is a
-     * SimpleContainer and predicts optimistically.
+     * the required level; the machine tier gates the slot itself and the
+     * machine type gates the axis (no generator energy modules here).
+     * Server-authoritative — the client container is a SimpleContainer and
+     * predicts optimistically.
      */
     private class ModuleSlot extends Slot {
 
-        ModuleSlot(Container container, int slot, int x, int y) {
+        private final int bayIndex;
+
+        ModuleSlot(Container container, int slot, int x, int y, int bayIndex) {
             super(container, slot, x, y);
+            this.bayIndex = bayIndex;
         }
 
         @Override
         public boolean mayPlace(ItemStack stack) {
-            if (!(stack.getItem() instanceof ModuleItem module)) {
+            if (!(stack.getItem() instanceof ModuleItem module)
+                    || module.getType() == io.lakio.krios.industry.machine.module.ModuleType.ENERGY
+                    || bayIndex >= activeModuleSlots()) {
                 return false;
             }
             if (container instanceof FurnaceBlockEntity be
                     && be.getLevel() != null && !be.getLevel().isClientSide) {
-                return be.networkKoiosLevel() >= module.getType().requiredLevel();
+                return be.networkKoiosLevel() >= module.requiredLevel();
             }
             return true;
         }
@@ -198,8 +210,8 @@ public class FurnaceMenu extends AbstractContainerMenu implements MachineMenu {
 
         @Override
         public boolean isActive() {
-            // Collapsed bay: slot hidden and unclickable, client-side only.
-            return moduleBayOpen;
+            // Collapsed bay or inert tier slot: hidden, client-side only.
+            return moduleBayOpen && bayIndex < activeModuleSlots();
         }
     }
 

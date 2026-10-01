@@ -56,16 +56,16 @@ public class CrusherBlockEntity extends BlockEntity
     public static final int INPUT_FIRST = 0;
     public static final int OUTPUT_FIRST = PROCESS_SLOTS;
     public static final int MODULE_SLOT_FIRST = PROCESS_SLOTS * 2;
-    /** Tier knob: bump the count and menu/screen/bay all follow. */
-    public static final int MODULE_SLOT_COUNT = 2;
+    /**
+     * Physical bay ceiling; the machine tier gates how many slots are
+     * ACTIVE (2 per tier — the points model, design 2026-10-01).
+     */
+    public static final int MODULE_SLOT_COUNT = 4;
     public static final int MODULE_SLOT_LAST = MODULE_SLOT_FIRST + MODULE_SLOT_COUNT - 1;
     public static final int INVENTORY_SIZE = MODULE_SLOT_LAST + 1;
     /** 10 heavy crushes of buffer (energy scale 2026-09-30, revised). */
     public static final int CAPACITY = 8_000;
     public static final int PULL_PER_TICK = 400;
-
-    // Efficiency: x0.8 energy per module, as a 25ths ratio (integer math).
-    private static final int[] EFFICIENCY_NUM = {25, 20, 16};
 
     private static final int[] SLOTS_TOP_SIDES = {0, 1};
     private static final int[] SLOTS_DOWN = {OUTPUT_FIRST, OUTPUT_FIRST + 1};
@@ -301,9 +301,9 @@ public class CrusherBlockEntity extends BlockEntity
         // per op is unchanged — the draw sums over active columns.
         int effectiveTier = MachineTiers.effectiveTier(network, be.machineTier);
         int activeColumns = Math.min(PROCESS_SLOTS, MachineTiers.processSlots(effectiveTier));
-        int speedModules = online ? be.countModules(ModuleType.SPEED) : 0;
-        int efficiencyModules = online ? be.countModules(ModuleType.EFFICIENCY) : 0;
-        int yieldModules = online ? be.countModules(ModuleType.YIELD) : 0;
+        int speedPoints = online ? be.modulePoints(ModuleType.SPEED) : 0;
+        int efficiencyPoints = online ? be.modulePoints(ModuleType.EFFICIENCY) : 0;
+        int yieldPoints = online ? be.modulePoints(ModuleType.YIELD) : 0;
 
         int draw = 0;
         int consumed = 0;
@@ -314,25 +314,25 @@ public class CrusherBlockEntity extends BlockEntity
             RecipeHolder<CrushingRecipe> holder = column >= activeColumns || input.isEmpty() ? null
                     : be.quickCheck.getRecipeFor(new SingleRecipeInput(input), level).orElse(null);
             if (holder == null
-                    || !be.canOutput(column, holder.value().result(), online, yieldModules, effectiveTier)) {
+                    || !be.canOutput(column, holder.value().result(), online, yieldPoints, effectiveTier)) {
                 be.progress[column] = 0;
                 be.columnTime[column] = 0;
                 continue;
             }
             anyWorking = true;
             CrushingRecipe recipe = holder.value();
-            // Speed: x1.5 per module => time x2/(2+n), shared by all columns.
+            // Speed: time x2/(2+points), shared by all columns.
             be.columnTime[column] = online
-                    ? Math.max(1, recipe.time() * 2 / (2 + speedModules))
+                    ? Math.max(1, recipe.time() * 2 / (2 + speedPoints))
                     : Math.max(recipe.time(), KoiosBalance.DISCONNECTED_TIME_TICKS);
             int energyPerOp = KoiosBalance.scaledEnergyCost(level,
-                    recipe.energy() * EFFICIENCY_NUM[efficiencyModules] / 25);
+                    recipe.energy() * KoiosBalance.efficiencyPermille(efficiencyPoints) / 1000);
             int energyPerTick = Math.max(1, energyPerOp / be.columnTime[column]);
             draw += energyPerTick;
             if (be.energy.consume(energyPerTick)) {
                 consumed += energyPerTick;
                 if (++be.progress[column] >= be.columnTime[column]) {
-                    be.craft(column, holder, online, yieldModules, effectiveTier);
+                    be.craft(column, holder, online, yieldPoints, effectiveTier);
                     be.progress[column] = 0;
                 }
             } else {
@@ -362,14 +362,20 @@ public class CrusherBlockEntity extends BlockEntity
         }
     }
 
-    private int countModules(ModuleType type) {
-        int count = 0;
+    /** Point total on one axis (points model: Mk I = 1, Mk II = 2). */
+    private int modulePoints(ModuleType type) {
+        int points = 0;
         for (int slot = MODULE_SLOT_FIRST; slot <= MODULE_SLOT_LAST; slot++) {
             if (items.get(slot).getItem() instanceof ModuleItem module && module.getType() == type) {
-                count++;
+                points += module.points();
             }
         }
-        return count;
+        return points;
+    }
+
+    /** Bay slots this machine's tier activates (2 per tier). */
+    public int activeModuleSlots() {
+        return Math.min(MODULE_SLOT_COUNT, 2 * machineTier);
     }
 
     /**
@@ -408,17 +414,17 @@ public class CrusherBlockEntity extends BlockEntity
      * offline. The tier yield ladder (x2/x3/x3/x4 base, design 2026-09-30)
      * multiplies on top through the same accumulator.
      */
-    private static int craftQuarters(ItemStack result, boolean online, int yieldModules, int effectiveTier) {
+    private static int craftQuarters(ItemStack result, boolean online, int yieldPoints, int effectiveTier) {
         return online
-                ? result.getCount() * (4 + yieldModules)
+                ? result.getCount() * (4 + yieldPoints)
                         * MachineTiers.yieldNum(effectiveTier) / 2
                 : Math.max(1, result.getCount() / 2) * 4;
     }
 
-    private boolean canOutput(int column, ItemStack result, boolean online, int yieldModules,
+    private boolean canOutput(int column, ItemStack result, boolean online, int yieldPoints,
             int effectiveTier) {
         int prospective = (yieldQuarters[column]
-                + craftQuarters(result, online, yieldModules, effectiveTier)) / 4;
+                + craftQuarters(result, online, yieldPoints, effectiveTier)) / 4;
         ItemStack current = items.get(OUTPUT_FIRST + column);
         if (current.isEmpty()) {
             return prospective <= result.getMaxStackSize();
@@ -432,9 +438,9 @@ public class CrusherBlockEntity extends BlockEntity
      * recipe result (x2 recipe -> x2.5 -> x3), carried in quarter-items.
      */
     private void craft(int column, RecipeHolder<CrushingRecipe> holder, boolean online,
-            int yieldModules, int effectiveTier) {
+            int yieldPoints, int effectiveTier) {
         ItemStack result = holder.value().result();
-        yieldQuarters[column] += craftQuarters(result, online, yieldModules, effectiveTier);
+        yieldQuarters[column] += craftQuarters(result, online, yieldPoints, effectiveTier);
         int crafted = yieldQuarters[column] / 4;
         yieldQuarters[column] %= 4;
         items.get(INPUT_FIRST + column).shrink(1);

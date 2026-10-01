@@ -3,6 +3,8 @@ package io.lakio.krios.industry.machine.generator;
 import io.lakio.krios.industry.energy.EnergyBuffer;
 import io.lakio.krios.industry.machine.MachineTiers;
 import io.lakio.krios.industry.machine.TieredMachine;
+import io.lakio.krios.industry.machine.module.ModuleItem;
+import io.lakio.krios.industry.machine.module.ModuleType;
 import io.lakio.krios.industry.koios.KoiosBalance;
 import io.lakio.krios.industry.koios.KoiosCoreBlockEntity;
 import io.lakio.krios.industry.network.EnergyPort;
@@ -45,6 +47,16 @@ public class GeneratorBlockEntity extends BlockEntity
 
     /** ~2 coals of reserve; a full generator idles unlit (ADR-012). */
     public static final int CAPACITY = 50_000;
+    public static final int FUEL_SLOT = 0;
+    /**
+     * Energy-module bay (design 2026-10-01): the t1 generator stays
+     * deliberately boring (slots inert), tier 2 activates both. ENERGY
+     * modules only — +25%/pt energy from the same fuel.
+     */
+    public static final int MODULE_SLOT_FIRST = 1;
+    public static final int MODULE_SLOT_COUNT = 2;
+    public static final int MODULE_SLOT_LAST = MODULE_SLOT_FIRST + MODULE_SLOT_COUNT - 1;
+    public static final int INVENTORY_SIZE = MODULE_SLOT_LAST + 1;
     /**
      * Energy scale (design 2026-09-30, revised after play — the strict
      * vanilla-parity anchor starved everything): one generator feeds a
@@ -59,7 +71,7 @@ public class GeneratorBlockEntity extends BlockEntity
     // Primitive runtime state (ADR-012). No object allocation on the tick path.
     private final int machineTier;
     private final EnergyBuffer energy;
-    private final NonNullList<ItemStack> items = NonNullList.withSize(1, ItemStack.EMPTY);
+    private final NonNullList<ItemStack> items = NonNullList.withSize(INVENTORY_SIZE, ItemStack.EMPTY);
     private final FaceConfig faceConfig = new FaceConfig();
     private int burnTime;
     private int burnDuration;
@@ -269,10 +281,14 @@ public class GeneratorBlockEntity extends BlockEntity
         // Only reachable while LIT (the block registers no ticker otherwise).
         // Tier doubling: rate AND burn speed scale together, so a fuel's
         // total energy never changes — higher tiers just deliver it faster.
+        // Energy modules are the one exception by design: +25%/pt on the
+        // rate with the burn untouched = more energy from the same fuel.
         Network network = NetworkManager.networkOf(be);
+        boolean online = network != null && network.isValid();
         int factor = MachineTiers.speedFactor(
                 MachineTiers.effectiveTier(network, be.machineTier));
-        be.currentGenerationPerTick = GENERATION_PER_TICK * factor;
+        int energyPoints = online ? be.modulePoints(ModuleType.ENERGY) : 0;
+        be.currentGenerationPerTick = GENERATION_PER_TICK * factor * (4 + energyPoints) / 4;
         be.energy.insert(be.currentGenerationPerTick);
         be.distributeEnergy(level, pos, network);
         be.burnTime -= factor;
@@ -433,16 +449,37 @@ public class GeneratorBlockEntity extends BlockEntity
         return new GeneratorMenu(containerId, playerInventory, this, dataAccess);
     }
 
-    // --- Container (1 fuel slot; gives hopper compat for free) ---
+    /** Point total on one axis (points model: Mk I = 1, Mk II = 2). */
+    private int modulePoints(ModuleType type) {
+        int points = 0;
+        for (int slot = MODULE_SLOT_FIRST; slot <= MODULE_SLOT_LAST; slot++) {
+            if (items.get(slot).getItem() instanceof ModuleItem module && module.getType() == type) {
+                points += module.points();
+            }
+        }
+        return points;
+    }
+
+    /** The bay only exists at tier 2+ (t1 stays deliberately boring). */
+    public int activeModuleSlots() {
+        return machineTier >= 2 ? MODULE_SLOT_COUNT : 0;
+    }
+
+    // --- Container (fuel + module bay; hoppers only ever see the fuel) ---
 
     @Override
     public int getContainerSize() {
-        return 1;
+        return items.size();
     }
 
     @Override
     public boolean isEmpty() {
-        return items.get(0).isEmpty();
+        for (ItemStack stack : items) {
+            if (!stack.isEmpty()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
@@ -471,7 +508,9 @@ public class GeneratorBlockEntity extends BlockEntity
 
     @Override
     public boolean canPlaceItem(int slot, ItemStack stack) {
-        return Services.PLATFORM.getBurnTime(stack) > 0;
+        // Hopper discipline: fuel only, never into the module bay (the
+        // menu's ModuleSlot carries the player-facing module gate).
+        return slot == FUEL_SLOT && Services.PLATFORM.getBurnTime(stack) > 0;
     }
 
     @Override

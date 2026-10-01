@@ -1,20 +1,15 @@
 package io.lakio.krios.industry.machine.module;
 
-import io.lakio.krios.industry.koios.KoiosBalance;
-
-/** The three MVP upgrade modules, each gated behind a KOIOS classic level. */
+/**
+ * A module's AXIS. The magnitude lives on the item as POINTS (design
+ * 2026-10-01: Mk I = 1, Mk II = 2; a future "infinity" module is just an
+ * absurd count) — every machine formula takes the per-axis point total,
+ * so marks mix freely in the same slots. ENERGY (+25%/pt energy from the
+ * same fuel) is accepted by generators only.
+ */
 public enum ModuleType {
-    SPEED(KoiosBalance.SPEED_UNLOCK_LEVEL),
-    EFFICIENCY(KoiosBalance.EFFICIENCY_UNLOCK_LEVEL),
-    YIELD(KoiosBalance.YIELD_UNLOCK_LEVEL);
-
-    private final int requiredLevel;
-
-    ModuleType(int requiredLevel) {
-        this.requiredLevel = requiredLevel;
-    }
-
-    public int requiredLevel() {
-        return requiredLevel;
-    }
+    SPEED,
+    EFFICIENCY,
+    YIELD,
+    ENERGY;
 }

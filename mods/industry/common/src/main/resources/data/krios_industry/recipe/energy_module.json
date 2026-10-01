@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " S ",
+    "CNC",
+    "RRR"
+  ],
+  "key": {
+    "S": {
+      "item": "krios_industry:chronite_shard"
+    },
+    "C": {
+      "tag": "c:ingots/copper"
+    },
+    "N": {
+      "item": "krios_industry:neurite_ingot"
+    },
+    "R": {
+      "tag": "c:dusts/redstone"
+    }
+  },
+  "result": {
+    "id": "krios_industry:energy_module",
+    "count": 1
+  }
+}
