@@ -2,8 +2,6 @@ package io.lakio.krios.industry.machine;
 
 import io.lakio.krios.industry.network.FaceConfig;
 import io.lakio.krios.industry.network.Flow;
-import io.lakio.krios.industry.network.Network;
-import io.lakio.krios.industry.network.NetworkManager;
 import io.lakio.krios.industry.network.NetworkNode;
 import io.lakio.krios.industry.platform.Services;
 import net.minecraft.core.BlockPos;
@@ -16,16 +14,14 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 
 /**
- * Machine item movement (tier 2 transport, design 2026-10-01). Three
- * channels, in precedence order: the NETWORK routes output batches between
- * member machines (logical arithmetic — items never travel through cables,
- * ADR-006/012 by construction); MANUAL item faces exchange with touching
- * passive containers through {@link Services#ITEMS}; without a governing
- * core, the hopper-like adjacency flow of v0 remains as the offline
- * fallback. Items enter and leave the network only through a face whose
- * contract allows it AND that physically touches the network — blocking
- * an export face really cuts the export. Pulling from passive containers
- * rides scheduled wake-ups (ADR-017), never a ticker.
+ * Machine item movement (revised 2026-10-01): two LOCAL channels only.
+ * The hopper-like adjacency flow streams outputs into touching machines
+ * (both face contracts respected), and MANUAL item faces exchange with
+ * touching passive containers through {@link Services#ITEMS} — pulls ride
+ * scheduled wake-ups (ADR-017), never a ticker. Anything beyond contact —
+ * cable-borne routing, remote inventories — is krios_storage territory:
+ * a network-wide first pass was rejected in play (a freshly placed
+ * machine got filled from across the factory; see the design doc).
  */
 public final class ItemFlow {
 
@@ -37,8 +33,7 @@ public final class ItemFlow {
     private ItemFlow() {
     }
 
-    // --- Producer side: network first, manual containers take the
-    // overflow, adjacency as the offline fallback ---
+    // --- Producer side: manual containers, then touching machines ---
 
     /** Routes the source's output slot; call sites are producer-driven. */
     public static void pushOutput(Level level, BlockPos pos, WorldlyContainer source,
@@ -46,21 +41,8 @@ public final class ItemFlow {
         if (source.getItem(outputSlot).isEmpty()) {
             return;
         }
-        Network network = source instanceof NetworkNode node
-                ? NetworkManager.networkOf(node) : null;
-        boolean online = network != null && network.isValid();
-        if (online && hasNetworkFace(level, pos, config, network, true)) {
-            ItemStack out = source.getItem(outputSlot);
-            int accepted = network.offerItems(out, out.getCount(), (NetworkNode) source);
-            if (accepted > 0) {
-                out.shrink(accepted);
-                source.setItem(outputSlot, out);
-            }
-        }
         pushToPassiveContacts(level, pos, source, outputSlot, config);
-        if (!online) {
-            pushToAdjacentMachines(level, pos, source, outputSlot, config);
-        }
+        pushToAdjacentMachines(level, pos, source, outputSlot, config);
     }
 
     /** Manual item-out faces feed touching passive containers. */
@@ -87,8 +69,8 @@ public final class ItemFlow {
     }
 
     /**
-     * Offline fallback (no governing core): hopper-like flow into touching
-     * machines, both face contracts respected, target wake riding setItem.
+     * Hopper-like flow into touching machines, both face contracts
+     * respected, target wake riding setItem.
      */
     private static void pushToAdjacentMachines(Level level, BlockPos pos, WorldlyContainer source,
             int outputSlot, FaceConfig config) {
@@ -110,49 +92,6 @@ public final class ItemFlow {
                 source.setItem(outputSlot, out);
             }
         }
-    }
-
-    // --- Network gates ---
-
-    /**
-     * A face whose contract allows the flow AND that physically touches
-     * the network: the in-world gate of network routing.
-     */
-    private static boolean hasNetworkFace(Level level, BlockPos pos, FaceConfig config,
-            Network network, boolean out) {
-        for (Direction dir : DIRECTIONS) {
-            if (config.isManual(dir) && !config.allows(dir, Flow.ITEM, out)) {
-                continue;
-            }
-            if (NetworkManager.networkAt(level, pos.relative(dir)) == network) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Network delivery into a machine ({@code ItemSink} implementations
-     * delegate here): items enter through a network-touching face and the
-     * WorldlyContainer discipline (slot sets, recipe check, column
-     * election) decides the rest. Returns the count accepted.
-     */
-    public static int insertFromNetwork(Level level, BlockPos pos, WorldlyContainer target,
-            NetworkNode node, ItemStack stack, int max) {
-        Network network = NetworkManager.networkOf(node);
-        if (network == null || !network.isValid()) {
-            return 0;
-        }
-        int inserted = 0;
-        for (Direction dir : DIRECTIONS) {
-            if (inserted >= max) {
-                break;
-            }
-            if (NetworkManager.networkAt(level, pos.relative(dir)) == network) {
-                inserted += insertThroughFace(target, stack, max - inserted, dir);
-            }
-        }
-        return inserted;
     }
 
     /**

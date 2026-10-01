@@ -12,7 +12,6 @@ import io.lakio.krios.industry.machine.module.ModuleType;
 import io.lakio.krios.industry.network.EnergySink;
 import io.lakio.krios.industry.network.FaceConfig;
 import io.lakio.krios.industry.network.Flow;
-import io.lakio.krios.industry.network.ItemSink;
 import io.lakio.krios.industry.network.Network;
 import io.lakio.krios.industry.network.NetworkManager;
 import io.lakio.krios.industry.network.NetworkNode;
@@ -52,7 +51,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
  * tickless-idle, face-config and wake contracts as the crusher.
  */
 public class FurnaceBlockEntity extends BlockEntity
-        implements WorldlyContainer, MenuProvider, NetworkNode, EnergySink, ItemSink,
+        implements WorldlyContainer, MenuProvider, NetworkNode, EnergySink,
         io.lakio.krios.industry.machine.ConfigurableFaces,
         io.lakio.krios.industry.machine.EnergyStats {
 
@@ -525,13 +524,6 @@ public class FurnaceBlockEntity extends BlockEntity
             tryWake();
             ItemFlow.scheduleWake(level, worldPosition, faceConfig);
         }
-    }
-
-    /** Network batch delivery (tier 2 transport): same discipline as hoppers. */
-    @Override
-    public int insertNetworkItems(ItemStack stack, int max) {
-        return level == null ? 0
-                : ItemFlow.insertFromNetwork(level, worldPosition, this, this, stack, max);
     }
 
     /**

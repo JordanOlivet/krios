@@ -3,7 +3,6 @@ package io.lakio.krios.industry.network;
 import java.util.Collections;
 import java.util.List;
 
-import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -146,34 +145,8 @@ public final class Network {
         return accepted;
     }
 
-    /**
-     * Batch item routing (tier 2 transport): offers up to {@code max} items
-     * of {@code stack} (a live template, never mutated here) to members
-     * implementing {@link ItemSink}, returns the count accepted. Plain
-     * rotating round-robin — no priority tiers (design 2026-10-01): the
-     * sinks' own insertion discipline is the filter, and batches are small.
-     * Only a valid network routes.
-     */
-    public int offerItems(ItemStack stack, int max, NetworkNode source) {
-        if (!isValid() || stack.isEmpty() || max <= 0) {
-            return 0;
-        }
-        int accepted = 0;
-        int memberCount = members.size();
-        int start = (itemCursor++ & 0x7FFFFFFF) % memberCount;
-        for (int i = 0; i < memberCount && accepted < max; i++) {
-            NetworkNode member = members.get((start + i) % memberCount);
-            if (member != source && member instanceof ItemSink sink) {
-                accepted += sink.insertNetworkItems(stack, max - accepted);
-            }
-        }
-        return accepted;
-    }
-
     /** Round-robin cursor for offerEnergy; runtime-only, never persisted. */
     private int distributionCursor;
-    /** Round-robin cursor for offerItems; runtime-only, never persisted. */
-    private int itemCursor;
 
     private static int normalizedPriority(EnergySink sink) {
         return sink.sinkPriority() <= 0 ? 0 : 1;
