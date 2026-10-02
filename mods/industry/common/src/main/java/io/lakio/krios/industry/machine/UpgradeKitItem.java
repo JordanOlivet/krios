@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import io.lakio.krios.industry.network.FlowPorts;
 import io.lakio.krios.industry.registry.ModBlocks;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -87,6 +88,13 @@ public class UpgradeKitItem extends Item {
         if (fresh != null) {
             fresh.loadWithComponents(saved, level.registryAccess());
             fresh.setChanged();
+            // The swap dropped any pending scheduled tick (vanilla keys them
+            // by block), so the ADR-017 wake chain must be re-entered here —
+            // the carried-over manual item faces otherwise go unserviced
+            // until a player touches the face config again.
+            if (fresh instanceof FlowPorts ports) {
+                ItemFlow.scheduleWake(level, pos, ports.faceConfig());
+            }
         }
         level.sendBlockUpdated(pos, upgraded, upgraded, 3);
         level.playSound(null, pos, SoundEvents.ANVIL_USE, SoundSource.BLOCKS, 0.6F, 1.4F);

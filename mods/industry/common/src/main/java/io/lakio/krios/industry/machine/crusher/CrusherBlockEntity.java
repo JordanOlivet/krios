@@ -284,11 +284,21 @@ public class CrusherBlockEntity extends BlockEntity
         // furnace-grade time, half yield, modules inert (design).
         Network network = NetworkManager.networkOf(be);
         boolean online = network != null && network.isValid();
-        // Online energy arrives through the producer's fair-shared push only:
-        // a per-machine pull let the first-ticking machine tank the whole
-        // generator stock into its own buffer (sequential 100% charges).
+        // Online, producers push fair-shared; the pool is only PULLED on a
+        // deficit, bounded to one tick's draw (an unbounded pull once let the
+        // first-ticking machine tank the whole generator stock). The pull
+        // doubles as the wake signal: draining a full idle generator relights
+        // it (extractNetworkEnergy -> tryResume). currentDrawPerTick is last
+        // tick's demand — the first tick after a wake freezes once, then
+        // the pull catches up.
         if (!online) {
             be.pullEnergyFromContacts(level, pos);
+        } else if (be.currentDrawPerTick > be.energy.getStored()) {
+            int pulled = network.requestEnergy(
+                    be.currentDrawPerTick - be.energy.getStored(), be);
+            if (pulled > 0) {
+                be.energy.insert(pulled);
+            }
         }
         // Hopper-like flow: every output column streams into adjacent machines.
         for (int column = 0; column < PROCESS_SLOTS; column++) {
