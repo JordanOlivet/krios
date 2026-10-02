@@ -289,6 +289,20 @@ public class GeneratorBlockEntity extends BlockEntity
                 MachineTiers.effectiveTier(network, be.machineTier));
         int energyPoints = online ? be.modulePoints(ModuleType.ENERGY) : 0;
         be.currentGenerationPerTick = GENERATION_PER_TICK * factor * (4 + energyPoints) / 4;
+        // Buffer thermostat (user call 2026-10-02): the goal state is every
+        // buffer full. A burn only ticks when the whole tick's output fits,
+        // so fuel pays exactly for banked energy — when the buffer tops up
+        // mid-cycle the generator PAUSES with its remaining burn preserved
+        // (extinguished, tickless) and the first drain relights it
+        // (extractNetworkEnergy -> tryResume picks the cycle back up).
+        if (!be.hasRoomForTick()) {
+            be.distributeEnergy(level, pos, network);
+            if (!be.hasRoomForTick()) {
+                level.setBlock(pos, state.setValue(BlockStateProperties.LIT, false), 3);
+                be.setChanged();
+                return;
+            }
+        }
         be.energy.insert(be.currentGenerationPerTick);
         be.distributeEnergy(level, pos, network);
         be.burnTime -= factor;
@@ -296,6 +310,25 @@ public class GeneratorBlockEntity extends BlockEntity
             level.setBlock(pos, state.setValue(BlockStateProperties.LIT, false), 3);
         }
         be.setChanged();
+    }
+
+    /** One full tick of output fits: the burn can tick without waste. */
+    private boolean hasRoomForTick() {
+        return energy.getCapacity() - energy.getStored() >= currentGenerationPerTick;
+    }
+
+    /**
+     * Relight hysteresis: resuming at the first missing unit would strobe
+     * LIT every couple of ticks at equilibrium (steady drain on a full
+     * buffer). A paused generator waits for ~100 ticks' worth of room
+     * (~3% of the buffer — invisible on the gauge) so burn cycles run in
+     * seconds-long bursts instead.
+     */
+    private static final int RESUME_ROOM_TICKS = 100;
+
+    private boolean hasResumeRoom() {
+        return energy.getCapacity() - energy.getStored()
+                >= currentGenerationPerTick * RESUME_ROOM_TICKS;
     }
 
     /**
@@ -393,7 +426,7 @@ public class GeneratorBlockEntity extends BlockEntity
 
     /** Starts the next burn cycle if fuel is available and the buffer has room. */
     private boolean tryConsumeFuel() {
-        if (energy.isFull()) {
+        if (!hasRoomForTick()) {
             return false;
         }
         ItemStack fuel = items.get(0);
@@ -415,11 +448,15 @@ public class GeneratorBlockEntity extends BlockEntity
         return true;
     }
 
-    /** Called when fuel lands in the slot while the generator is off. */
+    /** Called when fuel lands in the slot or a drain frees room while off. */
     private void tryIgnite() {
-        if (level != null && !level.isClientSide
-                && !getBlockState().getValue(BlockStateProperties.LIT)
-                && tryConsumeFuel()) {
+        if (level == null || level.isClientSide
+                || getBlockState().getValue(BlockStateProperties.LIT)) {
+            return;
+        }
+        // A paused burn resumes before any new item is consumed: the item
+        // already paid for that energy (thermostat, 2026-10-02).
+        if (hasResumeRoom() && (burnTime > 0 || tryConsumeFuel())) {
             level.setBlock(worldPosition, getBlockState().setValue(BlockStateProperties.LIT, true), 3);
         }
     }

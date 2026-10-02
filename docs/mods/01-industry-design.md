@@ -237,6 +237,7 @@ The tier system, settled ahead of the tier 2 slice. One rule founds everything:
 - **A fuel's energy value is constant across tiers** (one coal = 25,600 E, always — the 2026-09-30 energy scale holds). A higher-tier generator produces more E/t by **burning faster**, plus a larger buffer, plus **module slots** (the generator stops being deliberately boring at tier 2).
 - **New module type: energy production** (+% energy per fuel) — the only way to extract more from the same fuel.
 - All numbers sized on park ratios (machines per generator), per the energy-scale method.
+- **Pool policy: the buffer thermostat (user call 2026-10-02, play-driven)**. The network's goal state is *every buffer full*. Working machines top up from the pool whenever not full (rate-capped pulls, round-robin across producers so no single one soaks the drain); every pull relights the producers it touches, so production tracks demand with no explicit demand signal. A generator whose buffer tops up **pauses mid-burn-cycle** — remaining burn time is kept, the item only ever pays for banked energy, nothing is wasted — and resumes on drain (with a ~3% room hysteresis so LIT never strobes). Solar produces whenever it can; at night its bank drains into the same round-robin, so free energy displaces fuel with no priority rule.
 
 ### Yield across tiers
 

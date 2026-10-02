@@ -76,23 +76,30 @@ public final class Network {
     /**
      * Pooled energy transfer: gathers up to {@code amount} from members
      * implementing {@link EnergyPort}. Only a valid network transfers —
-     * orphan or faulted components move nothing.
+     * orphan or faulted components move nothing. The start index rotates
+     * (mirror of offerEnergy): a fixed walk order let the first port soak
+     * the whole deficit alone while every other producer sat full and dark;
+     * spreading the drain relights them all (buffer thermostat) so
+     * production tracks demand and buffers trend full together.
      */
     public int requestEnergy(int amount, NetworkNode requester) {
         if (!isValid() || amount <= 0) {
             return 0;
         }
         int gathered = 0;
-        for (NetworkNode member : members) {
+        int memberCount = members.size();
+        int start = (drainCursor++ & 0x7FFFFFFF) % memberCount;
+        for (int i = 0; i < memberCount && gathered < amount; i++) {
+            NetworkNode member = members.get((start + i) % memberCount);
             if (member != requester && member instanceof EnergyPort port) {
                 gathered += port.extractNetworkEnergy(amount - gathered);
-                if (gathered >= amount) {
-                    break;
-                }
             }
         }
         return gathered;
     }
+
+    /** Rotating start for requestEnergy; runtime-only, never persisted. */
+    private int drainCursor;
 
     /**
      * Pooled energy distribution: offers up to {@code amount} to members
