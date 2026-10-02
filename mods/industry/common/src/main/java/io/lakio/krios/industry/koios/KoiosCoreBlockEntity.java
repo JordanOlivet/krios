@@ -287,7 +287,18 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
     }
 
     public boolean isFormed() {
-        return getBlockState().getValue(KoiosCoreBlock.FORMED);
+        // Read the LIVE world state, never the BE's cached one. When the
+        // core entity is born inside another block's place/remove cascade
+        // (replacing a casing, /setblock, structure paste), the formation
+        // setBlock nests inside the outer setBlockState, and vanilla then
+        // finishes the outer frame by clobbering the cache with its stale
+        // pre-formation state — a core that looks formed in the world but
+        // answers false here silently invalidates the whole network (no
+        // controller, no XP, no energy pool, machines fall back offline).
+        BlockState state = level != null
+                ? level.getBlockState(worldPosition) : getBlockState();
+        return state.hasProperty(KoiosCoreBlock.FORMED)
+                && state.getValue(KoiosCoreBlock.FORMED);
     }
 
     private int diversityFactorPermille(String key) {
@@ -392,8 +403,12 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
             return;
         }
         boolean formed = checkShell();
-        BlockState state = getBlockState();
-        if (state.getValue(KoiosCoreBlock.FORMED) == formed) {
+        // Live state, same reason as isFormed(): comparing against a stale
+        // cache both skips needed flips and makes the no-op setBlock below
+        // unable to ever refresh that cache.
+        BlockState state = level.getBlockState(worldPosition);
+        if (!state.hasProperty(KoiosCoreBlock.FORMED)
+                || state.getValue(KoiosCoreBlock.FORMED) == formed) {
             return;
         }
         level.setBlock(worldPosition, state.setValue(KoiosCoreBlock.FORMED, formed), 3);

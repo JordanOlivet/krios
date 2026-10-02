@@ -128,6 +128,10 @@ public final class KoiosCommand {
         source.sendSuccess(() -> Component.literal(
                 String.format("TOTAL supply %d E/t, draw %d E/t, members %d",
                         totalSupply, totalDraw, network.members().size())), false);
+        source.sendSuccess(() -> Component.literal(
+                String.format("POOL stored %d/%d  valid %s  controllers %d  component %d blocks",
+                        network.energyStored(), network.energyCapacity(),
+                        network.isValid(), network.controllers().size(), network.size())), false);
         return 1;
     }
 
