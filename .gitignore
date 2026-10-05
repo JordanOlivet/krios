@@ -28,3 +28,4 @@ __pycache__/
 
 # Extracted vanilla assets (Mojang, not redistributable)
 tools/reference/vanilla/
+.claude
