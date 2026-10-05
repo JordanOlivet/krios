@@ -21,7 +21,13 @@ public abstract class MachineTerminalScreen<T extends AbstractContainerMenu & Ma
 
     /** Center of the 256px work area, for machine layouts. */
     protected static final int WORK_CENTER_X = 128;
-    private static final int VOICE_Y = 92;
+    /**
+     * Two wrapped voice lines (2 x 9px) must fit above the inventory label
+     * at y=104 with a 2px gap: long phrases and translations wrap instead
+     * of overlapping the label (user call 2026-10-05, seen on the solar
+     * terminal). The work area above ends by y=85 on every machine.
+     */
+    private static final int VOICE_Y = 86;
 
     // Input-distribution toggle, left of the process columns (machines
     // with parallel columns only).
