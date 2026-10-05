@@ -155,9 +155,18 @@ public class KoiosCoreScreen extends KriosTerminalScreen<KoiosCoreMenu> {
         guiGraphics.drawString(font, Component.translatable("gui.krios_industry.koios.section.unlocks"),
                 8, y, COLOR_LOCKED, false);
         y += LINE_HEIGHT;
-        y = drawUnlock(guiGraphics, "gui.krios_industry.koios.unlock.speed", KoiosBalance.SPEED_UNLOCK_LEVEL, y);
-        y = drawUnlock(guiGraphics, "gui.krios_industry.koios.unlock.efficiency", KoiosBalance.EFFICIENCY_UNLOCK_LEVEL, y);
-        y = drawUnlock(guiGraphics, "gui.krios_industry.koios.unlock.yield", KoiosBalance.YIELD_UNLOCK_LEVEL, y);
+        // The CURRENT tier's ladder only — earlier tiers are trivially
+        // acquired and their history belongs to the Codex Progression entry.
+        if (menu.getTier() >= 2) {
+            y = drawUnlock(guiGraphics, "gui.krios_industry.koios.unlock.speed2", KoiosBalance.SPEED2_UNLOCK_LEVEL, y);
+            y = drawUnlock(guiGraphics, "gui.krios_industry.koios.unlock.energy", KoiosBalance.ENERGY_UNLOCK_LEVEL, y);
+            y = drawUnlock(guiGraphics, "gui.krios_industry.koios.unlock.efficiency2", KoiosBalance.EFFICIENCY2_UNLOCK_LEVEL, y);
+            y = drawUnlock(guiGraphics, "gui.krios_industry.koios.unlock.yield2", KoiosBalance.YIELD2_UNLOCK_LEVEL, y);
+        } else {
+            y = drawUnlock(guiGraphics, "gui.krios_industry.koios.unlock.speed", KoiosBalance.SPEED_UNLOCK_LEVEL, y);
+            y = drawUnlock(guiGraphics, "gui.krios_industry.koios.unlock.efficiency", KoiosBalance.EFFICIENCY_UNLOCK_LEVEL, y);
+            y = drawUnlock(guiGraphics, "gui.krios_industry.koios.unlock.yield", KoiosBalance.YIELD_UNLOCK_LEVEL, y);
+        }
         y += 3;
 
         // Critical notice (the voice lives under the XP gauge, terminal-style):
