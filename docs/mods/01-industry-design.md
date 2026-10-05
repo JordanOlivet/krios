@@ -285,6 +285,7 @@ The tier system, settled ahead of the tier 2 slice. One rule founds everything:
 - **Three-band tier visibility, diegetically justified** (Koios, the inquisitive intellect, extrapolates): current tier = *mastered* (first person, normal styling); next tier = **Projections** (distinct styling — dimmed amber, conditional phrasing — with the breakthrough prerequisite shown: the actionable carrot); beyond = corrupted/insufficient-data lines showing only that the ladder has 4 rungs.
 - The Projections entry unlocks as XP approaches the cap — KOIOS starts "dreaming" of its next form.
 - Presentation: a **"Progression" Codex entry ships with the tier 2 slice**; a graphic tier ladder is absorbed into Codex v3 later; the core's critical notice points to the Codex; existing machine entries carry a one-line contextual projection ("Projection t2: yield ×3" in the crusher entry).
+- **Consigned (2026-10-05, user)**: the fixed 320×246 overlay will not hold the Progression page at tiers 3-4. Decided direction before t3 ships: collapse mastered tiers to one header line (recap moves to a hover tooltip), then page scrolling as the structural fix for Codex v2 (richer entries and blueprint holograms need it anyway); a screen-sized "full page" mode stays an aesthetic option on top of scrolling, never the primary mechanism (variable layouts fight px-level art direction and long text lines read poorly).
 
 ## Open questions (implementation-time)
 
