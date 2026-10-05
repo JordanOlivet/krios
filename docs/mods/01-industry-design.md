@@ -287,6 +287,29 @@ The tier system, settled ahead of the tier 2 slice. One rule founds everything:
 - Presentation: a **"Progression" Codex entry ships with the tier 2 slice**; a graphic tier ladder is absorbed into Codex v3 later; the core's critical notice points to the Codex; existing machine entries carry a one-line contextual projection ("Projection t2: yield ×3" in the crusher entry).
 - **Consigned (2026-10-05, user)**: the fixed 320×246 overlay will not hold the Progression page at tiers 3-4. Decided direction before t3 ships: collapse mastered tiers to one header line (recap moves to a hover tooltip), then page scrolling as the structural fix for Codex v2 (richer entries and blueprint holograms need it anyway); a screen-sized "full page" mode stays an aesthetic option on top of scrolling, never the primary mechanism (variable layouts fight px-level art direction and long text lines read poorly).
 
+## Machine roadmap (design session 2026-10-06)
+
+Structure per **ADR-020**: every machine is a line (base at t1, improved each tier, one interface), plus a separate **simulated form** unlocked at t4 beside the line's t4 machine. Network energy only unless stated. Working names below are placeholders — a dedicated **naming pass** comes once the list is frozen, with candidates per machine in one register; the existing plain names (Generator, Crusher, Induction Furnace, Solar Panel) get renamed in the same pass so two registers never coexist.
+
+**Shared rules**
+- Self-sufficient processes (fishing, farms, mob farms) earn **reduced KOIOS XP** — something does happen inside them, unlike the solar panel (zero). One permille constant per machine class in `KoiosBalance`, calibrated during the survival playthrough.
+- Zone machines configure their zone through the Calibrator overlay (the blueprint/projection system); zones stop at unloaded chunks — never force-load.
+- A blocked output fills an internal buffer, then the machine pauses (extinguishes, tickless) until room frees — the thermostat model applied to items.
+
+**The lines**
+- **Cultivator** — plants and harvests crops in a zone in front of it. Improved tiers accelerate growth and raise yield. *Simulated form*: seed + soil block inside, outsized speed/yield.
+- **Lumberjack** — fells and replants trees in a zone; network energy only (no log fuel). Same progression and simulated form.
+- **Fisher** — next to water, draws the vanilla fishing loot table. A **rod slot**: the rod's enchantments apply (Lure → speed, Luck of the Sea → loot), it wears durability (Unbreaking/Mending matter). Reduced XP. Same progression and simulated form.
+- **Quarry** — mines a configured X/Z area between a Y min and a Y max; mined items exit **from the quarry block itself**. Ships whole without krios_storage (hopper-limited throughput is the player's call). Tier-2 debut candidate (ADR-020). Open at build time: fluid handling, the protected-block list (bedrock, cores, machines), output buffer size. Simulated form per the shared pattern.
+- **Breeder / Collector / Slaughterer** — operate on creatures present in a zone in front of the block (breed; shear/milk/eggs; kill). Same progression and simulated form.
+- **Spawner ("Neural Lure") + Eliminator** — two spawner modes: *default* force-spawns every mob the biome allows in a configured zone (light ignored); *imprint* mode spawns only one creature type from its **neural imprint**. The Eliminator damages every mob in its zone (upgrades reach one-shot). Player-only drops and XP orbs need a fake player — a new platform service (both loaders ship one), decided when the Eliminator is built.
+- **Magmatic generator** — burns lava (the explicit fuel exception, as a generator). Tier-2 debut candidate (nether access). Starts with buckets, no fluid infrastructure required.
+- **The neural imprint** — KOIOS's captured data of a creature: the item that justifies "owning a mob's data". Feeds the spawner's imprint mode and the simulated forms of the creature lines — one concept, several machines. How it is obtained: to design.
+
+**Intermediate items** (microchip, actuator, drill head, condensator, supraconductor...) are born with their first consuming machine, never ahead — then substitute into the compute chip and other recipes au fil de l'eau (numbers-pass decision 2026-10-05).
+
+**Kept in mind, not planned**: Recycler (needs a clear role in the loop first), villagers (breeding first, then trading automation — a whole system), auto-brewer, dedicated composter, fluid infrastructure (only if a machine truly needs it), the generators' simulated analog (concept to come).
+
 ## Open questions (implementation-time)
 
 - Ore names final check (Chronite/Neurite still placeholders-by-default).

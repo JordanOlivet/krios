@@ -175,6 +175,18 @@ Extends ADR-015 (mechanism untouched: per-world properties, decimals in file / p
 - `/krios_core config <knob>` edits the global; `/krios_<mod> config <knob>` edits that mod's override, with an `inherit` action to drop it; displays always show the effective value and its origin.
 - One knob turns the whole ecosystem for pack makers; full per-mod granularity stays available (the P3 trade-off dissolved, session 2026-10-01).
 
+## ADR-020 — Machine lines span t1→t4; simulated forms stand beside them
+
+**Date**: 2026-10-06 · **Status**: accepted
+
+Tier 1 was the MVP and tier 2 only validated the t1→t2 upgrade path; neither defines the content model. Settled in the machine roadmap session (user vision):
+
+- **Every machine is a line.** Its base version lands at tier 1 (nearly every vanilla function gets a basic automation there — the solar panel moves to t1), and each tier brings an improved version of the same line through the existing upgrade kit and `min(machine tier, core tier)` rule — one interface across t1→t4, give or take exceptions. A machine may debut later than t1 only when it truly justifies it (tier-2 candidates: the quarry, whose draw and reach would break the t1 energy economy; the magmatic generator, gated by nether lava).
+- **The simulated form is a separate block beside the line, not its last tier.** At tier 4 the player unlocks both the line's t4 machine (fastest, still acting on the world — for players who want to see it happen) and the line's *simulated* counterpart: the process is containerized inside the block (Docker as the reference) and run through space-time manipulation at outsized speed and yield. Different needs → different interface (no zone; inputs are the process's seeds — seed + soil, a mob's neural imprint...). Informally "t5", gated as a tier-4 unlock. It is the concrete meaning of the tier-4 name, Transcendence: KOIOS stops acting on the world and simulates it. Pure computation, no world interaction — the most ADR-012-friendly machine there is; energy scales with throughput, the single balance lever. Energy *generators* get an analogous concept, not yet designed.
+- **Network energy only**: process machines run on network energy, never on fuel, unless explicitly specified (generators are the exception by nature).
+- **No cross-mod crutch**: a machine's feature set never waits on another content mod (ADR-018's no-dependency rule applied to design, not just code). A quarry throttled by hopper throughput still ships whole; storage only makes it better.
+- **Tool-scale counterparts** (a handheld excavator) belong to a future Krios: Technologies, never to Industry blocks.
+
 ## Open questions
 
 *(none — next ones will come from design work)*

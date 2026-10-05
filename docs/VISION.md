@@ -36,6 +36,7 @@ The fiction: machines do not merely process matter — they compress time around
 | **Krios: Core** | `krios_core` | The spine: network engine, KOIOS, face contracts, backbone conduit, Calibrator, signature ores, Codex/UI/config infrastructure | **architecture settled (ADR-018), extraction pending** |
 | **Krios: Industry** | `krios_industry` | Machines, energy generation, processing/yield chains, modules & upgrade kits | **MVP — in design** |
 | Krios: Storage | `krios_storage` | Transport cable & run routing, then digital storage & logistics (AE2-like) | opening brief consigned (2026-10-01) |
+| Krios: Technologies | `krios_technologies` | Handheld tech: tools and items (e.g. an area excavator), the tool-scale counterparts of Industry's machines | idea (2026-10-06) |
 | Krios: Exo | `krios_exo` | Upgradeable modular futuristic armor | idea |
 | Krios: Void | `krios_void` | Space exploration (No Man's Sky / EverSpace / Starsector inspiration) | idea |
 | Krios: Construct | `krios_construct` | Futuristic building blocks with function (force-field doors, …) | idea |
