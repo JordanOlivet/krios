@@ -41,13 +41,16 @@ public class CodexPanel {
     /** Level at which the advanced paragraphs appear. */
     private static final int ADVANCED_LEVEL = 3;
 
-    private static final int W = 256;
-    private static final int H = 230;
+    // Sized for the Progression page's tallest state (current ladder +
+    // projections + corrupted lines) and for the corrupted lines' width;
+    // still fits the screen at GUI scale 4 (480x270 units).
+    private static final int W = 320;
+    private static final int H = 246;
     private static final int HEADER_H = 18;
     private static final int SIDEBAR_X = 6;
-    private static final int SIDEBAR_W = 82;
+    private static final int SIDEBAR_W = 104;
     private static final int ROW_H = 16;
-    private static final int PAGE_X = 96;
+    private static final int PAGE_X = 118;
     private static final int PAGE_W = W - PAGE_X - 10;
 
     private boolean open;
