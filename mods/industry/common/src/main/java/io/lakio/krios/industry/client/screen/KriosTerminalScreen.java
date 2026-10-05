@@ -142,7 +142,7 @@ public abstract class KriosTerminalScreen<T extends AbstractContainerMenu>
 
     /**
      * Stateless feed box (blink + cursor tracking, no bored state) for
-     * overlays that cannot host the full chrome (e.g. the Archives panel).
+     * overlays that cannot host the full chrome (e.g. the Codex panel).
      * Coordinates are absolute screen space.
      */
     public static void drawFeedBox(GuiGraphics gui, int x, int y, int status, int mouseX, int mouseY) {

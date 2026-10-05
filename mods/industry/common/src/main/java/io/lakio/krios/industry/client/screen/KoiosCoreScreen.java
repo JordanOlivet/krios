@@ -9,8 +9,8 @@ import net.minecraft.world.entity.player.Inventory;
 
 /**
  * The KOIOS core terminal, codex-style (same visual language as the
- * Archives and the Calibrator dashboard): framed panel, standard header
- * (close cross rightmost, the AI's feed left of it, then the Archives
+ * Codex and the Calibrator dashboard): framed panel, standard header
+ * (close cross rightmost, the AI's feed left of it, then the Codex
  * button), status/progression sections and a full-width data-XP gauge.
  */
 public class KoiosCoreScreen extends KriosTerminalScreen<KoiosCoreMenu> {
@@ -28,7 +28,7 @@ public class KoiosCoreScreen extends KriosTerminalScreen<KoiosCoreMenu> {
     private static final int COLOR_LOCKED = 0x5A6170;
     private static final int COLOR_CRITICAL = 0xFFB03A;
 
-    private final KoiosArchivesPanel archives = new KoiosArchivesPanel();
+    private final CodexPanel codex = new CodexPanel();
 
     public KoiosCoreScreen(KoiosCoreMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
@@ -41,7 +41,7 @@ public class KoiosCoreScreen extends KriosTerminalScreen<KoiosCoreMenu> {
         return menu.isFormed() ? menu.getKoiosLevel() : 0;
     }
 
-    private int archivesButtonX() {
+    private int codexButtonX() {
         return imageWidth - 52;
     }
 
@@ -53,7 +53,7 @@ public class KoiosCoreScreen extends KriosTerminalScreen<KoiosCoreMenu> {
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         renderTooltip(guiGraphics, mouseX, mouseY);
-        boolean overlayOpen = archives.isOpen();
+        boolean overlayOpen = codex.isOpen();
         // XP gauge tooltip.
         int barX = leftPos + XP_BAR_X;
         int barY = topPos + XP_BAR_Y;
@@ -73,13 +73,13 @@ public class KoiosCoreScreen extends KriosTerminalScreen<KoiosCoreMenu> {
                             KoiosBalance.DIVERSITY_FLOOR_PERMILLE / 10)),
                     mouseX, mouseY);
         }
-        archives.render(guiGraphics, font, width, height, menu.getKoiosLevel(),
+        codex.render(guiGraphics, font, width, height, menu.getKoiosLevel(),
                 terminalStatus(), mouseX, mouseY);
-        int bx = leftPos + archivesButtonX();
+        int bx = leftPos + codexButtonX();
         if (!overlayOpen && mouseX >= bx && mouseX < bx + 12
                 && mouseY >= topPos + 4 && mouseY < topPos + 16) {
             guiGraphics.renderTooltip(font,
-                    Component.translatable("gui.krios_industry.archive.title"), mouseX, mouseY);
+                    Component.translatable("gui.krios_industry.codex.title"), mouseX, mouseY);
         }
         // Suppress the chrome's feed tooltip while the overlay covers it.
         if (overlayOpen) {
@@ -91,16 +91,16 @@ public class KoiosCoreScreen extends KriosTerminalScreen<KoiosCoreMenu> {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (archives.click(width, height, mouseX, mouseY, menu.getKoiosLevel())) {
+        if (codex.click(width, height, mouseX, mouseY, menu.getKoiosLevel())) {
             return true;
         }
         if (isCloseCrossHit(mouseX, mouseY)) {
             onClose();
             return true;
         }
-        int bx = leftPos + archivesButtonX();
+        int bx = leftPos + codexButtonX();
         if (mouseX >= bx && mouseX < bx + 12 && mouseY >= topPos + 4 && mouseY < topPos + 16) {
-            archives.toggleOpen();
+            codex.toggleOpen();
             return true;
         }
         return super.mouseClicked(mouseX, mouseY, button);
@@ -114,13 +114,13 @@ public class KoiosCoreScreen extends KriosTerminalScreen<KoiosCoreMenu> {
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         renderTerminalHeader(guiGraphics, mouseX, mouseY);
-        // Header buttons are hidden while the Archives overlay is open: the
+        // Header buttons are hidden while the Codex overlay is open: the
         // core panel is taller than the overlay, so they would poke above its
         // frame (and the overlay swallows every click anyway).
-        if (!archives.isOpen()) {
+        if (!codex.isOpen()) {
             renderCloseCross(guiGraphics, mouseX, mouseY);
-            // Archives button: a small book left of the feed.
-            int bx = archivesButtonX();
+            // Codex button: a small book left of the feed.
+            int bx = codexButtonX();
             guiGraphics.fill(bx, 4, bx + 12, 16, 0xFF262B35);
             guiGraphics.fill(bx + 3, 6, bx + 9, 14, 0xFFE8EAF0);
             guiGraphics.fill(bx + 5, 6, bx + 6, 14, 0xFF262B35);

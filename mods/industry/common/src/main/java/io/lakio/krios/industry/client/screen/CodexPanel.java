@@ -8,16 +8,16 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 
 /**
- * "KOIOS Archives" (art direction): the in-game codex, KOIOS explaining its
- * own ecosystem in first person. Rendered as a screen-centered overlay above
+ * The Codex (art direction; renamed from "KOIOS Archives" 2026-10-05): a
+ * living compendium, KOIOS explaining its own ecosystem in first person. Rendered as a screen-centered overlay above
  * the core terminal (no screen stack, the container never closes): dimmed
  * backdrop, section sidebar on the left, one readable page on the right.
  * Entries unlock and grow richer with the core's level — the guide's
  * progression IS the AI's progression. Client-only; all content in lang.
  */
-public class KoiosArchivesPanel {
+public class CodexPanel {
 
-    /** id → lang keys archive.<id>.title/.body(/.adv); minLevel gates it. */
+    /** id → lang keys codex.<id>.title/.body(/.adv); minLevel gates it. */
     private record Entry(String id, int minLevel, boolean hasAdvanced) {
     }
 
@@ -88,7 +88,7 @@ public class KoiosArchivesPanel {
         // Header band — standard order: close cross rightmost, feed left of it.
         gui.fill(x, y, x + W, y + HEADER_H, 0xFF1B202A);
         gui.fill(x, y + HEADER_H, x + W, y + HEADER_H + 1, 0xFF0A6E87);
-        gui.drawString(font, Component.translatable("gui.krios_industry.archive.title"),
+        gui.drawString(font, Component.translatable("gui.krios_industry.codex.title"),
                 x + 8, y + 5, 0xFF31D8FF, false);
         boolean closeHover = mouseX >= x + W - 16 && mouseX < x + W - 4
                 && mouseY >= y + 3 && mouseY < y + 15;
@@ -116,7 +116,7 @@ public class KoiosArchivesPanel {
             // Titles too wide for the column are ellipsized; hover shows the
             // full name (a locked notice wins over it).
             Component title = Component.translatable(
-                    "gui.krios_industry.archive." + entry.id() + ".title");
+                    "gui.krios_industry.codex." + entry.id() + ".title");
             int maxWidth = SIDEBAR_W - 12;
             boolean truncated = font.width(title) > maxWidth;
             Component shown = truncated
@@ -126,7 +126,7 @@ public class KoiosArchivesPanel {
             gui.drawString(font, shown, x + SIDEBAR_X + 6, rowY + 4, color, false);
             if (hover) {
                 if (locked) {
-                    tooltip = Component.translatable("gui.krios_industry.archive.locked", entry.minLevel());
+                    tooltip = Component.translatable("gui.krios_industry.codex.locked", entry.minLevel());
                 } else if (truncated) {
                     tooltip = title;
                 }
@@ -138,16 +138,16 @@ public class KoiosArchivesPanel {
         int textX = x + PAGE_X;
         int textY = y + HEADER_H + 8;
         gui.drawString(font, Component.translatable(
-                "gui.krios_industry.archive." + entry.id() + ".title"),
+                "gui.krios_industry.codex." + entry.id() + ".title"),
                 textX, textY, 0xFFE8EAF0, false);
         gui.fill(textX, textY + 11, textX + PAGE_W, textY + 12, 0xFF0A6E87);
         textY += 18;
-        Component body = Component.translatable("gui.krios_industry.archive." + entry.id() + ".body");
+        Component body = Component.translatable("gui.krios_industry.codex." + entry.id() + ".body");
         gui.drawWordWrap(font, body, textX, textY, PAGE_W, 0xFFA9AFBD);
         textY += font.split(body, PAGE_W).size() * 9 + 10;
         if (entry.hasAdvanced() && koiosLevel >= ADVANCED_LEVEL) {
             Component adv = Component.translatable(
-                    "gui.krios_industry.archive." + entry.id() + ".adv")
+                    "gui.krios_industry.codex." + entry.id() + ".adv")
                     .copy().withStyle(ChatFormatting.ITALIC);
             int advHeight = font.split(adv, PAGE_W - 6) .size() * 9;
             gui.fill(textX, textY, textX + 1, textY + advHeight, 0xFF0A6E87);
