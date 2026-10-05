@@ -13,6 +13,17 @@ java {
     withJavadocJar()
 }
 
+// Tooling state can land inside source trees (.claude/ autoharness dirs,
+// gitignored but on disk): javadoc chokes on them as illegal package names
+// and the sources jar would bundle them. Exclude, never delete — that
+// state belongs to the tooling.
+tasks.withType(Javadoc).configureEach {
+    exclude '**/.claude/**'
+}
+tasks.named('sourcesJar') {
+    exclude '**/.claude/**'
+}
+
 repositories {
     mavenCentral()
     // https://docs.gradle.org/current/userguide/declaring_repositories.html#declaring_content_exclusively_found_in_one_repository
