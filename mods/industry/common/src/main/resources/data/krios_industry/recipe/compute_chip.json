@@ -7,7 +7,7 @@
     "CNC"
   ],
   "key": {
-    "C": { "item": "krios_industry:chronite_shard" },
+    "C": { "tag": "c:storage_blocks/copper" },
     "N": { "item": "krios_industry:neurite_ingot" },
     "R": { "tag": "c:storage_blocks/redstone" }
   },

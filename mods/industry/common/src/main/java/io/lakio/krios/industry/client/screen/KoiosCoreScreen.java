@@ -153,7 +153,8 @@ public class KoiosCoreScreen extends KriosTerminalScreen<KoiosCoreMenu> {
                 8, y, COLOR_TEXT, false);
         // Hardware tier, right-aligned on the level line (dual axis reads
         // in one glance: software level left, hardware tier right).
-        Component tierLine = Component.translatable("gui.krios_industry.koios.tier", menu.getTier());
+        Component tierLine = Component.translatable("gui.krios_industry.koios.tier", menu.getTier(),
+                Component.translatable("gui.krios_industry.koios.tier.name." + menu.getTier()));
         guiGraphics.drawString(font, tierLine, imageWidth - 8 - font.width(tierLine), y,
                 COLOR_CRITICAL, false);
         y += LINE_HEIGHT;

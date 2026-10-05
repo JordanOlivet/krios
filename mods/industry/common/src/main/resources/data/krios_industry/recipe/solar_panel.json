@@ -9,7 +9,7 @@
   "key": {
     "G": { "tag": "c:glass_blocks" },
     "N": { "item": "krios_industry:neurite_ingot" },
-    "P": { "item": "krios_industry:compute_chip" },
+    "P": { "tag": "c:ingots/copper" },
     "S": { "item": "krios_industry:chronite_shard" },
     "I": { "tag": "c:ingots/iron" }
   },

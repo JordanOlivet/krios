@@ -293,8 +293,18 @@ The tier system, settled ahead of the tier 2 slice. One rule founds everything:
 - ~~Critical level 5 cost (items + XP)~~ — mechanism settled 2026-09-30
   (see "Tier model & tier 2"): XP cap is a threshold (never consumed) +
   a compute chip (bulk tier 1 outputs) consumed via core slot or
-  right-click. Still open for the tier 2 numbers pass: the chip's exact
-  recipe, N6-N9 XP curve values, tier display names, solar/t2 generator
-  ratios, Mk II module magnitudes and the energy module's ladder slot.
+  right-click. ~~Numbers pass~~ — settled 2026-10-05: the chip is a
+  PRODUCTION sink (4 copper storage blocks + 4 neurite ingots + 1
+  redstone block; future intermediate items — microchip, condensator,
+  supraconductor... — substitute in as they ship, designed against real
+  machines, never ahead of them, per the ADR-013 philosophy); N6-N9
+  curve kept at 12k/20k/30k/42k — player-side difficulty rides the
+  xp_rate config knob, the curve itself stays a constant because
+  clients read it for display; tier display names: Awakening /
+  Expansion / Synthesis / Transcendence (Éveil / Extension / Synthèse /
+  Transcendance — future tiers render nameless in the Codex); the solar
+  panel recipe drops its compute chip (comfort product, not a
+  milestone). Mk II magnitudes and the energy module's ladder slot were
+  settled 2026-10-01.
 - ~~Furnace module slot count~~ — settled 2026-09-29: 2 slots, same as the crusher (tier 1 standard). Built as the Induction Furnace over vanilla smelting recipes (2x furnace speed connected, exact vanilla parity offline, flat 400 E/smelt).
 - ~~Avatar hologram timing~~ — settled 2026-09-29: the hologram body (pedestal projecting the AI's head) is the last-tier evolution of the core structure; until then the monolith keeps its screen face.

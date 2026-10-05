@@ -204,13 +204,16 @@ public class CodexPanel {
         gui.drawWordWrap(font, intro, x, y, PAGE_W, 0xFFA9AFBD);
         y += font.split(intro, PAGE_W).size() * 9 + 8;
         for (int t = 1; t <= KoiosBalance.MAX_TIER; t++) {
+            // Mastered and current tiers carry their diegetic name; future
+            // tiers stay nameless — KOIOS has not modeled those forms yet.
+            Component tierName = Component.translatable("gui.krios_industry.koios.tier.name." + t);
             if (t < tier) {
                 y = drawBand(gui, font, x, y,
-                        Component.translatable("gui.krios_industry.codex.progression.mastered", t),
+                        Component.translatable("gui.krios_industry.codex.progression.mastered", t, tierName),
                         0xFF31D8FF, "gui.krios_industry.codex.progression.t" + t + ".past", 0xFFA9AFBD);
             } else if (t == tier) {
                 y = drawBand(gui, font, x, y,
-                        Component.translatable("gui.krios_industry.codex.progression.current", t),
+                        Component.translatable("gui.krios_industry.codex.progression.current", t, tierName),
                         0xFFE8EAF0, "gui.krios_industry.codex.progression.t" + t + ".ladder", 0xFFA9AFBD);
             } else if (t == tier + 1 && projectionsVisible(menu)) {
                 y = drawBand(gui, font, x, y,
