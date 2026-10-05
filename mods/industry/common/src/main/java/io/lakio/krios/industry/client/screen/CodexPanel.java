@@ -2,9 +2,12 @@ package io.lakio.krios.industry.client.screen;
 
 import java.util.List;
 
+import io.lakio.krios.industry.koios.KoiosBalance;
+import io.lakio.krios.industry.koios.KoiosCoreMenu;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 
 /**
@@ -23,6 +26,7 @@ public class CodexPanel {
 
     private static final List<Entry> ENTRIES = List.of(
             new Entry("koios", 1, true),
+            new Entry("progression", 1, false),
             new Entry("diversity", 1, false),
             new Entry("generator", 1, false),
             new Entry("solar_panel", 1, false),
@@ -38,7 +42,7 @@ public class CodexPanel {
     private static final int ADVANCED_LEVEL = 3;
 
     private static final int W = 256;
-    private static final int H = 200;
+    private static final int H = 230;
     private static final int HEADER_H = 18;
     private static final int SIDEBAR_X = 6;
     private static final int SIDEBAR_W = 82;
@@ -65,11 +69,12 @@ public class CodexPanel {
         return (screenH - H) / 2;
     }
 
-    public void render(GuiGraphics gui, Font font, int screenW, int screenH, int koiosLevel,
+    public void render(GuiGraphics gui, Font font, int screenW, int screenH, KoiosCoreMenu menu,
             int feedStatus, int mouseX, int mouseY) {
         if (!open) {
             return;
         }
+        int koiosLevel = menu.getKoiosLevel();
         int x = panelX(screenW);
         int y = panelY(screenH);
 
@@ -142,16 +147,20 @@ public class CodexPanel {
                 textX, textY, 0xFFE8EAF0, false);
         gui.fill(textX, textY + 11, textX + PAGE_W, textY + 12, 0xFF0A6E87);
         textY += 18;
-        Component body = Component.translatable("gui.krios_industry.codex." + entry.id() + ".body");
-        gui.drawWordWrap(font, body, textX, textY, PAGE_W, 0xFFA9AFBD);
-        textY += font.split(body, PAGE_W).size() * 9 + 10;
-        if (entry.hasAdvanced() && koiosLevel >= ADVANCED_LEVEL) {
-            Component adv = Component.translatable(
-                    "gui.krios_industry.codex." + entry.id() + ".adv")
-                    .copy().withStyle(ChatFormatting.ITALIC);
-            int advHeight = font.split(adv, PAGE_W - 6) .size() * 9;
-            gui.fill(textX, textY, textX + 1, textY + advHeight, 0xFF0A6E87);
-            gui.drawWordWrap(font, adv, textX + 6, textY, PAGE_W - 6, 0xFF5FA8BC);
+        if ("progression".equals(entry.id())) {
+            renderProgression(gui, font, textX, textY, menu);
+        } else {
+            Component body = Component.translatable("gui.krios_industry.codex." + entry.id() + ".body");
+            gui.drawWordWrap(font, body, textX, textY, PAGE_W, 0xFFA9AFBD);
+            textY += font.split(body, PAGE_W).size() * 9 + 10;
+            if (entry.hasAdvanced() && koiosLevel >= ADVANCED_LEVEL) {
+                Component adv = Component.translatable(
+                        "gui.krios_industry.codex." + entry.id() + ".adv")
+                        .copy().withStyle(ChatFormatting.ITALIC);
+                int advHeight = font.split(adv, PAGE_W - 6) .size() * 9;
+                gui.fill(textX, textY, textX + 1, textY + advHeight, 0xFF0A6E87);
+                gui.drawWordWrap(font, adv, textX + 6, textY, PAGE_W - 6, 0xFF5FA8BC);
+            }
         }
         if (tooltip != null) {
             gui.renderTooltip(font, tooltip, mouseX, mouseY);
@@ -159,11 +168,95 @@ public class CodexPanel {
         gui.pose().popPose();
     }
 
+    /**
+     * The three-band tier ladder (design 2026-09-30/10-05): past tiers
+     * mastered, the current tier's rung list, the NEXT tier as amber
+     * Projections once XP nears the cap (KOIOS extrapolates — conditional
+     * phrasing), everything further as corrupted lines. All text in lang;
+     * no live per-rung state — that lives on the core screen's UNLOCKS.
+     */
+    private void renderProgression(GuiGraphics gui, Font font, int x, int y, KoiosCoreMenu menu) {
+        int tier = menu.getTier();
+        Component intro = Component.translatable("gui.krios_industry.codex.progression.body");
+        gui.drawWordWrap(font, intro, x, y, PAGE_W, 0xFFA9AFBD);
+        y += font.split(intro, PAGE_W).size() * 9 + 8;
+        for (int t = 1; t <= KoiosBalance.MAX_TIER; t++) {
+            if (t < tier) {
+                y = drawBand(gui, font, x, y,
+                        Component.translatable("gui.krios_industry.codex.progression.mastered", t),
+                        0xFF31D8FF, "gui.krios_industry.codex.progression.t" + t + ".past", 0xFFA9AFBD);
+            } else if (t == tier) {
+                y = drawBand(gui, font, x, y,
+                        Component.translatable("gui.krios_industry.codex.progression.current", t),
+                        0xFFE8EAF0, "gui.krios_industry.codex.progression.t" + t + ".ladder", 0xFFA9AFBD);
+            } else if (t == tier + 1 && projectionsVisible(menu)) {
+                y = drawBand(gui, font, x, y,
+                        Component.translatable("gui.krios_industry.codex.progression.projections", t),
+                        0xFFFFB03A, "gui.krios_industry.codex.progression.projection.t" + t, 0xFFB08848);
+                Component needs = Component.translatable(
+                        "gui.krios_industry.codex.progression.projection.needs",
+                        KoiosBalance.criticalLevel(tier));
+                gui.drawWordWrap(font, needs, x + 6, y, PAGE_W - 6, 0xFF8A6A38);
+                y += font.split(needs, PAGE_W - 6).size() * 9 + 6;
+            } else {
+                // Corrupted band (art direction): a readable label framed by
+                // short obfuscated runs — the ladder has rungs up here, and
+                // that is all the band gives away.
+                Component corrupted = Component.literal("")
+                        .append(Component.translatable("gui.krios_industry.codex.progression.tier", t))
+                        .append(Component.literal(" — "))
+                        .append(Component.literal("██").withStyle(ChatFormatting.OBFUSCATED))
+                        .append(Component.literal(" "))
+                        .append(Component.translatable("gui.krios_industry.codex.progression.corrupted"))
+                        .append(Component.literal(" "))
+                        .append(Component.literal("█").withStyle(ChatFormatting.OBFUSCATED));
+                gui.drawString(font, corrupted, x, y, 0xFF4A5160, false);
+                y += 13;
+            }
+        }
+    }
+
+    /** Band header + lang body (skipped when the key is not translated). */
+    private int drawBand(GuiGraphics gui, Font font, int x, int y, Component header,
+            int headerColor, String bodyKey, int bodyColor) {
+        gui.drawString(font, header, x, y, headerColor, false);
+        y += 11;
+        if (I18n.exists(bodyKey)) {
+            Component body = Component.translatable(bodyKey);
+            gui.drawWordWrap(font, body, x + 6, y, PAGE_W - 6, bodyColor);
+            y += font.split(body, PAGE_W - 6).size() * 9;
+        }
+        return y + 6;
+    }
+
+    /** Next-tier projections: XP near the cap AND the content is written. */
+    private static boolean projectionsVisible(KoiosCoreMenu menu) {
+        return KoiosBalance.projectionsActive(menu.getXp(), menu.getTier())
+                && I18n.exists("gui.krios_industry.codex.progression.projection.t"
+                        + (menu.getTier() + 1));
+    }
+
+    /**
+     * Badge signature: how many codex entries this state can open, plus one
+     * while projections are live. The core stores the signature it was last
+     * opened at; the header book shows a dot while this outgrows it.
+     */
+    public static int visibleSignature(KoiosCoreMenu menu) {
+        int count = 0;
+        for (Entry entry : ENTRIES) {
+            if (menu.getKoiosLevel() >= entry.minLevel()) {
+                count++;
+            }
+        }
+        return count + (projectionsVisible(menu) ? 1 : 0);
+    }
+
     /** True when the click was handled (the overlay swallows every click). */
-    public boolean click(int screenW, int screenH, double mouseX, double mouseY, int koiosLevel) {
+    public boolean click(int screenW, int screenH, double mouseX, double mouseY, KoiosCoreMenu menu) {
         if (!open) {
             return false;
         }
+        int koiosLevel = menu.getKoiosLevel();
         int x = panelX(screenW);
         int y = panelY(screenH);
         if (mouseX >= x + W - 16 && mouseX < x + W - 4 && mouseY >= y + 3 && mouseY < y + 15) {

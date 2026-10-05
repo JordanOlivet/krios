@@ -73,7 +73,7 @@ public class KoiosCoreScreen extends KriosTerminalScreen<KoiosCoreMenu> {
                             KoiosBalance.DIVERSITY_FLOOR_PERMILLE / 10)),
                     mouseX, mouseY);
         }
-        codex.render(guiGraphics, font, width, height, menu.getKoiosLevel(),
+        codex.render(guiGraphics, font, width, height, menu,
                 terminalStatus(), mouseX, mouseY);
         int bx = leftPos + codexButtonX();
         if (!overlayOpen && mouseX >= bx && mouseX < bx + 12
@@ -91,7 +91,7 @@ public class KoiosCoreScreen extends KriosTerminalScreen<KoiosCoreMenu> {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (codex.click(width, height, mouseX, mouseY, menu.getKoiosLevel())) {
+        if (codex.click(width, height, mouseX, mouseY, menu)) {
             return true;
         }
         if (isCloseCrossHit(mouseX, mouseY)) {
@@ -101,6 +101,13 @@ public class KoiosCoreScreen extends KriosTerminalScreen<KoiosCoreMenu> {
         int bx = leftPos + codexButtonX();
         if (mouseX >= bx && mouseX < bx + 12 && mouseY >= topPos + 4 && mouseY < topPos + 16) {
             codex.toggleOpen();
+            // Opening reports the visible-entry signature: the server-side
+            // core remembers it and the badge goes out (menu button channel,
+            // same plumbing as the machines' face buttons).
+            if (codex.isOpen() && minecraft != null && minecraft.gameMode != null) {
+                minecraft.gameMode.handleInventoryButtonClick(menu.containerId,
+                        KoiosCoreMenu.CODEX_SEEN_BUTTON_BASE + CodexPanel.visibleSignature(menu));
+            }
             return true;
         }
         return super.mouseClicked(mouseX, mouseY, button);
@@ -124,6 +131,12 @@ public class KoiosCoreScreen extends KriosTerminalScreen<KoiosCoreMenu> {
             guiGraphics.fill(bx, 4, bx + 12, 16, 0xFF262B35);
             guiGraphics.fill(bx + 3, 6, bx + 9, 14, 0xFFE8EAF0);
             guiGraphics.fill(bx + 5, 6, bx + 6, 14, 0xFF262B35);
+            // Unread badge: entries appeared since the codex was last
+            // opened (level unlocks, projections surfacing).
+            if (CodexPanel.visibleSignature(menu) > menu.getCodexSeen()) {
+                guiGraphics.fill(bx + 8, 2, bx + 13, 7, 0xFF0C0E13);
+                guiGraphics.fill(bx + 9, 3, bx + 12, 6, 0xFFE5484D);
+            }
         }
 
         // Status, level, variety.

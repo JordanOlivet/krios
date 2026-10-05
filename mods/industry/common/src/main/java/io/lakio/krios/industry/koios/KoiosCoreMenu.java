@@ -11,10 +11,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.Nullable;
 
-/** Display-only menu: no item slots, ten synced values. */
+/** Display-only menu: no item slots, eleven synced values. */
 public class KoiosCoreMenu extends AbstractContainerMenu {
 
-    public static final int DATA_COUNT = 10;
+    public static final int DATA_COUNT = 11;
+    /** Button channel: id - base = the codex signature just seen. */
+    public static final int CODEX_SEEN_BUTTON_BASE = 100;
 
     private final ContainerData data;
     @Nullable
@@ -35,6 +37,21 @@ public class KoiosCoreMenu extends AbstractContainerMenu {
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
         return ItemStack.EMPTY;
+    }
+
+    /** Codex-open report: the server remembers the signature (badge). */
+    @Override
+    public boolean clickMenuButton(Player player, int id) {
+        if (id >= CODEX_SEEN_BUTTON_BASE && blockEntity instanceof KoiosCoreBlockEntity core) {
+            core.codexOpened(id - CODEX_SEEN_BUTTON_BASE);
+            return true;
+        }
+        return false;
+    }
+
+    /** Visible-entry signature the codex was last opened at (badge). */
+    public int getCodexSeen() {
+        return data.get(10);
     }
 
     @Override

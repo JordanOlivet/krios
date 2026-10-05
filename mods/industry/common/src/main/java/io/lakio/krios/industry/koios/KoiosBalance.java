@@ -91,6 +91,18 @@ public final class KoiosBalance {
     public static final int CORE_RANGE = 32;
     public static final int CORE_RANGE_SQ = CORE_RANGE * CORE_RANGE;
 
+    /**
+     * Codex Projections threshold (design 2026-10-05): as XP nears the
+     * tier's cap, KOIOS starts "dreaming" of its next form — next-tier
+     * projection content surfaces in the Codex.
+     */
+    public static final int PROJECTIONS_THRESHOLD_PERMILLE = 800;
+
+    /** XP close enough to this tier's cap that projections surface. */
+    public static boolean projectionsActive(int xp, int tier) {
+        return (long) xp * 1000 >= (long) xpCap(tier) * PROJECTIONS_THRESHOLD_PERMILLE;
+    }
+
     /** The critical level closing a tier: 5, 9, 13... (one per boundary). */
     public static int criticalLevel(int tier) {
         return 1 + 4 * tier;

@@ -91,6 +91,13 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
     private int windowHead;
     private int windowFill;
     private final Map<String, Integer> windowCounts = new HashMap<>();
+    /**
+     * Codex badge state: the visible-entry signature the codex was last
+     * opened at (see CodexPanel.visibleSignature). Written through the
+     * menu's button channel; per-core by design (v0 — in multiplayer one
+     * reader clears the dot for the structure, acceptable for now).
+     */
+    private int codexSeen;
 
     private final ContainerData dataAccess = new ContainerData() {
         @Override
@@ -108,6 +115,8 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
                 case 7 -> networkEnergyPermille();
                 case 8 -> networkEnergyDeficit() ? 1 : 0;
                 case 9 -> tier;
+                // 10: codex badge — the visible-entry signature last seen.
+                case 10 -> codexSeen;
                 default -> 0;
             };
         }
@@ -284,6 +293,14 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
         level.blockEvent(worldPosition, getBlockState().getBlock(), EVENT_TIER_UP, tier);
         syncToClients();
         return true;
+    }
+
+    /** The codex was opened at this visible-entry signature (badge reset). */
+    public void codexOpened(int signature) {
+        if (signature != codexSeen) {
+            codexSeen = signature;
+            setChanged();
+        }
     }
 
     public boolean isFormed() {
@@ -575,6 +592,7 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
         super.saveAdditional(tag, registries);
         tag.putInt("DataXp", xp);
         tag.putInt("Tier", tier);
+        tag.putInt("CodexSeen", codexSeen);
         if (screenSide != null) {
             tag.putInt("ScreenSide", screenSide.get3DDataValue());
         }
@@ -592,6 +610,7 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
         tier = Math.max(1, Math.min(KoiosBalance.MAX_TIER,
                 tag.contains("Tier") ? tag.getInt("Tier") : 1));
         xp = Math.min(KoiosBalance.xpCap(tier), tag.getInt("DataXp"));
+        codexSeen = tag.getInt("CodexSeen");
         screenSide = tag.contains("ScreenSide") ? Direction.from3DDataValue(tag.getInt("ScreenSide")) : null;
         if (tag.contains("Div")) {
             clientDiversity = tag.getInt("Div");
