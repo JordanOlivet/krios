@@ -56,7 +56,9 @@ public abstract class MachineTerminalScreen<T extends AbstractContainerMenu & Ma
     }
 
     protected int energyBarHeight() {
-        return 62;
+        // Bottom edge flush with the process output cells (y=64 content,
+        // cell row 80), clearing the two-line voice zone that starts at 86.
+        return 57;
     }
 
     protected boolean energyBarHorizontal() {
