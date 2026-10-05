@@ -150,16 +150,36 @@ public class CodexPanel {
         if ("progression".equals(entry.id())) {
             renderProgression(gui, font, textX, textY, menu);
         } else {
-            Component body = Component.translatable("gui.krios_industry.codex." + entry.id() + ".body");
+            String baseKey = "gui.krios_industry.codex." + entry.id();
+            // Mastered tiers can rewrite an entry's body: the highest
+            // .body.t<N> at or under the core's tier wins (fallback .body).
+            String bodyKey = baseKey + ".body";
+            for (int t = menu.getTier(); t >= 2; t--) {
+                if (I18n.exists(bodyKey + ".t" + t)) {
+                    bodyKey = bodyKey + ".t" + t;
+                    break;
+                }
+            }
+            Component body = Component.translatable(bodyKey);
             gui.drawWordWrap(font, body, textX, textY, PAGE_W, 0xFFA9AFBD);
             textY += font.split(body, PAGE_W).size() * 9 + 10;
             if (entry.hasAdvanced() && koiosLevel >= ADVANCED_LEVEL) {
-                Component adv = Component.translatable(
-                        "gui.krios_industry.codex." + entry.id() + ".adv")
+                Component adv = Component.translatable(baseKey + ".adv")
                         .copy().withStyle(ChatFormatting.ITALIC);
-                int advHeight = font.split(adv, PAGE_W - 6) .size() * 9;
+                int advHeight = font.split(adv, PAGE_W - 6).size() * 9;
                 gui.fill(textX, textY, textX + 1, textY + advHeight, 0xFF0A6E87);
                 gui.drawWordWrap(font, adv, textX + 6, textY, PAGE_W - 6, 0xFF5FA8BC);
+                textY += advHeight + 10;
+            }
+            // Contextual projection (three-band visibility): while KOIOS
+            // dreams near the cap, the entry carries one amber line about
+            // this subject's next form; it vanishes once the tier is real.
+            String projectionKey = baseKey + ".projection.t" + (menu.getTier() + 1);
+            if (projectionsVisible(menu) && I18n.exists(projectionKey)) {
+                Component projection = Component.translatable(projectionKey);
+                int height = font.split(projection, PAGE_W - 6).size() * 9;
+                gui.fill(textX, textY, textX + 1, textY + height, 0xFF7A5A1C);
+                gui.drawWordWrap(font, projection, textX + 6, textY, PAGE_W - 6, 0xFFB08848);
             }
         }
         if (tooltip != null) {
