@@ -3,7 +3,7 @@ package io.lakio.krios.industry.registry;
 import java.util.function.Supplier;
 
 import io.lakio.krios.industry.Constants;
-import io.lakio.krios.industry.machine.crusher.CrushingRecipe;
+import io.lakio.krios.industry.machine.grinder.GrindingRecipe;
 import io.lakio.krios.industry.platform.Services;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.crafting.Recipe;
@@ -12,10 +12,10 @@ import net.minecraft.world.item.crafting.RecipeType;
 
 public final class ModRecipeTypes {
 
-    public static final Supplier<RecipeType<CrushingRecipe>> CRUSHING = registerType("crushing");
+    public static final Supplier<RecipeType<GrindingRecipe>> GRINDING = registerType("grinding");
 
-    public static final Supplier<RecipeSerializer<CrushingRecipe>> CRUSHING_SERIALIZER =
-            registerSerializer("crushing", CrushingRecipe.Serializer::new);
+    public static final Supplier<RecipeSerializer<GrindingRecipe>> GRINDING_SERIALIZER =
+            registerSerializer("grinding", GrindingRecipe.Serializer::new);
 
     private ModRecipeTypes() {
     }

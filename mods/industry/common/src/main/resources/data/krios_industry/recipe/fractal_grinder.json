@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "FFF",
+    "SNS",
+    "III"
+  ],
+  "key": {
+    "F": { "item": "minecraft:flint" },
+    "S": { "item": "krios_industry:chronite_shard" },
+    "N": { "item": "krios_industry:raw_neurite" },
+    "I": { "tag": "c:ingots/iron" }
+  },
+  "result": { "id": "krios_industry:fractal_grinder", "count": 1 }
+}

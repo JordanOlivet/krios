@@ -44,7 +44,7 @@ public final class FaceOverlayRenderer {
     private static final int HINT_RGB = 0xFFB03A;
     private static final float BADGE_SPREAD = 0.16F;
 
-    /** Two masks today (generator vs crusher/furnace); derived once each. */
+    /** Two masks today (reactor vs grinder/forge); derived once each. */
     private static final Map<Short, HologramFacePanel.Column[]> COLUMN_CACHE = new HashMap<>();
 
     public static void render(PoseStack poseStack, float partialTick) {

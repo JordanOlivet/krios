@@ -1,0 +1,10 @@
+{
+  "parent": "krios_industry:block/fractal_grinder_base",
+  "textures": {
+    "front": "krios_industry:block/fractal_grinder_front",
+    "side": "krios_industry:block/fractal_grinder_side",
+    "top": "krios_industry:block/fractal_grinder_top",
+    "jaw": "krios_industry:block/fractal_grinder_jaw",
+    "maw": "krios_industry:block/fractal_grinder_maw"
+  }
+}

@@ -7,11 +7,11 @@ import io.lakio.krios.industry.client.render.KoiosCoreRenderer;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import io.lakio.krios.industry.client.screen.CalibratorScreen;
-import io.lakio.krios.industry.client.screen.CrusherScreen;
-import io.lakio.krios.industry.client.screen.FurnaceScreen;
-import io.lakio.krios.industry.client.screen.GeneratorScreen;
+import io.lakio.krios.industry.client.screen.FractalGrinderScreen;
+import io.lakio.krios.industry.client.screen.PlasmaForgeScreen;
+import io.lakio.krios.industry.client.screen.ThermalReactorScreen;
 import io.lakio.krios.industry.client.screen.KoiosCoreScreen;
-import io.lakio.krios.industry.client.screen.SolarPanelScreen;
+import io.lakio.krios.industry.client.screen.PhotonArrayScreen;
 import io.lakio.krios.industry.registry.ModBlockEntities;
 import io.lakio.krios.industry.registry.ModMenus;
 import net.fabricmc.api.ClientModInitializer;
@@ -23,10 +23,10 @@ public class KriosIndustryClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        MenuScreens.register(ModMenus.GENERATOR.get(), GeneratorScreen::new);
-        MenuScreens.register(ModMenus.SOLAR_PANEL.get(), SolarPanelScreen::new);
-        MenuScreens.register(ModMenus.CRUSHER.get(), CrusherScreen::new);
-        MenuScreens.register(ModMenus.FURNACE.get(), FurnaceScreen::new);
+        MenuScreens.register(ModMenus.THERMAL_REACTOR.get(), ThermalReactorScreen::new);
+        MenuScreens.register(ModMenus.PHOTON_ARRAY.get(), PhotonArrayScreen::new);
+        MenuScreens.register(ModMenus.FRACTAL_GRINDER.get(), FractalGrinderScreen::new);
+        MenuScreens.register(ModMenus.PLASMA_FORGE.get(), PlasmaForgeScreen::new);
         MenuScreens.register(ModMenus.KOIOS_CORE.get(), KoiosCoreScreen::new);
         MenuScreens.register(ModMenus.CALIBRATOR.get(), CalibratorScreen::new);
         BlockEntityRenderers.register(ModBlockEntities.KOIOS_CORE.get(), KoiosCoreRenderer::new);

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CCC",
+    "SFS",
+    "INI"
+  ],
+  "key": {
+    "C": { "tag": "c:ingots/copper" },
+    "S": { "item": "krios_industry:chronite_shard" },
+    "F": { "item": "minecraft:furnace" },
+    "I": { "tag": "c:ingots/iron" },
+    "N": { "item": "krios_industry:neurite_ingot" }
+  },
+  "result": { "id": "krios_industry:plasma_forge", "count": 1 }
+}

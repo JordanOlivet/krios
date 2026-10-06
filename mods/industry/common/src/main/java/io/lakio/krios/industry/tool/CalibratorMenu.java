@@ -151,7 +151,7 @@ public class CalibratorMenu extends AbstractContainerMenu {
         return data.get(8);
     }
 
-    /** Network production in E/t (burning generators). */
+    /** Network production in E/t (burning reactors). */
     public int supplyPerTick() {
         return data.get(9);
     }

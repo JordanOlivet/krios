@@ -8,9 +8,9 @@ import io.lakio.krios.industry.Constants;
 import io.lakio.krios.industry.cable.NeuralConduitBlock;
 import io.lakio.krios.industry.koios.KoiosCoreBlock;
 import io.lakio.krios.industry.koios.NeuralCasingBlock;
-import io.lakio.krios.industry.machine.crusher.CrusherBlock;
-import io.lakio.krios.industry.machine.furnace.FurnaceBlock;
-import io.lakio.krios.industry.machine.generator.GeneratorBlock;
+import io.lakio.krios.industry.machine.grinder.FractalGrinderBlock;
+import io.lakio.krios.industry.machine.forge.PlasmaForgeBlock;
+import io.lakio.krios.industry.machine.reactor.ThermalReactorBlock;
 import io.lakio.krios.industry.platform.Services;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -54,32 +54,32 @@ public final class ModBlocks {
                     .strength(4.5F, 3.0F)
                     .sound(SoundType.DEEPSLATE)));
 
-    public static final Supplier<Block> GENERATOR = registerWithItem("generator",
-            () -> new GeneratorBlock(machineProperties(12), 1));
+    public static final Supplier<Block> THERMAL_REACTOR = registerWithItem("thermal_reactor",
+            () -> new ThermalReactorBlock(machineProperties(12), 1));
 
-    public static final Supplier<Block> GENERATOR_TIER2 = registerWithItem("generator_tier2",
-            () -> new GeneratorBlock(machineProperties(12), 2));
+    public static final Supplier<Block> THERMAL_REACTOR_TIER2 = registerWithItem("thermal_reactor_tier2",
+            () -> new ThermalReactorBlock(machineProperties(12), 2));
 
-    public static final Supplier<Block> SOLAR_PANEL = registerWithItem("solar_panel",
+    public static final Supplier<Block> PHOTON_ARRAY = registerWithItem("photon_array",
             // Full cube (machine body + cell deck on top): standard occlusion.
-            () -> new io.lakio.krios.industry.machine.solar.SolarPanelBlock(
+            () -> new io.lakio.krios.industry.machine.photon.PhotonArrayBlock(
                     BlockBehaviour.Properties.of()
                             .mapColor(MapColor.METAL)
                             .requiresCorrectToolForDrops()
                             .strength(3.0F, 4.0F)
                             .sound(SoundType.METAL)));
 
-    public static final Supplier<Block> CRUSHER = registerWithItem("crusher",
-            () -> new CrusherBlock(machineProperties(9), 1));
+    public static final Supplier<Block> FRACTAL_GRINDER = registerWithItem("fractal_grinder",
+            () -> new FractalGrinderBlock(machineProperties(9), 1));
 
-    public static final Supplier<Block> CRUSHER_TIER2 = registerWithItem("crusher_tier2",
-            () -> new CrusherBlock(machineProperties(9), 2));
+    public static final Supplier<Block> FRACTAL_GRINDER_TIER2 = registerWithItem("fractal_grinder_tier2",
+            () -> new FractalGrinderBlock(machineProperties(9), 2));
 
-    public static final Supplier<Block> FURNACE = registerWithItem("furnace",
-            () -> new FurnaceBlock(machineProperties(11), 1));
+    public static final Supplier<Block> PLASMA_FORGE = registerWithItem("plasma_forge",
+            () -> new PlasmaForgeBlock(machineProperties(11), 1));
 
-    public static final Supplier<Block> FURNACE_TIER2 = registerWithItem("furnace_tier2",
-            () -> new FurnaceBlock(machineProperties(11), 2));
+    public static final Supplier<Block> PLASMA_FORGE_TIER2 = registerWithItem("plasma_forge_tier2",
+            () -> new PlasmaForgeBlock(machineProperties(11), 2));
 
     public static final Supplier<Block> NEURAL_CASING = registerWithItem("neural_casing",
             () -> new NeuralCasingBlock(BlockBehaviour.Properties.of()

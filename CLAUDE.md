@@ -32,10 +32,10 @@ MultiLoader layout: `common/` (99% of the code, compiled against pure vanilla vi
 - `IPlatformHelper`: platform queries + `getBurnTime` (NeoForge extends fuels per-stack; Fabric uses the vanilla fuel map).
 - Registries holding wildcard generics (`BlockEntityType<?>`, `MenuType<?>`, `RecipeType<?>`) need the cast-helper pattern used in `registry/ModBlockEntities`/`ModMenus`/`ModRecipeTypes`.
 
-Machine pattern (Generator and Crusher are the references):
+Machine pattern (Thermal Reactor and Fractal Grinder are the references; names per ADR-021):
 
 - **Tickless idle (ADR-012 is binding)**: the `LIT` blockstate gates the ticker — `getTicker` returns null when unlit. Machines wake on item insertion (`setItem` → `tryWake`) and extinguish themselves. Never add an always-on ticker.
-- **Energy**: common `EnergyBuffer` (primitive ints) is the only thing game logic touches. Platform adapters wrap it: extract-only FE capability (neoforge entry) and TRE `SnapshotParticipant` adapter (fabric). Crusher pulls from *adjacent* generators directly — v0 transport, to be replaced by a proper network with scheduled wake-ups.
+- **Energy**: common `EnergyBuffer` (primitive ints) is the only thing game logic touches. Platform adapters wrap it: extract-only FE capability (neoforge entry) and TRE `SnapshotParticipant` adapter (fabric). The Fractal Grinder pulls from *adjacent* reactors directly — v0 transport, to be replaced by a proper network with scheduled wake-ups.
 - **GUI sync**: `ContainerData` truncates to signed 16-bit shorts. Any value that can exceed 32767 (energy!) ships as a low/high pair reassembled in the menu; constants are never synced.
 - **Recipes**: everything is datapack (`data/krios_industry/recipe/`). Custom type `krios_industry:crushing`. Material inputs use `c:` tags (ADR-008); we also provide `c:` tags for our materials.
 - **Server config (ADR-015)**: per-world `serverconfig/krios_industry-server.properties` via common `config/IndustryConfig` (lazy per-server cache, permille ints in logic, decimals in the file). Difficulty multipliers (`energy_cost`, `xp_rate`) apply only through `KoiosBalance.scaled*`; in-game editing is `/krios_industry config`. No loader config APIs, no Cloth Config/ModMenu hard deps.

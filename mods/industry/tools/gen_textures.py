@@ -218,8 +218,8 @@ def koios_core_formed():
     return img
 
 
-def generator_side():
-    """Bands match generator_base.json: 0-2 chimney/vents, 2-4 deck, 4-12 body, 12-16 skirt."""
+def thermal_reactor_side():
+    """Bands match thermal_reactor_base.json: 0-2 chimney/vents, 2-4 deck, 4-12 body, 12-16 skirt."""
     img = Img(16, 16)
     img.rect(0, 0, 16, 2, METAL_EDGE)
     for x in range(0, 16, 2):
@@ -239,8 +239,8 @@ def generator_side():
     return img
 
 
-def generator_front(lit):
-    img = generator_side()
+def thermal_reactor_front(lit):
+    img = thermal_reactor_side()
     # Window (4,5)-(12,11): copper frame, amber core inside.
     img.rect(4, 5, 8, 6, COPPER)
     img.rect(5, 6, 6, 4, JOINT)
@@ -256,7 +256,7 @@ def generator_front(lit):
     return img
 
 
-def generator_top():
+def thermal_reactor_top():
     img = Img(16, 16)
     img.noise_rect(0, 0, 16, 16, METAL, 4, 57)
     img.outline(0, 0, 16, 16, METAL_EDGE)
@@ -272,8 +272,8 @@ def generator_top():
     return img
 
 
-def furnace_side():
-    """Bands match furnace_base.json: 0-3 stacks, 3-5 top slab, 5-16 body."""
+def plasma_forge_side():
+    """Bands match plasma_forge_base.json: 0-3 stacks, 3-5 top slab, 5-16 body."""
     img = Img(16, 16)
     img.rect(0, 0, 16, 3, METAL_EDGE)
     for x in range(1, 16, 3):
@@ -289,8 +289,8 @@ def furnace_side():
     return img
 
 
-def furnace_front(lit, frame=0):
-    img = furnace_side()
+def plasma_forge_front(lit, frame=0):
+    img = plasma_forge_side()
     # Arched door (3,7)-(13,15): copper frame, dark interior, amber window.
     img.rect(3, 7, 10, 8, COPPER)
     img.rect(4, 8, 8, 7, COPPER_D)
@@ -312,7 +312,7 @@ def furnace_front(lit, frame=0):
     return img
 
 
-def furnace_top():
+def plasma_forge_top():
     img = Img(16, 16)
     img.noise_rect(0, 0, 16, 16, METAL, 4, 117)
     img.outline(0, 0, 16, 16, METAL_EDGE)
@@ -325,8 +325,8 @@ def furnace_top():
     return img
 
 
-def crusher_side():
-    """Bands match crusher_base.json: 0-4 jaw zone, 4-5 collar, 5-16 body."""
+def fractal_grinder_side():
+    """Bands match fractal_grinder_base.json: 0-4 jaw zone, 4-5 collar, 5-16 body."""
     img = Img(16, 16)
     img.rect(0, 0, 16, 4, METAL_EDGE)
     img.rect(0, 4, 16, 1, METAL_EDGE)
@@ -340,8 +340,8 @@ def crusher_side():
     return img
 
 
-def crusher_front():
-    img = crusher_side()
+def fractal_grinder_front():
+    img = fractal_grinder_side()
     # Status screen (5,7)-(11,12): dark panel, cyan readout.
     img.rect(5, 7, 6, 5, JOINT)
     img.outline(5, 7, 6, 5, METAL_EDGE)
@@ -351,7 +351,7 @@ def crusher_front():
     return img
 
 
-def crusher_top():
+def fractal_grinder_top():
     img = Img(16, 16)
     img.noise_rect(0, 0, 16, 16, METAL, 4, 69)
     img.outline(0, 0, 16, 16, METAL_EDGE)
@@ -359,7 +359,7 @@ def crusher_top():
     return img
 
 
-def crusher_jaw():
+def fractal_grinder_jaw():
     img = Img(16, 16)
     img.noise_rect(0, 0, 16, 16, METAL, 5, 71)
     img.outline(0, 0, 16, 16, METAL_EDGE)
@@ -374,7 +374,7 @@ def crusher_jaw():
     return img
 
 
-def crusher_maw(lit, frame=0):
+def fractal_grinder_maw(lit, frame=0):
     img = Img(16, 16)
     img.noise_rect(0, 0, 16, 16, METAL, 4, 73)
     img.outline(0, 0, 16, 16, METAL_EDGE)
@@ -393,9 +393,9 @@ def crusher_maw(lit, frame=0):
     return img
 
 
-def solar_panel_top():
+def photon_array_top():
     """Photovoltaic cell grid: 3x3 cyan cells in a gunmetal frame, one
-    amber status pip bottom-right. Flat slab top (solar_panel.json)."""
+    amber status pip bottom-right. Flat slab top (photon_array.json)."""
     img = Img(16, 16)
     img.noise_rect(0, 0, 16, 16, METAL, 3, 91)
     img.outline(0, 0, 16, 16, METAL_EDGE)
@@ -411,7 +411,7 @@ def solar_panel_top():
     return img
 
 
-def solar_panel_side():
+def photon_array_side():
     """Full machine flank (full-cube model): rows 0-3 the cell deck
     edge-on, body with copper risers below, skirt at the base."""
     img = Img(16, 16)
@@ -428,7 +428,7 @@ def solar_panel_side():
     return img
 
 
-def solar_panel_bottom():
+def photon_array_bottom():
     img = Img(16, 16)
     img.noise_rect(0, 0, 16, 16, JOINT, 3, 93)
     img.outline(0, 0, 16, 16, METAL_EDGE)
@@ -446,11 +446,11 @@ def stack_frames(frames):
     return img
 
 
-def generator_front_lit_frames():
+def thermal_reactor_front_lit_frames():
     """Strong visible pulse: the whole window interior breathes."""
     frames = []
     for f in range(3):
-        img = generator_front(True)
+        img = thermal_reactor_front(True)
         if f == 1:
             img.rect(5, 6, 6, 4, ENERGY)
             img.rect(6, 7, 4, 2, ENERGY_HI)
@@ -661,7 +661,7 @@ def upgrade_kit():
 
 
 SPEED_GLYPH = [(6, 6), (7, 7), (6, 8), (8, 6), (9, 7), (8, 8), (6, 9), (8, 9)]
-# Lightning bolt (generator energy module).
+# Lightning bolt (reactor energy module).
 ENERGY_GLYPH = [(8, 5), (7, 6), (8, 6), (6, 7), (7, 7), (8, 7), (9, 7), (8, 8), (7, 9)]
 EFFICIENCY_GLYPH = [(8, 5), (7, 6), (8, 6), (7, 7), (8, 7), (9, 7), (7, 8), (8, 8), (7, 9)]
 YIELD_GLYPH = [(8, 5), (8, 6), (8, 7), (8, 8), (8, 9), (6, 7), (7, 7), (9, 7), (10, 7)]
@@ -759,7 +759,7 @@ def arrow_shape(img, ox, oy, body, edge):
     return img
 
 
-def gui_crusher():
+def gui_fractal_grinder():
     img = Img(256, 256)
     gui_panel(img)
     # Compact vertical energy gauge on the left, inside the panel — the
@@ -778,10 +778,10 @@ def gui_crusher():
     return img
 
 
-def gui_generator():
+def gui_thermal_reactor():
     img = Img(256, 256)
     gui_panel(img)
-    # Central bar kept for the generator, dropped below the header row.
+    # Central bar kept for the reactor, dropped below the header row.
     gui_bar_frame(img, 7, 20, 162, 10)
     # Slot and flame dropped below the (lowered) energy bar.
     gui_slot(img, 79, 46)
@@ -858,24 +858,24 @@ def main():
         "block/koios_core_frame.png": koios_core_frame(),
         "block/koios_core_crystal.png": koios_core_crystal(),
         "block/koios_core_formed.png": koios_core_formed(),
-        "block/generator_side.png": generator_side(),
-        "block/generator_front.png": generator_front(False),
-        "block/generator_front_lit.png": stack_frames(generator_front_lit_frames()),
-        "block/generator_top.png": generator_top(),
-        "block/furnace_side.png": furnace_side(),
-        "block/furnace_front.png": furnace_front(False),
-        "block/furnace_front_lit.png": stack_frames([furnace_front(True, f) for f in range(3)]),
-        "block/furnace_top.png": furnace_top(),
-        "block/crusher_side.png": crusher_side(),
-        "block/crusher_front.png": crusher_front(),
-        "block/crusher_top.png": crusher_top(),
-        "block/crusher_jaw.png": crusher_jaw(),
-        "block/crusher_maw.png": crusher_maw(False),
-        "block/crusher_maw_lit.png": stack_frames([crusher_maw(True, f) for f in range(3)]),
+        "block/thermal_reactor_side.png": thermal_reactor_side(),
+        "block/thermal_reactor_front.png": thermal_reactor_front(False),
+        "block/thermal_reactor_front_lit.png": stack_frames(thermal_reactor_front_lit_frames()),
+        "block/thermal_reactor_top.png": thermal_reactor_top(),
+        "block/plasma_forge_side.png": plasma_forge_side(),
+        "block/plasma_forge_front.png": plasma_forge_front(False),
+        "block/plasma_forge_front_lit.png": stack_frames([plasma_forge_front(True, f) for f in range(3)]),
+        "block/plasma_forge_top.png": plasma_forge_top(),
+        "block/fractal_grinder_side.png": fractal_grinder_side(),
+        "block/fractal_grinder_front.png": fractal_grinder_front(),
+        "block/fractal_grinder_top.png": fractal_grinder_top(),
+        "block/fractal_grinder_jaw.png": fractal_grinder_jaw(),
+        "block/fractal_grinder_maw.png": fractal_grinder_maw(False),
+        "block/fractal_grinder_maw_lit.png": stack_frames([fractal_grinder_maw(True, f) for f in range(3)]),
         "block/neural_conduit.png": neural_conduit(),
-        "block/solar_panel_top.png": solar_panel_top(),
-        "block/solar_panel_side.png": solar_panel_side(),
-        "block/solar_panel_bottom.png": solar_panel_bottom(),
+        "block/photon_array_top.png": photon_array_top(),
+        "block/photon_array_side.png": photon_array_side(),
+        "block/photon_array_bottom.png": photon_array_bottom(),
         "block/neurite_ore.png": ore(VANILLA_STONE_PX, CYAN, CYAN_HI, CYAN_DIM),
         "block/deepslate_neurite_ore.png": ore(VANILLA_DEEPSLATE_PX, CYAN, CYAN_HI, CYAN_DIM),
         "block/chronite_ore.png": ore(VANILLA_STONE_PX, ENERGY, ENERGY_HI, COPPER_D),
@@ -895,9 +895,9 @@ def main():
         "item/efficiency_module_mk2.png": module(EFFICIENCY_GLYPH, ENERGY, mk2=True),
         "item/yield_module_mk2.png": module(YIELD_GLYPH, CYAN_HI, mk2=True),
         "item/energy_module.png": module(ENERGY_GLYPH, ENERGY_HI),
-        "gui/crusher.png": gui_crusher(),
-        "gui/furnace.png": gui_crusher(),
-        "gui/generator.png": gui_generator(),
+        "gui/fractal_grinder.png": gui_fractal_grinder(),
+        "gui/plasma_forge.png": gui_fractal_grinder(),
+        "gui/thermal_reactor.png": gui_thermal_reactor(),
     }
     # Most shipped textures are hand-polished in Aseprite by now: never run
     # this without a filter unless the user explicitly agreed to a full
@@ -915,8 +915,8 @@ def main():
     for rel, img in out.items():
         img.save(ASSETS / rel)
     # Vanilla animation metadata for the flickering lit textures.
-    for rel in ("block/generator_front_lit.png", "block/crusher_maw_lit.png",
-                "block/furnace_front_lit.png"):
+    for rel in ("block/thermal_reactor_front_lit.png", "block/fractal_grinder_maw_lit.png",
+                "block/plasma_forge_front_lit.png"):
         if rel in out:
             (ASSETS / (rel + ".mcmeta")).write_text('{"animation": {"frametime": 6}}\n')
             print(f"  {rel}.mcmeta")

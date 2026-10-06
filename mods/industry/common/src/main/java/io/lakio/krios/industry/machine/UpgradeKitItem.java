@@ -38,9 +38,9 @@ public class UpgradeKitItem extends Item {
 
     /** Tier ladder per machine line; lazily resolved (registration order). */
     private static final Map<Supplier<Block>, Supplier<Block>> TIER2_TARGETS = Map.of(
-            ModBlocks.GENERATOR, ModBlocks.GENERATOR_TIER2,
-            ModBlocks.CRUSHER, ModBlocks.CRUSHER_TIER2,
-            ModBlocks.FURNACE, ModBlocks.FURNACE_TIER2);
+            ModBlocks.THERMAL_REACTOR, ModBlocks.THERMAL_REACTOR_TIER2,
+            ModBlocks.FRACTAL_GRINDER, ModBlocks.FRACTAL_GRINDER_TIER2,
+            ModBlocks.PLASMA_FORGE, ModBlocks.PLASMA_FORGE_TIER2);
 
     public UpgradeKitItem(int targetTier, Properties properties) {
         super(properties);

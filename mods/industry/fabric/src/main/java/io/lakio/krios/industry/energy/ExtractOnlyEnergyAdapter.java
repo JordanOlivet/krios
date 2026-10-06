@@ -7,7 +7,7 @@ import team.reborn.energy.api.EnergyStorage;
 /**
  * TRE view of an internal buffer: neighbors may pull, never push.
  * SnapshotParticipant makes extraction transaction-safe (rollback restores
- * the buffered amount). Producer-agnostic: generator and solar panel both
+ * the buffered amount). Producer-agnostic: reactor and photon array both
  * hand their buffer plus their own commit hook (setChanged).
  */
 public class ExtractOnlyEnergyAdapter extends SnapshotParticipant<Integer> implements EnergyStorage {

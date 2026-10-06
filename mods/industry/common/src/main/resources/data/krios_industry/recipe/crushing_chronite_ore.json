@@ -1,7 +1,0 @@
-{
-  "type": "krios_industry:crushing",
-  "ingredient": { "tag": "c:ores/chronite" },
-  "result": { "id": "krios_industry:chronite_shard", "count": 2 },
-  "energy": 800,
-  "time": 160
-}

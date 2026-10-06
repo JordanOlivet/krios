@@ -1,9 +1,0 @@
-{
-  "type": "minecraft:crafting_shapeless",
-  "category": "misc",
-  "ingredients": [
-    { "item": "krios_industry:crusher" },
-    { "item": "krios_industry:upgrade_kit_tier2" }
-  ],
-  "result": { "id": "krios_industry:crusher_tier2", "count": 1 }
-}

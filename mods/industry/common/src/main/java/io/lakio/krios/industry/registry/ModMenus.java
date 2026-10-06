@@ -4,9 +4,9 @@ import java.util.function.Supplier;
 
 import io.lakio.krios.industry.Constants;
 import io.lakio.krios.industry.koios.KoiosCoreMenu;
-import io.lakio.krios.industry.machine.crusher.CrusherMenu;
-import io.lakio.krios.industry.machine.furnace.FurnaceMenu;
-import io.lakio.krios.industry.machine.generator.GeneratorMenu;
+import io.lakio.krios.industry.machine.grinder.FractalGrinderMenu;
+import io.lakio.krios.industry.machine.forge.PlasmaForgeMenu;
+import io.lakio.krios.industry.machine.reactor.ThermalReactorMenu;
 import io.lakio.krios.industry.platform.Services;
 import io.lakio.krios.industry.tool.CalibratorMenu;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -15,18 +15,18 @@ import net.minecraft.world.inventory.MenuType;
 
 public final class ModMenus {
 
-    public static final Supplier<MenuType<GeneratorMenu>> GENERATOR = register("generator",
-            () -> Services.REGISTRAR.createMenuType(GeneratorMenu::new));
+    public static final Supplier<MenuType<ThermalReactorMenu>> THERMAL_REACTOR = register("thermal_reactor",
+            () -> Services.REGISTRAR.createMenuType(ThermalReactorMenu::new));
 
-    public static final Supplier<MenuType<io.lakio.krios.industry.machine.solar.SolarPanelMenu>> SOLAR_PANEL =
-            register("solar_panel", () -> Services.REGISTRAR.createMenuType(
-                    io.lakio.krios.industry.machine.solar.SolarPanelMenu::new));
+    public static final Supplier<MenuType<io.lakio.krios.industry.machine.photon.PhotonArrayMenu>> PHOTON_ARRAY =
+            register("photon_array", () -> Services.REGISTRAR.createMenuType(
+                    io.lakio.krios.industry.machine.photon.PhotonArrayMenu::new));
 
-    public static final Supplier<MenuType<CrusherMenu>> CRUSHER = register("crusher",
-            () -> Services.REGISTRAR.createMenuType(CrusherMenu::new));
+    public static final Supplier<MenuType<FractalGrinderMenu>> FRACTAL_GRINDER = register("fractal_grinder",
+            () -> Services.REGISTRAR.createMenuType(FractalGrinderMenu::new));
 
-    public static final Supplier<MenuType<FurnaceMenu>> FURNACE = register("furnace",
-            () -> Services.REGISTRAR.createMenuType(FurnaceMenu::new));
+    public static final Supplier<MenuType<PlasmaForgeMenu>> PLASMA_FORGE = register("plasma_forge",
+            () -> Services.REGISTRAR.createMenuType(PlasmaForgeMenu::new));
 
     public static final Supplier<MenuType<KoiosCoreMenu>> KOIOS_CORE = register("koios_core",
             () -> Services.REGISTRAR.createMenuType(KoiosCoreMenu::new));

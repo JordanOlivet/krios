@@ -1,0 +1,12 @@
+{
+  "variants": {
+    "facing=north,lit=false": { "model": "krios_industry:block/thermal_reactor" },
+    "facing=east,lit=false": { "model": "krios_industry:block/thermal_reactor", "y": 90 },
+    "facing=south,lit=false": { "model": "krios_industry:block/thermal_reactor", "y": 180 },
+    "facing=west,lit=false": { "model": "krios_industry:block/thermal_reactor", "y": 270 },
+    "facing=north,lit=true": { "model": "krios_industry:block/thermal_reactor_lit" },
+    "facing=east,lit=true": { "model": "krios_industry:block/thermal_reactor_lit", "y": 90 },
+    "facing=south,lit=true": { "model": "krios_industry:block/thermal_reactor_lit", "y": 180 },
+    "facing=west,lit=true": { "model": "krios_industry:block/thermal_reactor_lit", "y": 270 }
+  }
+}

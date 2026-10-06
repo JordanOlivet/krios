@@ -14,11 +14,11 @@ public final class KoiosBalance {
     /** Sliding diversity window: the core remembers the last N operations. */
     public static final int WINDOW_SIZE = 64;
 
-    /** Base data XP per completed crushing operation. */
-    public static final int CRUSH_BASE_XP = 10;
-    /** Base data XP per completed smelting operation (induction furnace). */
+    /** Base data XP per completed grinding operation. */
+    public static final int GRIND_BASE_XP = 10;
+    /** Base data XP per completed smelting operation (plasma forge). */
     public static final int SMELT_BASE_XP = 6;
-    /** Base data XP per generator burn cycle (per fuel item consumed). */
+    /** Base data XP per reactor burn cycle (per fuel item consumed). */
     public static final int BURN_BASE_XP = 2;
 
     // Diversity factor, per-mille: full value while an operation stays under

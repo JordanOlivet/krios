@@ -2,7 +2,7 @@ package io.lakio.krios.industry;
 
 import io.lakio.krios.industry.energy.EnergyBuffer;
 import io.lakio.krios.industry.koios.KoiosCommand;
-import io.lakio.krios.industry.machine.generator.GeneratorBlockEntity;
+import io.lakio.krios.industry.machine.reactor.ThermalReactorBlockEntity;
 import io.lakio.krios.industry.platform.NeoForgeRegistrar;
 import io.lakio.krios.industry.registry.ModBlockEntities;
 import net.neoforged.bus.api.IEventBus;
@@ -33,12 +33,12 @@ public class KriosIndustry {
     private static void registerCapabilities(RegisterCapabilitiesEvent event) {
         // A configured face is a complete contract (design): it also gates
         // third-party FE access. Virgin faces stay exposed (vanilla behavior).
-        event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ModBlockEntities.GENERATOR.get(),
-                (generator, side) -> side == null || generator.allowsEnergyExtract(side)
-                        ? new ExtractOnlyEnergyStorage(generator.getEnergy()) : null);
-        // Solar panel: no face config (v1 scope), every side is extractable.
-        event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ModBlockEntities.SOLAR_PANEL.get(),
-                (solar, side) -> new ExtractOnlyEnergyStorage(solar.getEnergy()));
+        event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ModBlockEntities.THERMAL_REACTOR.get(),
+                (reactor, side) -> side == null || reactor.allowsEnergyExtract(side)
+                        ? new ExtractOnlyEnergyStorage(reactor.getEnergy()) : null);
+        // Photon array: no face config (v1 scope), every side is extractable.
+        event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ModBlockEntities.PHOTON_ARRAY.get(),
+                (array, side) -> new ExtractOnlyEnergyStorage(array.getEnergy()));
     }
 
     /** FE view of the internal buffer: neighbors may pull, never push. */

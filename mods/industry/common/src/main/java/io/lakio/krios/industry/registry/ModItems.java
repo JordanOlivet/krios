@@ -37,7 +37,7 @@ public final class ModItems {
             () -> new ModuleItem(ModuleType.YIELD, 1,
                     KoiosBalance.YIELD_UNLOCK_LEVEL, new Item.Properties().stacksTo(16)));
 
-    // Mk II modules (2 points each) and the generator's energy module —
+    // Mk II modules (2 points each) and the reactor's energy module —
     // the N6-N8 ladder of tier 2 (design 2026-10-01).
     public static final Supplier<Item> SPEED_MODULE_MK2 = register("speed_module_mk2",
             () -> new ModuleItem(ModuleType.SPEED, 2,

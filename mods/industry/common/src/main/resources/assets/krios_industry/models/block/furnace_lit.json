@@ -1,8 +1,0 @@
-{
-  "parent": "krios_industry:block/furnace_base",
-  "textures": {
-    "front": "krios_industry:block/furnace_front_lit",
-    "side": "krios_industry:block/furnace_side",
-    "top": "krios_industry:block/furnace_top"
-  }
-}

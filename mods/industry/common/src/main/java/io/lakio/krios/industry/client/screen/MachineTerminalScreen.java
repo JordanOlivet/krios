@@ -24,7 +24,7 @@ public abstract class MachineTerminalScreen<T extends AbstractContainerMenu & Ma
     /**
      * Two wrapped voice lines (2 x 9px) must fit above the inventory label
      * at y=104 with a 2px gap: long phrases and translations wrap instead
-     * of overlapping the label (user call 2026-10-05, seen on the solar
+     * of overlapping the label (user call 2026-10-05, seen on the array
      * terminal). The work area above ends by y=85 on every machine.
      */
     private static final int VOICE_Y = 86;
@@ -41,7 +41,7 @@ public abstract class MachineTerminalScreen<T extends AbstractContainerMenu & Ma
     }
 
     // Energy gauge geometry: vertical on the left rail by default; the
-    // generator overrides everything — its gauge is the showcase, a wide
+    // reactor overrides everything — its gauge is the showcase, a wide
     // horizontal bar across the top (agreed layout, kept through ADR-014).
     protected int energyBarX() {
         return 8;
@@ -78,7 +78,7 @@ public abstract class MachineTerminalScreen<T extends AbstractContainerMenu & Ma
 
     protected abstract HologramFacePanel facePanel();
 
-    /** Module bay when the machine has one; null otherwise (generator). */
+    /** Module bay when the machine has one; null otherwise (reactor). */
     protected ModuleBayPanel moduleBay() {
         return null;
     }

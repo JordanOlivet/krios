@@ -4,9 +4,9 @@ import java.util.function.Supplier;
 
 import io.lakio.krios.industry.Constants;
 import io.lakio.krios.industry.koios.KoiosCoreBlockEntity;
-import io.lakio.krios.industry.machine.crusher.CrusherBlockEntity;
-import io.lakio.krios.industry.machine.furnace.FurnaceBlockEntity;
-import io.lakio.krios.industry.machine.generator.GeneratorBlockEntity;
+import io.lakio.krios.industry.machine.grinder.FractalGrinderBlockEntity;
+import io.lakio.krios.industry.machine.forge.PlasmaForgeBlockEntity;
+import io.lakio.krios.industry.machine.reactor.ThermalReactorBlockEntity;
 import io.lakio.krios.industry.platform.Services;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -17,22 +17,22 @@ public final class ModBlockEntities {
     // One BE type per machine LINE: both tier blocks share it (the BE reads
     // its tier from the block), so tickers, menus and platform energy
     // capabilities cover every tier for free.
-    public static final Supplier<BlockEntityType<GeneratorBlockEntity>> GENERATOR = register("generator",
-            () -> Services.REGISTRAR.createBlockEntityType(GeneratorBlockEntity::new,
-                    ModBlocks.GENERATOR.get(), ModBlocks.GENERATOR_TIER2.get()));
+    public static final Supplier<BlockEntityType<ThermalReactorBlockEntity>> THERMAL_REACTOR = register("thermal_reactor",
+            () -> Services.REGISTRAR.createBlockEntityType(ThermalReactorBlockEntity::new,
+                    ModBlocks.THERMAL_REACTOR.get(), ModBlocks.THERMAL_REACTOR_TIER2.get()));
 
-    public static final Supplier<BlockEntityType<io.lakio.krios.industry.machine.solar.SolarPanelBlockEntity>> SOLAR_PANEL =
-            register("solar_panel", () -> Services.REGISTRAR.createBlockEntityType(
-                    io.lakio.krios.industry.machine.solar.SolarPanelBlockEntity::new,
-                    ModBlocks.SOLAR_PANEL.get()));
+    public static final Supplier<BlockEntityType<io.lakio.krios.industry.machine.photon.PhotonArrayBlockEntity>> PHOTON_ARRAY =
+            register("photon_array", () -> Services.REGISTRAR.createBlockEntityType(
+                    io.lakio.krios.industry.machine.photon.PhotonArrayBlockEntity::new,
+                    ModBlocks.PHOTON_ARRAY.get()));
 
-    public static final Supplier<BlockEntityType<CrusherBlockEntity>> CRUSHER = register("crusher",
-            () -> Services.REGISTRAR.createBlockEntityType(CrusherBlockEntity::new,
-                    ModBlocks.CRUSHER.get(), ModBlocks.CRUSHER_TIER2.get()));
+    public static final Supplier<BlockEntityType<FractalGrinderBlockEntity>> FRACTAL_GRINDER = register("fractal_grinder",
+            () -> Services.REGISTRAR.createBlockEntityType(FractalGrinderBlockEntity::new,
+                    ModBlocks.FRACTAL_GRINDER.get(), ModBlocks.FRACTAL_GRINDER_TIER2.get()));
 
-    public static final Supplier<BlockEntityType<FurnaceBlockEntity>> FURNACE = register("furnace",
-            () -> Services.REGISTRAR.createBlockEntityType(FurnaceBlockEntity::new,
-                    ModBlocks.FURNACE.get(), ModBlocks.FURNACE_TIER2.get()));
+    public static final Supplier<BlockEntityType<PlasmaForgeBlockEntity>> PLASMA_FORGE = register("plasma_forge",
+            () -> Services.REGISTRAR.createBlockEntityType(PlasmaForgeBlockEntity::new,
+                    ModBlocks.PLASMA_FORGE.get(), ModBlocks.PLASMA_FORGE_TIER2.get()));
 
     public static final Supplier<BlockEntityType<KoiosCoreBlockEntity>> KOIOS_CORE = register("koios_core",
             () -> Services.REGISTRAR.createBlockEntityType(KoiosCoreBlockEntity::new, ModBlocks.KOIOS_CORE.get()));

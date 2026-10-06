@@ -22,7 +22,7 @@ public interface MachineMenu {
     /**
      * Process column geometry (Mekanism-style vertical columns in the work
      * center: input on top, progress bar, output below). Shared by the
-     * crusher/furnace menus and screens; indexes follow the column order.
+     * grinder/forge menus and screens; indexes follow the column order.
      */
     int[] PROCESS_COL_X = {105, 135};
     int PROCESS_IN_Y = 26;

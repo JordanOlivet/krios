@@ -192,7 +192,7 @@ public final class ItemFlow {
     }
 
     /**
-     * One wake's pull for single-slot Containers (generator fuel): manual
+     * One wake's pull for single-slot Containers (reactor fuel): manual
      * item-in faces poll passive neighbors for what the slot accepts.
      */
     public static boolean pullIntoSlot(Level level, BlockPos pos, Container target, int slot,
