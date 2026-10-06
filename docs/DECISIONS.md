@@ -187,6 +187,38 @@ Tier 1 was the MVP and tier 2 only validated the t1→t2 upgrade path; neither d
 - **No cross-mod crutch**: a machine's feature set never waits on another content mod (ADR-018's no-dependency rule applied to design, not just code). A quarry throttled by hopper throughput still ships whole; storage only makes it better.
 - **Tool-scale counterparts** (a handheld excavator) belong to a future Krios: Technologies, never to Industry blocks.
 
+## ADR-021 — Naming register: advanced-tech line names, cosmic simulated forms
+
+**Date**: 2026-10-06 · **Status**: accepted
+
+The roadmap names (ADR-020) and the MVP's plain names (Generator, Crusher, Induction Furnace, Solar Panel) were placeholders. They read as low-tech and generic, while the fiction is an AI coupling space-time mechanics to process matter. Settled in a dedicated naming pass (user calls throughout):
+
+- **Line machines (t1→t4)**: names that read as advanced technology, with sci-fi allusions to AI, quantum mechanics and physics. Invented words are allowed. Varied word shapes, no uniform suffix: an earlier "Latinate -or" proposal was rejected as heavy and artificial. Families are welcome where the function is shared (Reactor, Pod).
+- **Simulated forms (t5)**: a deliberate register shift from engineering to cosmology. KOIOS no longer builds machines, it bottles worlds. Each form gets a distinct, non-generic name that reads as end-game at a glance. One simulated block may serve several lines: each form is still a block of its own (ADR-020 holds).
+- **Kept**: Calibrator, Codex, Neural Casing/Conduit, Compute Chip, Upgrade Kit, the modules, the ores (Chronite, Neurite), and the `Mk II/III/IV` suffix (t1 carries no suffix).
+- **Everything is renamed, ids included** (pre-release, dev worlds only): registry ids, packages, classes, lang keys, assets, and the recipe type `krios_industry:crushing` → `krios_industry:grinding`. French names agree in gender in Codex prose (Matrice and Forge are feminine).
+
+| Line (EN / FR / id) | Simulated form (EN / FR / id) |
+|---|---|
+| Thermal Reactor / Réacteur thermique / `thermal_reactor` | — (generators' analog not designed) |
+| Magma Reactor / Réacteur magmatique / `magma_reactor` | — |
+| Photon Array / Matrice photonique / `photon_array` | — |
+| Fractal Grinder / Broyeur fractal / `fractal_grinder` | — |
+| Plasma Forge / Forge à plasma / `plasma_forge` | — |
+| Chrono Farmer / Chronoferme / `chrono_farmer` | Dyson Garden / Serre de Dyson / `dyson_garden` |
+| Cyclic Forester / Sylviculteur cyclique / `cyclic_forester` | Timeless Forest / Forêt intemporelle / `timeless_forest` |
+| Quantum Lure / Leurre quantique / `quantum_lure` | Abyss Aggregator / Agrégateur abyssal / `abyss_aggregator` |
+| Quantum Mining Rig / Excavateur quantique / `quantum_mining_rig` | Entangled Graviton Core / Noyau à gravitons intriqués / `entangled_graviton_core` |
+| Breeding Pod / Capsule d'élevage / `breeding_pod` | Genesis Engine / Moteur de Genèse / `genesis_engine` (shared) |
+| Harvest Pod / Capsule de récolte / `harvest_pod` | Genesis Engine (shared) |
+| Bio Synthesizer / Bio-synthétiseur / `bio_synthesizer` | Oblivion Engine / Moteur du Néant / `oblivion_engine` (shared) |
+| Phase Death Field / Champ de mort phasique / `phase_death_field` | Oblivion Engine (shared) |
+| Reaper Array / Faucheuse matricielle / `reaper_array` | Oblivion Engine (shared) |
+
+- **Neural imprint → Engram / Engramme / `engram`.** Genesis and Oblivion Engine share one word for opposite functions (life's loop vs. death's loop), and the pairing is intended.
+- **Watch points**: *Entangled Graviton Core* (23 characters) may overflow GUI titles and JEI, so shorten it to *Graviton Core* if it does. *Excavateur quantique* means the future Krios: Technologies handheld tool must not be named "excavateur". *Killing Field* was rejected because of its Cambodian-genocide connotation.
+- Supersedes the design doc's "Naming: sober, no prefix" line.
+
 ## Open questions
 
 *(none — next ones will come from design work)*

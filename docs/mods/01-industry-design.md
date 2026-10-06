@@ -31,7 +31,7 @@ The industrial heart of the Krios ecosystem. Automate, optimize and accelerate e
 
 ## Machines (MVP = full tier 1 slice)
 
-Naming: sober, no prefix (the Krios brand carries the identity; short names stay readable in GUIs/JEI).
+~~Naming: sober, no prefix~~ — superseded 2026-10-06 by **ADR-021**: advanced-tech line names, cosmic simulated forms, everything renamed (ids included). Generator → Thermal Reactor, Crusher → Fractal Grinder, Induction Furnace → Plasma Forge, Solar Panel → Photon Array. Sections dated before 2026-10-06 keep the old names as history.
 
 | Machine | Role |
 |---|---|
@@ -289,7 +289,7 @@ The tier system, settled ahead of the tier 2 slice. One rule founds everything:
 
 ## Machine roadmap (design session 2026-10-06)
 
-Structure per **ADR-020**: every machine is a line (base at t1, improved each tier, one interface), plus a separate **simulated form** unlocked at t4 beside the line's t4 machine. Network energy only unless stated. Working names below are placeholders — a dedicated **naming pass** comes once the list is frozen, with candidates per machine in one register; the existing plain names (Generator, Crusher, Induction Furnace, Solar Panel) get renamed in the same pass so two registers never coexist.
+Structure per **ADR-020**: every machine is a line (base at t1, improved each tier, one interface), plus a separate **simulated form** unlocked at t4 beside the line's t4 machine. Network energy only unless stated. Names per **ADR-021** (naming pass, same day): the full EN/FR/id table and the line → simulated-form mapping live there.
 
 **Shared rules**
 - Self-sufficient processes (fishing, farms, mob farms) earn **reduced KOIOS XP** — something does happen inside them, unlike the solar panel (zero). One permille constant per machine class in `KoiosBalance`, calibrated during the survival playthrough.
@@ -297,14 +297,14 @@ Structure per **ADR-020**: every machine is a line (base at t1, improved each ti
 - A blocked output fills an internal buffer, then the machine pauses (extinguishes, tickless) until room frees — the thermostat model applied to items.
 
 **The lines**
-- **Cultivator** — plants and harvests crops in a zone in front of it. Improved tiers accelerate growth and raise yield. *Simulated form*: seed + soil block inside, outsized speed/yield.
-- **Lumberjack** — fells and replants trees in a zone; network energy only (no log fuel). Same progression and simulated form.
-- **Fisher** — next to water, draws the vanilla fishing loot table. A **rod slot**: the rod's enchantments apply (Lure → speed, Luck of the Sea → loot), it wears durability (Unbreaking/Mending matter). Reduced XP. Same progression and simulated form.
-- **Quarry** — mines a configured X/Z area between a Y min and a Y max; mined items exit **from the quarry block itself**. Ships whole without krios_storage (hopper-limited throughput is the player's call). Tier-2 debut candidate (ADR-020). Open at build time: fluid handling, the protected-block list (bedrock, cores, machines), output buffer size. Simulated form per the shared pattern.
-- **Breeder / Collector / Slaughterer** — operate on creatures present in a zone in front of the block (breed; shear/milk/eggs; kill). Same progression and simulated form.
-- **Spawner ("Neural Lure") + Eliminator** — two spawner modes: *default* force-spawns every mob the biome allows in a configured zone (light ignored); *imprint* mode spawns only one creature type from its **neural imprint**. The Eliminator damages every mob in its zone (upgrades reach one-shot). Player-only drops and XP orbs need a fake player — a new platform service (both loaders ship one), decided when the Eliminator is built.
-- **Magmatic generator** — burns lava (the explicit fuel exception, as a generator). Tier-2 debut candidate (nether access). Starts with buckets, no fluid infrastructure required.
-- **The neural imprint** — KOIOS's captured data of a creature: the item that justifies "owning a mob's data". Feeds the spawner's imprint mode and the simulated forms of the creature lines — one concept, several machines. How it is obtained: to design.
+- **Chrono Farmer** — plants and harvests crops in a zone in front of it. Improved tiers accelerate growth and raise yield. *Simulated form* (**Dyson Garden**): seed + soil block inside, outsized speed/yield.
+- **Cyclic Forester** — fells and replants trees in a zone; network energy only (no log fuel). Same progression; simulated form: **Timeless Forest**.
+- **Quantum Lure** — next to water, draws the vanilla fishing loot table. A **rod slot**: the rod's enchantments apply (Lure → speed, Luck of the Sea → loot), it wears durability (Unbreaking/Mending matter). Reduced XP. Same progression; simulated form: **Abyss Aggregator**.
+- **Quantum Mining Rig** — mines a configured X/Z area between a Y min and a Y max; mined items exit **from the quarry block itself**. Ships whole without krios_storage (hopper-limited throughput is the player's call). Tier-2 debut candidate (ADR-020). Open at build time: fluid handling, the protected-block list (bedrock, cores, machines), output buffer size. Simulated form: **Entangled Graviton Core**.
+- **Breeding Pod / Harvest Pod / Reaper Array** — operate on creatures present in a zone in front of the block (breed; shear/milk/eggs; kill). Same progression and simulated form.
+- **Bio Synthesizer (spawner) + Phase Death Field** — two spawner modes: *default* force-spawns every mob the biome allows in a configured zone (light ignored); *imprint* mode spawns only one creature type from its **neural imprint**. The Phase Death Field damages every mob in its zone (upgrades reach one-shot). Player-only drops and XP orbs need a fake player — a new platform service (both loaders ship one), decided when the Phase Death Field is built. Simulated forms: **Genesis Engine** (Breeding Pod, Harvest Pod) and **Oblivion Engine** (Bio Synthesizer, Phase Death Field, Reaper Array).
+- **Magma Reactor** — burns lava (the explicit fuel exception, as a generator). Tier-2 debut candidate (nether access). Starts with buckets, no fluid infrastructure required.
+- **The Engram** (formerly "neural imprint") — KOIOS's captured data of a creature: the item that justifies "owning a mob's data". Feeds the spawner's imprint mode and the simulated forms of the creature lines — one concept, several machines. How it is obtained: to design.
 
 **Intermediate items** (microchip, actuator, drill head, condensator, supraconductor...) are born with their first consuming machine, never ahead — then substitute into the compute chip and other recipes au fil de l'eau (numbers-pass decision 2026-10-05).
 
