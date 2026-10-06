@@ -79,6 +79,18 @@ Settled (Q&A 2026-09-25):
   ADR-007 spirit); base capacity TBD.
 - **The Calibrator gets a dedicated diagnostic UI** for network inspection,
   not just actionbar feedback.
+- **Energy monitoring overhaul (consigned 2026-10-06, user, not a priority)**:
+  the current diagnostic is not reliable enough to act on. In play, every
+  reactor was fed and 3 photon arrays were active, yet the panel read a
+  deficit (production 360 / consumed 365 / demand 365 E/t) and KOIOS said
+  "My energy reserves are running low" with the pool at 42%. Reactors whose
+  buffer is full sit idle (thermostat), so a full reactor doing nothing reads
+  as lost production. Target: Factorio / Dyson Sphere Program-style
+  statistics that let the player see, clearly and reliably, what is
+  **produced**, **consumed** and **demanded**, both **right now** and **over
+  time** (windowed history/graphs), separating real producible capacity from
+  instantaneous output. The low-energy phrase threshold gets revisited in the
+  same pass.
 - **Yield is a network benefit**: disconnected, the crusher works 1:1 at
   furnace-grade speed; connected, x2 and full speed. Recipes without a vanilla
   equivalent (cobble→gravel→sand) stay available disconnected, just slow.
