@@ -416,8 +416,12 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
         }
         // Starvation backs off like idleness: each wake still pulls (the
         // pull relights the producers), without polling every 10 ticks.
-        return work.actions > 0 ? KoiosBalance.ZONE_ACTIVE_DELAY_TICKS
-                : KoiosBalance.ZONE_IDLE_DELAY_TICKS;
+        return work.actions > 0 ? activeDelay() : KoiosBalance.ZONE_IDLE_DELAY_TICKS;
+    }
+
+    /** Delay after a wake that acted; multi-wake jobs may set their own pace. */
+    protected int activeDelay() {
+        return KoiosBalance.ZONE_ACTIVE_DELAY_TICKS;
     }
 
     /** Sweeps cells from the cursor until a full pass or the action budget. */

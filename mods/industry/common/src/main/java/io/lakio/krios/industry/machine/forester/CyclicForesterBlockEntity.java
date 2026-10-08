@@ -9,6 +9,7 @@ import java.util.Set;
 
 import io.lakio.krios.industry.koios.KoiosBalance;
 import io.lakio.krios.industry.machine.MachineTiers;
+import io.lakio.krios.industry.machine.ZoneGeometry;
 import io.lakio.krios.industry.machine.zone.ZoneMachineBlockEntity;
 import io.lakio.krios.industry.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
@@ -41,7 +42,8 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>Tree detection: a log at zone level on dirt-like soil, anywhere in the
  * zone (a pre-existing tree is cleared too; only PLANTING follows the
- * grid). Logs through 26-connectivity within hard bounds; leaves only when
+ * grid). Logs through 26-connectivity within hard bounds (height, the
+ * zone plus a margin — merged neighbors are felled whole); leaves only when
  * natural (non-persistent) and only those whose nearest tree is this one
  * (BFS steps == vanilla DISTANCE), so shared canopies stay with their
  * neighbor. No anti-house guard (user call after play): placing the
@@ -50,8 +52,15 @@ import org.jetbrains.annotations.Nullable;
 public class CyclicForesterBlockEntity extends ZoneMachineBlockEntity {
 
     private static final int MAX_HEIGHT = 32;
-    private static final int MAX_RADIUS = 8;
-    private static final int MAX_LOGS = 256;
+    /**
+     * Horizontal reach beyond the zone edge. Bounded by the ZONE, not by a
+     * radius around the first stump: neighboring big oaks merge through
+     * their branches, and a radius measured from one stump left the
+     * other's far branches floating (seen in play, 2026-10-08).
+     */
+    private static final int MARGIN = 8;
+    /** Several merged big oaks must fit, or the count cuts a cluster in two. */
+    private static final int MAX_LOGS = 1024;
     private static final int MAX_LEAVES = 1024;
     /** Vanilla leaves die beyond distance 6: nothing natural lies further. */
     private static final int LEAF_REACH = 6;
@@ -141,6 +150,8 @@ public class CyclicForesterBlockEntity extends ZoneMachineBlockEntity {
     private boolean detectTree(ServerLevel level, BlockPos base) {
         // Logs: 26-connected (acacia branches), bounded; on the base layer
         // only the base itself, so a neighbor's trunk is never pulled in.
+        BlockPos zoneMin = ZoneGeometry.min(worldPosition, zoneDirection(), zoneEdgeForDisplay());
+        BlockPos zoneMax = ZoneGeometry.max(worldPosition, zoneDirection(), zoneEdgeForDisplay());
         List<BlockPos> logs = new ArrayList<>();
         Set<BlockPos> seen = new HashSet<>();
         ArrayDeque<BlockPos> open = new ArrayDeque<>();
@@ -155,8 +166,8 @@ public class CyclicForesterBlockEntity extends ZoneMachineBlockEntity {
                         BlockPos n = p.offset(dx, dy, dz);
                         if (!seen.add(n) || n.getY() <= base.getY()
                                 || n.getY() - base.getY() > MAX_HEIGHT
-                                || Math.abs(n.getX() - base.getX()) > MAX_RADIUS
-                                || Math.abs(n.getZ() - base.getZ()) > MAX_RADIUS
+                                || n.getX() < zoneMin.getX() - MARGIN || n.getX() > zoneMax.getX() + MARGIN
+                                || n.getZ() < zoneMin.getZ() - MARGIN || n.getZ() > zoneMax.getZ() + MARGIN
                                 || !level.isLoaded(n) || !level.getBlockState(n).is(BlockTags.LOGS)) {
                             continue;
                         }
@@ -217,14 +228,24 @@ public class CyclicForesterBlockEntity extends ZoneMachineBlockEntity {
         return !fellQueue.isEmpty();
     }
 
+    /** Felling pace: one layer every FELL_LAYER_DELAY ticks, faster per tier. */
+    @Override
+    protected int activeDelay() {
+        return fellQueue.isEmpty() ? super.activeDelay()
+                : Math.max(1, KoiosBalance.FELL_LAYER_DELAY_TICKS
+                        / MachineTiers.speedFactor(effectiveTier()));
+    }
+
     @Override
     protected boolean workQueued(ServerLevel level, Work work) {
         if (fellQueue.isEmpty()) {
             return false;
         }
-        int budget = KoiosBalance.FELL_BLOCKS_BASE * MachineTiers.speedFactor(work.effectiveTier);
+        // One Y layer per wake (user call after play): the tree visibly
+        // shrinks from the top, layer by layer, at the felling pace below.
+        int layer = fellQueue.peekFirst().getY();
         int cut = 0;
-        while (!fellQueue.isEmpty() && cut < budget) {
+        while (!fellQueue.isEmpty() && fellQueue.peekFirst().getY() == layer) {
             BlockPos p = fellQueue.peekFirst();
             BlockState s = level.isLoaded(p) ? level.getBlockState(p) : Blocks.AIR.defaultBlockState();
             boolean log = s.is(BlockTags.LOGS);

@@ -45,8 +45,12 @@ public final class KoiosBalance {
     // Cyclic Forester energy, per block cut (placeholders, numbers pass).
     public static final int LOG_CUT_ENERGY = 30;
     public static final int LEAF_CUT_ENERGY = 5;
-    /** Blocks cut per wake while felling, x effective-tier speed factor. */
-    public static final int FELL_BLOCKS_BASE = 8;
+    /**
+     * Felling cuts one Y layer per wake (user call after play), one wake
+     * every N ticks, divided by the effective-tier speed factor: a big oak
+     * of ~15 layers falls in ~3 s at t1, visibly shrinking from the top.
+     */
+    public static final int FELL_LAYER_DELAY_TICKS = 4;
     /** One extra random tick forced on a growing crop (Speed modules). */
     public static final int GROWTH_TICK_ENERGY = 15;
 
