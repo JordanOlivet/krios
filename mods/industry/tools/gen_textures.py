@@ -393,6 +393,69 @@ def fractal_grinder_maw(lit, frame=0):
     return img
 
 
+GROW = (0x5F, 0xE0, 0x9A)
+GROW_DIM = (0x2A, 0x7A, 0x52)
+
+
+def chrono_farmer_side():
+    img = Img(16, 16)
+    img.noise_rect(0, 0, 16, 16, METAL, 5, 83)
+    bevel(img)
+    for x in (2, 13):
+        img.rect(x, 2, 1, 12, COPPER_D)
+    # Growth gauge: a green stem rising through the panel.
+    img.rect(7, 3, 2, 10, JOINT)
+    for y in range(4, 12):
+        img.set(7, y, GROW_DIM)
+        img.set(8, y, GROW if y % 3 == 0 else GROW_DIM)
+    img.set(6, 6, GROW)
+    img.set(9, 9, GROW)
+    return img
+
+
+def chrono_farmer_front(lit):
+    img = chrono_farmer_side()
+    # Field readout (4,4)-(12,12): a dark screen with a 3x3 crop grid.
+    img.rect(4, 4, 8, 8, JOINT)
+    img.outline(4, 4, 8, 8, METAL_EDGE)
+    for gy in range(3):
+        for gx in range(3):
+            c = (GROW if (gx + gy) % 2 == 0 else CYAN) if lit else GROW_DIM
+            img.set(5 + gx * 2, 5 + gy * 2, c)
+    img.rect(5, 10, 6, 1, CYAN if lit else CYAN_DIM)
+    return img
+
+
+def chrono_farmer_top():
+    img = Img(16, 16)
+    img.noise_rect(0, 0, 16, 16, METAL, 4, 85)
+    img.outline(0, 0, 16, 16, METAL_EDGE)
+    # Sensor lens array scanning the field.
+    for gy in range(3):
+        for gx in range(3):
+            x, y = 3 + gx * 4, 3 + gy * 4
+            img.rect(x, y, 2, 2, JOINT)
+            img.set(x, y, CYAN_DIM)
+            img.set(x + 1, y + 1, GROW_DIM)
+    return img
+
+
+def actuator():
+    img = Img(16, 16)
+    # Cylinder body (diagonal), copper coil, cyan piston tip.
+    for i in range(7):
+        img.rect(3 + i, 10 - i, 3, 3, METAL)
+        img.set(3 + i, 10 - i, METAL_EDGE)
+    for i in (1, 3, 5):
+        img.set(4 + i, 11 - i, COPPER)
+        img.set(5 + i, 10 - i, COPPER_D)
+    img.rect(10, 2, 3, 3, METAL_EDGE)
+    img.rect(11, 3, 2, 2, CYAN)
+    img.set(12, 2, CYAN_HI)
+    img.rect(2, 12, 3, 2, JOINT)
+    return img
+
+
 def photon_array_top():
     """Photovoltaic cell grid: 3x3 cyan cells in a gunmetal frame, one
     amber status pip bottom-right. Flat slab top (photon_array.json)."""
@@ -872,6 +935,10 @@ def main():
         "block/fractal_grinder_jaw.png": fractal_grinder_jaw(),
         "block/fractal_grinder_maw.png": fractal_grinder_maw(False),
         "block/fractal_grinder_maw_lit.png": stack_frames([fractal_grinder_maw(True, f) for f in range(3)]),
+        "block/chrono_farmer_side.png": chrono_farmer_side(),
+        "block/chrono_farmer_front.png": chrono_farmer_front(False),
+        "block/chrono_farmer_front_lit.png": chrono_farmer_front(True),
+        "block/chrono_farmer_top.png": chrono_farmer_top(),
         "block/neural_conduit.png": neural_conduit(),
         "block/photon_array_top.png": photon_array_top(),
         "block/photon_array_side.png": photon_array_side(),
@@ -887,6 +954,7 @@ def main():
         "item/chronite_shard.png": chronite_shard(),
         "item/calibrator.png": calibrator(),
         "item/compute_chip.png": compute_chip(),
+        "item/actuator.png": actuator(),
         "item/upgrade_kit_tier2.png": upgrade_kit(),
         "item/speed_module.png": module(SPEED_GLYPH, CYAN),
         "item/efficiency_module.png": module(EFFICIENCY_GLYPH, ENERGY),

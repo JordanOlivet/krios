@@ -4,7 +4,9 @@
   "package": "io.lakio.krios.industry.mixin",
   "refmap": "${mod_id}.refmap.json",
   "compatibilityLevel": "JAVA_21",
-  "mixins": [],
+  "mixins": [
+    "FarmBlockMixin"
+  ],
   "client": [],
   "server": [],
   "injectors": {

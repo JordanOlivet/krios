@@ -21,6 +21,37 @@ public final class KoiosBalance {
     /** Base data XP per reactor burn cycle (per fuel item consumed). */
     public static final int BURN_BASE_XP = 2;
 
+    /**
+     * Self-sufficient processes teach KOIOS less (machine roadmap
+     * 2026-10-06): one permille constant per machine class, calibrated
+     * during the survival playthrough. Farms: a fifth of a grind.
+     */
+    public static final int FARM_XP_PERMILLE = 200;
+    /** Base data XP per crop harvested by a Chrono Farmer. */
+    public static final int HARVEST_BASE_XP = GRIND_BASE_XP * FARM_XP_PERMILLE / 1000;
+
+    // Chrono Farmer energy, per action (placeholders until the numbers
+    // pass; sized on park ratios then, per the energy-scale method).
+    public static final int HARVEST_ENERGY = 60;
+    public static final int PLANT_ENERGY = 20;
+    public static final int TILL_ENERGY = 20;
+    /** Topping one farmland block back up to full moisture. */
+    public static final int HYDRATE_ENERGY = 5;
+    /** One extra random tick forced on a growing crop (Speed modules). */
+    public static final int GROWTH_TICK_ENERGY = 15;
+
+    /**
+     * Zone machine pacing (ADR-022): a wake that acted comes back after
+     * ACTIVE ticks, a full pass with nothing to do backs off to IDLE. Each
+     * wake performs at most ACTIONS_BASE x effective-tier speed factor
+     * actions, so a ripe field is swept visibly instead of in one tick.
+     */
+    public static final int ZONE_ACTIVE_DELAY_TICKS = 10;
+    public static final int ZONE_IDLE_DELAY_TICKS = 100;
+    public static final int ZONE_ACTIONS_BASE = 4;
+    /** Forced growth ticks per wake are capped (no burst after a long gap). */
+    public static final int ZONE_MAX_GROWTH_TICKS_PER_WAKE = 64;
+
     // Diversity factor, per-mille: full value while an operation stays under
     // KNEE share of the window, then linear falloff down to FLOOR at pure
     // repetition. Anti-AFK by construction; recovers as soon as you vary.

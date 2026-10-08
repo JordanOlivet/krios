@@ -12,11 +12,13 @@ public interface MachineMenu {
     /**
      * Module-bay slot geometry, relative to the screen's leftPos/topPos —
      * negative X: the slots live on the LEFT annex, outside the main frame.
-     * Shared with the client ModuleBayPanel, which derives its dock and
-     * width from these numbers; keep both in sync.
+     * Shared with the client ModuleBayPanel, which derives its width from
+     * these numbers. Vanilla slot coordinates are final, so the bay heads
+     * the left annex stack (constant position, top-aligned with the
+     * header); ModuleBayPanel checks the Y contract at class load.
      */
     int MODULE_SLOT_X = -49;
-    int MODULE_SLOT_Y = 109;
+    int MODULE_SLOT_Y = 20;
     int MODULE_SLOT_STEP = 22;
 
     /**

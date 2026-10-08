@@ -27,12 +27,16 @@ public class KriosIndustryClient implements ClientModInitializer {
         MenuScreens.register(ModMenus.PHOTON_ARRAY.get(), PhotonArrayScreen::new);
         MenuScreens.register(ModMenus.FRACTAL_GRINDER.get(), FractalGrinderScreen::new);
         MenuScreens.register(ModMenus.PLASMA_FORGE.get(), PlasmaForgeScreen::new);
+        MenuScreens.register(ModMenus.CHRONO_FARMER.get(),
+                io.lakio.krios.industry.client.screen.ChronoFarmerScreen::new);
         MenuScreens.register(ModMenus.KOIOS_CORE.get(), KoiosCoreScreen::new);
         MenuScreens.register(ModMenus.CALIBRATOR.get(), CalibratorScreen::new);
         BlockEntityRenderers.register(ModBlockEntities.KOIOS_CORE.get(), KoiosCoreRenderer::new);
         WorldRenderEvents.AFTER_TRANSLUCENT.register(context -> {
             BlueprintRenderer.render(context.matrixStack(), context.tickCounter().getGameTimeDeltaPartialTick(false));
             FaceOverlayRenderer.render(context.matrixStack(), context.tickCounter().getGameTimeDeltaPartialTick(false));
+            io.lakio.krios.industry.client.render.ZoneHologramRenderer.render(context.matrixStack(),
+                    context.tickCounter().getGameTimeDeltaPartialTick(false));
         });
         // Emissive ore veins: NeoForge reads neoforge:face_data from the
         // model JSON; on Fabric the equivalent is this baked-model wrapper.

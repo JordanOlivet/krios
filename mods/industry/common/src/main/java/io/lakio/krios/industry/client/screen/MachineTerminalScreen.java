@@ -120,6 +120,7 @@ public abstract class MachineTerminalScreen<T extends AbstractContainerMenu & Ma
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        AnnexPanel.stack(annexPanels());
         HologramFacePanel faces = facePanel();
         faces.updateHover(faces.contentX(leftPos, imageWidth), faces.contentY(topPos), mouseX, mouseY);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
@@ -282,6 +283,7 @@ public abstract class MachineTerminalScreen<T extends AbstractContainerMenu & Ma
             onClose();
             return true;
         }
+        AnnexPanel.stack(annexPanels());
         if (isDistributionToggleHit(mouseX, mouseY)) {
             minecraft.gameMode.handleInventoryButtonClick(menu.containerId,
                     MachineMenu.BUTTON_TOGGLE_DISTRIBUTION);
@@ -307,6 +309,7 @@ public abstract class MachineTerminalScreen<T extends AbstractContainerMenu & Ma
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        AnnexPanel.stack(annexPanels());
         HologramFacePanel faces = facePanel();
         if (faces.mouseDragged(faces.contentX(leftPos, imageWidth), faces.contentY(topPos),
                 mouseX, mouseY, button, dragX, dragY)) {

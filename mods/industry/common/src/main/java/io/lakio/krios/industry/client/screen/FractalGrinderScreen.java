@@ -38,7 +38,7 @@ public class FractalGrinderScreen extends MachineTerminalScreen<FractalGrinderMe
                     () -> Component.literal(menu.drawPerTick() + " E/t"),
                     Component.translatable("gui.krios_industry.stats.consumption")));
 
-    private final AnnexPanel[] annexes = {statsPanel, moduleBay, facePanel};
+    private final AnnexPanel[] annexes = {moduleBay, statsPanel, facePanel};
 
     public FractalGrinderScreen(FractalGrinderMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);

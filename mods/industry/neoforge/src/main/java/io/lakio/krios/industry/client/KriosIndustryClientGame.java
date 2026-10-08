@@ -20,6 +20,8 @@ public final class KriosIndustryClientGame {
         if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) {
             BlueprintRenderer.render(event.getPoseStack(), event.getPartialTick().getGameTimeDeltaPartialTick(false));
             FaceOverlayRenderer.render(event.getPoseStack(), event.getPartialTick().getGameTimeDeltaPartialTick(false));
+            io.lakio.krios.industry.client.render.ZoneHologramRenderer.render(event.getPoseStack(),
+                    event.getPartialTick().getGameTimeDeltaPartialTick(false));
         }
     }
 }

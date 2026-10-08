@@ -81,6 +81,12 @@ public final class ModBlocks {
     public static final Supplier<Block> PLASMA_FORGE_TIER2 = registerWithItem("plasma_forge_tier2",
             () -> new PlasmaForgeBlock(machineProperties(11), 2));
 
+    public static final Supplier<Block> CHRONO_FARMER = registerWithItem("chrono_farmer",
+            () -> new io.lakio.krios.industry.machine.farmer.ChronoFarmerBlock(machineProperties(9), 1));
+
+    public static final Supplier<Block> CHRONO_FARMER_TIER2 = registerWithItem("chrono_farmer_tier2",
+            () -> new io.lakio.krios.industry.machine.farmer.ChronoFarmerBlock(machineProperties(9), 2));
+
     public static final Supplier<Block> NEURAL_CASING = registerWithItem("neural_casing",
             () -> new NeuralCasingBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.METAL)

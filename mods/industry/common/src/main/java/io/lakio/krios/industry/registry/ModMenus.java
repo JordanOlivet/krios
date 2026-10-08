@@ -28,6 +28,10 @@ public final class ModMenus {
     public static final Supplier<MenuType<PlasmaForgeMenu>> PLASMA_FORGE = register("plasma_forge",
             () -> Services.REGISTRAR.createMenuType(PlasmaForgeMenu::new));
 
+    public static final Supplier<MenuType<io.lakio.krios.industry.machine.farmer.ChronoFarmerMenu>> CHRONO_FARMER =
+            register("chrono_farmer", () -> Services.REGISTRAR.createMenuType(
+                    io.lakio.krios.industry.machine.farmer.ChronoFarmerMenu::new));
+
     public static final Supplier<MenuType<KoiosCoreMenu>> KOIOS_CORE = register("koios_core",
             () -> Services.REGISTRAR.createMenuType(KoiosCoreMenu::new));
 

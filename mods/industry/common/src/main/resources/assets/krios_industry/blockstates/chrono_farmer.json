@@ -1,0 +1,34 @@
+{
+  "variants": {
+    "facing=north,lit=false": {
+      "model": "krios_industry:block/chrono_farmer"
+    },
+    "facing=east,lit=false": {
+      "model": "krios_industry:block/chrono_farmer",
+      "y": 90
+    },
+    "facing=south,lit=false": {
+      "model": "krios_industry:block/chrono_farmer",
+      "y": 180
+    },
+    "facing=west,lit=false": {
+      "model": "krios_industry:block/chrono_farmer",
+      "y": 270
+    },
+    "facing=north,lit=true": {
+      "model": "krios_industry:block/chrono_farmer_lit"
+    },
+    "facing=east,lit=true": {
+      "model": "krios_industry:block/chrono_farmer_lit",
+      "y": 90
+    },
+    "facing=south,lit=true": {
+      "model": "krios_industry:block/chrono_farmer_lit",
+      "y": 180
+    },
+    "facing=west,lit=true": {
+      "model": "krios_industry:block/chrono_farmer_lit",
+      "y": 270
+    }
+  }
+}

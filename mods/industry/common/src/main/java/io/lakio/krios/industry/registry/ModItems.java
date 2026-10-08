@@ -25,6 +25,14 @@ public final class ModItems {
     public static final Supplier<Item> NEURITE_INGOT = register("neurite_ingot",
             () -> new Item(new Item.Properties()));
 
+    /**
+     * First intermediate (roadmap rule: born with its first consuming
+     * machine, the Chrono Farmer); reused by the Forester, the Mining Rig
+     * and later lines.
+     */
+    public static final Supplier<Item> ACTUATOR = register("actuator",
+            () -> new Item(new Item.Properties()));
+
     public static final Supplier<Item> SPEED_MODULE = register("speed_module",
             () -> new ModuleItem(ModuleType.SPEED, 1,
                     KoiosBalance.SPEED_UNLOCK_LEVEL, new Item.Properties().stacksTo(16)));

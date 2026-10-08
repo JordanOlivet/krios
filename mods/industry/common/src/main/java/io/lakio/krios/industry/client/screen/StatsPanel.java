@@ -20,7 +20,7 @@ public class StatsPanel extends AnnexPanel {
     public record Row(Icon icon, Supplier<Component> value, Component tooltip) {
     }
 
-    public enum Icon { SPEED, ENERGY_MULT, YIELD, OUTPUT, STORED }
+    public enum Icon { SPEED, ENERGY_MULT, YIELD, OUTPUT, STORED, ZONE }
 
     private static final int ROW_HEIGHT = 14;
     private static final int ICON_SPACE = 14;
@@ -31,7 +31,7 @@ public class StatsPanel extends AnnexPanel {
     private int cachedWidth = 50;
 
     public StatsPanel(Row... rows) {
-        super(Side.LEFT, 4, "gui.krios_industry.stats.title", ClientPrefs.statsExpanded());
+        super(Side.LEFT, "gui.krios_industry.stats.title", ClientPrefs.statsExpanded());
         this.rows = List.of(rows);
     }
 
@@ -109,6 +109,14 @@ public class StatsPanel extends AnnexPanel {
             case YIELD -> {
                 gui.fill(x + 3, y, x + 6, y + 9, cyan);
                 gui.fill(x, y + 3, x + 9, y + 6, cyan);
+            }
+            case ZONE -> {
+                // 3x3 cell grid: the zone machines' workable cells.
+                for (int row = 0; row < 3; row++) {
+                    for (int col = 0; col < 3; col++) {
+                        gui.fill(x + col * 3, y + row * 3, x + col * 3 + 2, y + row * 3 + 2, cyan);
+                    }
+                }
             }
             case STORED -> {
                 gui.fill(x, y + 1, x + 9, y + 8, amber);

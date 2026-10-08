@@ -49,7 +49,7 @@ public class ThermalReactorScreen extends MachineTerminalScreen<ThermalReactorMe
                     Component.translatable("gui.krios_industry.stats.stored")));
 
     private final AnnexPanel[] annexes = {statsPanel, facePanel};
-    private final AnnexPanel[] annexesWithBay = {statsPanel, moduleBay, facePanel};
+    private final AnnexPanel[] annexesWithBay = {moduleBay, statsPanel, facePanel};
 
     public ThermalReactorScreen(ThermalReactorMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);

@@ -32,6 +32,7 @@ public class CodexPanel {
             new Entry("photon_array", 1, false),
             new Entry("fractal_grinder", 1, false),
             new Entry("plasma_forge", 1, false),
+            new Entry("chrono_farmer", 1, false),
             new Entry("modules", 2, true),
             new Entry("network", 1, true),
             new Entry("conduit", 1, false),

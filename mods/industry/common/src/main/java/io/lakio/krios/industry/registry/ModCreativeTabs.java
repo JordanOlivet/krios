@@ -28,6 +28,8 @@ public final class ModCreativeTabs {
                         output.accept(ModBlocks.FRACTAL_GRINDER_TIER2.get());
                         output.accept(ModBlocks.PLASMA_FORGE.get());
                         output.accept(ModBlocks.PLASMA_FORGE_TIER2.get());
+                        output.accept(ModBlocks.CHRONO_FARMER.get());
+                        output.accept(ModBlocks.CHRONO_FARMER_TIER2.get());
                         output.accept(ModBlocks.NEURAL_CASING.get());
                         output.accept(ModBlocks.NEURAL_CONDUIT.get());
                         output.accept(ModBlocks.KOIOS_CORE.get());
@@ -35,6 +37,7 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.RAW_NEURITE.get());
                         output.accept(ModItems.NEURITE_DUST.get());
                         output.accept(ModItems.NEURITE_INGOT.get());
+                        output.accept(ModItems.ACTUATOR.get());
                         output.accept(ModItems.SPEED_MODULE.get());
                         output.accept(ModItems.EFFICIENCY_MODULE.get());
                         output.accept(ModItems.YIELD_MODULE.get());

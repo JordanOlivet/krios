@@ -149,7 +149,7 @@ public class HologramFacePanel extends AnnexPanel {
     private Direction knobFace;
 
     public HologramFacePanel(Column... columns) {
-        super(Side.RIGHT, 4, "gui.krios_industry.faces.title",
+        super(Side.RIGHT, "gui.krios_industry.faces.title",
                 io.lakio.krios.industry.client.ClientPrefs.facesOpen());
         this.columns = columns;
         this.flowRows = new ArrayList<>();

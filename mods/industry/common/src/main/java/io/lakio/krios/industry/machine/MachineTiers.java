@@ -47,6 +47,18 @@ public final class MachineTiers {
         return YIELD_NUM[tier - 1];
     }
 
+    /**
+     * Zone edge per tier for zone machines (Chrono Farmer design
+     * 2026-10-08): the zone analog of process slots. 9/13/19/27 keeps the
+     * doubling invariant on AREA (81 -> 169 -> 361 -> 729), and 9x9 is
+     * exactly what one central water source hydrates.
+     */
+    private static final int[] ZONE_EDGE = {9, 13, 19, 27};
+
+    public static int zoneEdge(int tier) {
+        return ZONE_EDGE[tier - 1];
+    }
+
     /** Effective tier: min(machine, core) online; offline = tier 1 baseline. */
     public static int effectiveTier(@Nullable Network network, int machineTier) {
         return network != null && network.isValid()

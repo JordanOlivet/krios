@@ -34,6 +34,8 @@ public final class KriosIndustryClient {
         event.register(ModMenus.PHOTON_ARRAY.get(), PhotonArrayScreen::new);
         event.register(ModMenus.FRACTAL_GRINDER.get(), FractalGrinderScreen::new);
         event.register(ModMenus.PLASMA_FORGE.get(), PlasmaForgeScreen::new);
+        event.register(ModMenus.CHRONO_FARMER.get(),
+                io.lakio.krios.industry.client.screen.ChronoFarmerScreen::new);
         event.register(ModMenus.KOIOS_CORE.get(), KoiosCoreScreen::new);
         event.register(ModMenus.CALIBRATOR.get(), CalibratorScreen::new);
     }

@@ -34,6 +34,11 @@ public final class ModBlockEntities {
             () -> Services.REGISTRAR.createBlockEntityType(PlasmaForgeBlockEntity::new,
                     ModBlocks.PLASMA_FORGE.get(), ModBlocks.PLASMA_FORGE_TIER2.get()));
 
+    public static final Supplier<BlockEntityType<io.lakio.krios.industry.machine.farmer.ChronoFarmerBlockEntity>> CHRONO_FARMER =
+            register("chrono_farmer", () -> Services.REGISTRAR.createBlockEntityType(
+                    io.lakio.krios.industry.machine.farmer.ChronoFarmerBlockEntity::new,
+                    ModBlocks.CHRONO_FARMER.get(), ModBlocks.CHRONO_FARMER_TIER2.get()));
+
     public static final Supplier<BlockEntityType<KoiosCoreBlockEntity>> KOIOS_CORE = register("koios_core",
             () -> Services.REGISTRAR.createBlockEntityType(KoiosCoreBlockEntity::new, ModBlocks.KOIOS_CORE.get()));
 

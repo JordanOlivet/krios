@@ -11,6 +11,15 @@ import net.minecraft.network.chat.Component;
  * carrying the panel's pixel icon (click to reopen, title as tooltip).
  * Subclasses provide content, tab icon and the persistence hook. No toggle
  * button lives in the main frame — the control sits on the panel itself.
+ *
+ * <p>Panels on one side form a vertical STACK (user call 2026-10-08, the
+ * front-end "stack panel" idea): {@link #stack} lays them out in order from
+ * the main frame's top border, each one a fixed gap below the previous
+ * one's actual footprint (open frame or collapsed tab), so spacing holds
+ * whatever the neighbors and their states. One constraint: vanilla slot
+ * coordinates are final, so a panel hosting real slots
+ * ({@link #anchorsSlots()}) can never move — it must come first on its
+ * side, where its position is constant.
  */
 public abstract class AnnexPanel {
 
@@ -22,9 +31,17 @@ public abstract class AnnexPanel {
     protected static final int PAD = 4;
     /** Breathing room between the main frame edge and the annex. */
     private static final int GAP = 8;
+    /**
+     * Stack origin, relative to topPos: the panel's 1px border then lines
+     * up with the main frame's outer border (topPos - 2).
+     */
+    public static final int STACK_TOP = -1;
+    /** Vertical gap between two stacked panels' borders. */
+    private static final int STACK_GAP = 6;
 
     private final Side side;
-    private final int dockY;
+    /** Offset from topPos, assigned by {@link #stack}. */
+    private int stackY = STACK_TOP;
     private final String titleKey;
     private boolean open;
     // The title defines the panel's minimum footprint (narrow content must
@@ -32,15 +49,42 @@ public abstract class AnnexPanel {
     // clicks always land after one.
     private int titleMinContent;
 
-    protected AnnexPanel(Side side, int dockY, String titleKey, boolean initiallyOpen) {
+    protected AnnexPanel(Side side, String titleKey, boolean initiallyOpen) {
         this.side = side;
-        this.dockY = dockY;
         this.titleKey = titleKey;
         this.open = initiallyOpen;
     }
 
     public boolean isOpen() {
         return open;
+    }
+
+    /** True for panels hosting real menu slots: they must head their stack. */
+    protected boolean anchorsSlots() {
+        return false;
+    }
+
+    /**
+     * Lays out every side's stack in array order. Call before any render or
+     * hit test of the frame (open states may have changed since).
+     */
+    public static void stack(AnnexPanel... panels) {
+        for (Side side : Side.values()) {
+            int y = STACK_TOP;
+            boolean first = true;
+            for (AnnexPanel panel : panels) {
+                if (panel.side != side) {
+                    continue;
+                }
+                if (panel.anchorsSlots() && !first) {
+                    throw new IllegalStateException("A slot-hosting annex must head its stack");
+                }
+                first = false;
+                panel.stackY = y;
+                // Footprint includes the 1px border above and below.
+                y += (panel.open ? panel.panelHeight() : TAB_SIZE) + 2 + STACK_GAP;
+            }
+        }
     }
 
     /** Inner content size, borders and title bar excluded. */
@@ -80,7 +124,7 @@ public abstract class AnnexPanel {
     }
 
     public int panelY(int topPos) {
-        return topPos + dockY;
+        return topPos + stackY;
     }
 
     public int contentX(int leftPos, int imageWidth) {

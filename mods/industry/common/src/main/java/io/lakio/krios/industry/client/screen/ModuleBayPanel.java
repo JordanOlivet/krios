@@ -26,8 +26,13 @@ public class ModuleBayPanel extends AnnexPanel {
     private static final int CONTENT_W = 58;
     /** Breathing room between the title bar and the first slot. */
     private static final int TOP_PAD = 5;
-    /** Slot frame top = contentY + TOP_PAD. */
-    private static final int DOCK_Y = MachineMenu.MODULE_SLOT_Y - 1 - TITLE_H - TOP_PAD;
+    static {
+        // The bay heads the left stack (anchorsSlots): its slots sit at
+        // STACK_TOP + title + TOP_PAD, plus the slot frame's 1px.
+        if (MachineMenu.MODULE_SLOT_Y != STACK_TOP + TITLE_H + TOP_PAD + 1) {
+            throw new IllegalStateException("MODULE_SLOT_Y out of sync with the annex stack");
+        }
+    }
 
     // Live supplier: the ACTIVE slot count follows the machine tier and
     // only syncs after the menu's first data broadcast (points model).
@@ -35,11 +40,16 @@ public class ModuleBayPanel extends AnnexPanel {
     private final Consumer<Boolean> menuSync;
 
     public ModuleBayPanel(IntSupplier slotCount, Consumer<Boolean> menuSync) {
-        super(Side.LEFT, DOCK_Y, "gui.krios_industry.modules.title", ClientPrefs.moduleBayOpen());
+        super(Side.LEFT, "gui.krios_industry.modules.title", ClientPrefs.moduleBayOpen());
         this.slotCount = slotCount;
         this.menuSync = menuSync;
         // The fresh client menu defaults to open; align it with the pref.
         menuSync.accept(isOpen());
+    }
+
+    @Override
+    protected boolean anchorsSlots() {
+        return true;
     }
 
     @Override
