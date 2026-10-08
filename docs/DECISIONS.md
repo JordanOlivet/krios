@@ -241,3 +241,15 @@ Zone machines (Chrono Farmer first; Cyclic Forester, Quantum Lure, creature line
 - Cells in unloaded chunks are skipped, never force-loaded.
 
 Cost: one persisted, allocation-free scheduled tick per zone machine. Rejected: an always-on ticker scanning the zone (ADR-012), and a global zone-scan manager (same semantics, more code, not persisted).
+
+**Amended at implementation (2026-10-08)**: the only true stop is a **full output buffer**. "No energy" cannot stop the chain — a reactor paused on a full buffer never pushes, so a stopped, starving machine would deadlock; it backs off and keeps pulling at each wake (the pull relights the producers). "No workable cell" cannot stop it either — nothing notifies the machine when the player tills its zone. Both ride the idle backoff. Shipped numbers: 10 ticks after a wake that acted, 100 after a wake with nothing to do; at most 4 x effective-tier speed factor actions per wake.
+
+## ADR-023 — Mixins: common, minimal, only where no loader API exists
+
+**Date**: 2026-10-08 · **Status**: accepted
+
+The Chrono Farmer must keep its zone's farmland moist. Topping moisture up on each pass left random dry blocks between passes (vanilla shows the moist texture only at moisture 7, and every random tick away from water decrements it). The robust fix is to make the zone count as near water: NeoForge has `FarmlandWaterManager` tickets, Fabric has nothing.
+
+- **First mixin of the codebase**: `FarmBlockMixin` injects at the head of `FarmBlock.isNearWater` and answers true for soil inside a registered zone (`HydrationZones`, a v0 static per-level index like `KoiosNetwork`). It lives in the **common** mixin config — one behavior, both loaders, no divergent paths.
+- **Rule for future mixins**: only when no loader API covers the need on both sides; common config by default; a HEAD inject or the narrowest injection point, never an overwrite; each one documents its reason in its Javadoc and is listed here.
+- Rejected: NeoForge tickets + a Fabric-only mixin (two code paths for one behavior), and faster re-moisturizing passes (still flickers, costs scans).
