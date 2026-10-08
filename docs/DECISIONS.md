@@ -227,3 +227,17 @@ The roadmap names (ADR-020) and the MVP's plain names (Generator, Crusher, Induc
 
 - Base Java package: **`io.lakio.krios.<mod>`** — user owns lakio.io (2026-09-20).
 - Remote: https://github.com/JordanOlivet/krios, private until first release (2026-09-20).
+
+## ADR-022 — Zone machines pace themselves on scheduled ticks with idle backoff
+
+**Date**: 2026-10-08 · **Status**: accepted
+
+Zone machines (Chrono Farmer first; Cyclic Forester, Quantum Lure, creature lines next) must watch the world: crop growth rides random ticks nobody can observe, so "wake on input" (ADR-012) alone cannot drive them. Extending ADR-017, their only clock is the vanilla scheduler:
+
+- **No ticker, ever.** Each `scheduleTick` wake processes a bounded batch of zone cells (a cursor sweeping the zone), then reschedules itself.
+- **Idle backoff**: a full pass with nothing to do stretches the delay (order of 20 → 200 ticks, knobs in balance constants); the first action found restores the fast pace.
+- **True stop** (no reschedule) when work is impossible, not merely absent: output buffer full, no energy, or a zone with no workable cell. The chain re-enters from player actions and state changes (item extracted, energy received, configuration edited) — never from chunk load (ADR-017); persisted pending ticks cover reloads.
+- `LIT` means "working" (visual), no longer "ticker attached".
+- Cells in unloaded chunks are skipped, never force-loaded.
+
+Cost: one persisted, allocation-free scheduled tick per zone machine. Rejected: an always-on ticker scanning the zone (ADR-012), and a global zone-scan manager (same semantics, more code, not persisted).

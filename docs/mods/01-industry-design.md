@@ -322,6 +322,23 @@ Structure per **ADR-020**: every machine is a line (base at t1, improved each ti
 
 **Kept in mind, not planned**: Recycler (needs a clear role in the loop first), villagers (breeding first, then trading automation — a whole system), auto-brewer, dedicated composter, fluid infrastructure (only if a machine truly needs it), the generators' simulated analog (concept to come).
 
+### Chrono Farmer (design session 2026-10-08)
+
+The first line machine; it lays the shared zone-machine bricks (zone, pacing, output buffer, reduced XP) that the Cyclic Forester, Quantum Lure and creature lines reuse.
+
+- **Function**: harvests mature crops in its zone (vanilla loot through a proper loot context — Fortune-ready), replants empty farmland (seeds come from the harvest first; the seed slots only bootstrap the field — the field sustains itself), tills dirt/grass in the zone. Hydration stays the player's job.
+- **t1 crop scope**: blocks in `minecraft:crops` with a max age (wheat, carrots, potatoes, beetroot, and modded `CropBlock`s for free) + nether wart. Melon/pumpkin, sugar cane/cactus, cocoa, berries are deferred — base of the mod first, details later (user call).
+- **Tier brings AREA** (the zone analog of process slots): **9×9 / 13×13 / 19×19 / 27×27** at t1→t4 (81 → 169 → 361 → 729, the doubling invariant; 9×9 is exactly what one central water source hydrates). Effective tier = min rule as everywhere.
+- **Modules, not tier, bring the rest** (points model): speed = extra random ticks applied to the zone's crops (each costs energy), yield = the quarter-item accumulator, efficiency = energy cost. **No base yield multiplier by tier** — a self-sufficient farm doubling its harvest for free would break the economy.
+- **Pacing**: scheduled ticks with idle backoff, never a ticker — **ADR-022**.
+- **Inventory**: 3 seed slots (`c:seeds` / `c:crops`), a 9-slot output buffer; buffer full → pause (thermostat model). Output leaves through the faces like every machine (adjacency + manual faces).
+- **Energy**: a cost per action (harvest, plant, till) + per accelerated tick; sized on park ratios at the numbers pass.
+- **KOIOS XP**: reduced, one permille constant for the farm class in `KoiosBalance`.
+- **Zone**: starts in front of the front face, centered on the machine's axis; crops at the machine's Y, soil at Y-1. Size adjustable DOWN (never above the tier max) with -/+ in the terminal. No offset or free shape in v1. Cells in unloaded chunks are skipped.
+- **Zone hologram** (user design): shown whenever the Calibrator is held (reuses the blueprint renderer), plus a **"show zone" toggle in the terminal** that pins the hologram without the Calibrator — the Calibrator in hand would hijack right-click (network monitoring), so during setup the player pins it, steps back, closes the terminal and keeps the visual while tuning; unpinned once set up, and grabbing the Calibrator answers "how far does it reach" later. Pins are client-side, per player, not persisted (a setup aid needs no server state).
+- **First intermediate: the actuator** (servo — iron, copper, redstone), born in the Chrono Farmer recipe; reused by the Forester, the Mining Rig and later lines.
+- **Terminal**: the usual layout — energy bar, seed column, 3×3 buffer, zone-size selector + show-zone toggle, state line (harvesting / waiting for maturity / buffer full / no seeds / empty zone). Mockup before code.
+
 ## Open questions (implementation-time)
 
 - Ore names final check (Chronite/Neurite still placeholders-by-default).
