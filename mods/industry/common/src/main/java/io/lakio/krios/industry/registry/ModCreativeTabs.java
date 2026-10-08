@@ -30,6 +30,8 @@ public final class ModCreativeTabs {
                         output.accept(ModBlocks.PLASMA_FORGE_TIER2.get());
                         output.accept(ModBlocks.CHRONO_FARMER.get());
                         output.accept(ModBlocks.CHRONO_FARMER_TIER2.get());
+                        output.accept(ModBlocks.CYCLIC_FORESTER.get());
+                        output.accept(ModBlocks.CYCLIC_FORESTER_TIER2.get());
                         output.accept(ModBlocks.NEURAL_CASING.get());
                         output.accept(ModBlocks.NEURAL_CONDUIT.get());
                         output.accept(ModBlocks.KOIOS_CORE.get());

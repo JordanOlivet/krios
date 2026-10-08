@@ -41,7 +41,8 @@ public class UpgradeKitItem extends Item {
             ModBlocks.THERMAL_REACTOR, ModBlocks.THERMAL_REACTOR_TIER2,
             ModBlocks.FRACTAL_GRINDER, ModBlocks.FRACTAL_GRINDER_TIER2,
             ModBlocks.PLASMA_FORGE, ModBlocks.PLASMA_FORGE_TIER2,
-            ModBlocks.CHRONO_FARMER, ModBlocks.CHRONO_FARMER_TIER2);
+            ModBlocks.CHRONO_FARMER, ModBlocks.CHRONO_FARMER_TIER2,
+            ModBlocks.CYCLIC_FORESTER, ModBlocks.CYCLIC_FORESTER_TIER2);
 
     public UpgradeKitItem(int targetTier, Properties properties) {
         super(properties);

@@ -87,6 +87,12 @@ public final class ModBlocks {
     public static final Supplier<Block> CHRONO_FARMER_TIER2 = registerWithItem("chrono_farmer_tier2",
             () -> new io.lakio.krios.industry.machine.farmer.ChronoFarmerBlock(machineProperties(9), 2));
 
+    public static final Supplier<Block> CYCLIC_FORESTER = registerWithItem("cyclic_forester",
+            () -> new io.lakio.krios.industry.machine.forester.CyclicForesterBlock(machineProperties(9), 1));
+
+    public static final Supplier<Block> CYCLIC_FORESTER_TIER2 = registerWithItem("cyclic_forester_tier2",
+            () -> new io.lakio.krios.industry.machine.forester.CyclicForesterBlock(machineProperties(9), 2));
+
     public static final Supplier<Block> NEURAL_CASING = registerWithItem("neural_casing",
             () -> new NeuralCasingBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.METAL)

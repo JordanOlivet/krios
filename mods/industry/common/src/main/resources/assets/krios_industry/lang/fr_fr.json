@@ -225,5 +225,20 @@
   "gui.krios_industry.seeds.void_on": "Graines en surplus : détruites",
   "gui.krios_industry.seeds.refill": "Tout ce qui se plante complète d'abord les slots de graines",
   "gui.krios_industry.seeds.warning_title": "Destruction des graines active",
-  "gui.krios_industry.seeds.warning": "Une fois les slots de graines pleins, TOUT ce qui se plante est détruit — carottes, patates et verrues du Nether comprises. Seuls les slots de graines gardent un stock."
+  "gui.krios_industry.seeds.warning": "Une fois les slots de graines pleins, TOUT ce qui se plante est détruit — carottes, patates et verrues du Nether comprises. Seuls les slots de graines gardent un stock.",
+  "block.krios_industry.cyclic_forester": "Sylviculteur cyclique",
+  "block.krios_industry.cyclic_forester_tier2": "Sylviculteur cyclique Mk II",
+  "gui.krios_industry.voice.cyclic_forester.working": "Abattage et replantation en cours.",
+  "gui.krios_industry.voice.cyclic_forester.waiting": "Les pousses grandissent — en attente des arbres.",
+  "gui.krios_industry.voice.cyclic_forester.buffer_full": "Tampon de récolte plein — en pause.",
+  "gui.krios_industry.voice.cyclic_forester.no_seeds": "Sol libre, aucune pousse à planter.",
+  "gui.krios_industry.voice.cyclic_forester.empty_zone": "Aucun sol pour des pousses dans ma zone.",
+  "gui.krios_industry.saplings.void_off": "Pousses en surplus : gardées dans le tampon",
+  "gui.krios_industry.saplings.void_on": "Pousses en surplus : détruites",
+  "gui.krios_industry.saplings.refill": "Toutes les pousses complètent d'abord les slots de pousses",
+  "gui.krios_industry.saplings.warning_title": "Destruction des pousses active",
+  "gui.krios_industry.saplings.warning": "Une fois les slots de pousses pleins, toutes les pousses sont détruites. Seuls les slots de pousses gardent un stock.",
+  "gui.krios_industry.codex.cyclic_forester.title": "Sylviculteur cyclique",
+  "gui.krios_industry.codex.cyclic_forester.body": "Plante des pousses une case sur deux dans la zone derrière lui et abat les arbres adultes depuis la cime, feuilles comprises — leurs pousses me reviennent. Toute bûche posée sur la terre de sa zone est coupée — placez-le avec soin. Le chêne noir exige un 2×2 que je ne sais pas encore planter.",
+  "gui.krios_industry.codex.cyclic_forester.projection.t2": "Projection t2 : une zone de 13×13 — 49 arbres en rotation."
 }

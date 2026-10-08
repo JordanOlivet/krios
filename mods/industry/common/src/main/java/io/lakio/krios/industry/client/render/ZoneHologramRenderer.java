@@ -9,7 +9,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 
 import io.lakio.krios.industry.client.ZoneHologramState;
 import io.lakio.krios.industry.machine.ZoneGeometry;
-import io.lakio.krios.industry.machine.farmer.ChronoFarmerBlockEntity;
+import io.lakio.krios.industry.machine.zone.ZoneMachineBlockEntity;
 import io.lakio.krios.industry.tool.CalibratorItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -54,7 +54,7 @@ public final class ZoneHologramRenderer {
             if (!minecraft.level.isLoaded(pos)) {
                 continue;
             }
-            if (minecraft.level.getBlockEntity(pos) instanceof ChronoFarmerBlockEntity) {
+            if (minecraft.level.getBlockEntity(pos) instanceof ZoneMachineBlockEntity) {
                 targets.add(pos);
             } else {
                 // The machine is gone: the pin goes with it.
@@ -72,15 +72,15 @@ public final class ZoneHologramRenderer {
         VertexConsumer vc = buffers.getBuffer(RenderType.debugQuads());
         float pulse = 0.5F + 0.15F * Mth.sin((minecraft.level.getGameTime() + partialTick) * 0.15F);
         for (BlockPos pos : targets) {
-            if (!(minecraft.level.getBlockEntity(pos) instanceof ChronoFarmerBlockEntity farmer)) {
+            if (!(minecraft.level.getBlockEntity(pos) instanceof ZoneMachineBlockEntity machine)) {
                 continue;
             }
-            int edge = farmer.zoneEdgeForDisplay();
+            int edge = machine.zoneEdgeForDisplay();
             if (edge <= 0) {
                 continue;
             }
-            BlockPos min = ZoneGeometry.min(pos, farmer.zoneDirection(), edge);
-            BlockPos max = ZoneGeometry.max(pos, farmer.zoneDirection(), edge);
+            BlockPos min = ZoneGeometry.min(pos, machine.zoneDirection(), edge);
+            BlockPos max = ZoneGeometry.max(pos, machine.zoneDirection(), edge);
             poseStack.pushPose();
             poseStack.translate(min.getX() - camera.x, min.getY() - camera.y, min.getZ() - camera.z);
             drawZone(poseStack.last().pose(), vc,
@@ -98,7 +98,7 @@ public final class ZoneHologramRenderer {
                     continue;
                 }
                 for (BlockEntity blockEntity : chunk.getBlockEntities().values()) {
-                    if (blockEntity instanceof ChronoFarmerBlockEntity
+                    if (blockEntity instanceof ZoneMachineBlockEntity
                             && blockEntity.getBlockPos().closerThan(center, RANGE)) {
                         out.add(blockEntity.getBlockPos());
                     }

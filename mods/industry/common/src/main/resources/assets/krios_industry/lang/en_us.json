@@ -225,5 +225,20 @@
   "gui.krios_industry.seeds.void_on": "Surplus seeds: destroyed",
   "gui.krios_industry.seeds.refill": "Everything plantable tops up the seed slots first",
   "gui.krios_industry.seeds.warning_title": "Seed voiding active",
-  "gui.krios_industry.seeds.warning": "Once the seed slots are full, EVERYTHING plantable is destroyed — carrots, potatoes and nether wart included. Only the seed slots keep a stock."
+  "gui.krios_industry.seeds.warning": "Once the seed slots are full, EVERYTHING plantable is destroyed — carrots, potatoes and nether wart included. Only the seed slots keep a stock.",
+  "block.krios_industry.cyclic_forester": "Cyclic Forester",
+  "block.krios_industry.cyclic_forester_tier2": "Cyclic Forester Mk II",
+  "gui.krios_industry.voice.cyclic_forester.working": "Felling and replanting.",
+  "gui.krios_industry.voice.cyclic_forester.waiting": "Saplings growing — waiting for trees.",
+  "gui.krios_industry.voice.cyclic_forester.buffer_full": "Harvest buffer full — paused.",
+  "gui.krios_industry.voice.cyclic_forester.no_seeds": "Free soil and no saplings to plant.",
+  "gui.krios_industry.voice.cyclic_forester.empty_zone": "No soil for saplings in my zone.",
+  "gui.krios_industry.saplings.void_off": "Surplus saplings: kept in the buffer",
+  "gui.krios_industry.saplings.void_on": "Surplus saplings: destroyed",
+  "gui.krios_industry.saplings.refill": "Every sapling tops up the sapling slots first",
+  "gui.krios_industry.saplings.warning_title": "Sapling voiding active",
+  "gui.krios_industry.saplings.warning": "Once the sapling slots are full, every sapling is destroyed. Only the sapling slots keep a stock.",
+  "gui.krios_industry.codex.cyclic_forester.title": "Cyclic Forester",
+  "gui.krios_industry.codex.cyclic_forester.body": "Plants saplings on every other cell of the zone behind it and fells grown trees from the canopy down, leaves included — their saplings come back to me. Any log standing on soil in its zone is cut — place it with care. Dark oak needs a 2×2 I cannot plant yet.",
+  "gui.krios_industry.codex.cyclic_forester.projection.t2": "Projection t2: a 13×13 zone — 49 trees in rotation."
 }

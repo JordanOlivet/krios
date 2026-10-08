@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SXS",
+    "ANA",
+    "III"
+  ],
+  "key": {
+    "S": {
+      "item": "krios_industry:chronite_shard"
+    },
+    "X": {
+      "item": "minecraft:iron_axe"
+    },
+    "A": {
+      "item": "krios_industry:actuator"
+    },
+    "N": {
+      "tag": "c:ingots/neurite"
+    },
+    "I": {
+      "tag": "c:ingots/iron"
+    }
+  },
+  "result": {
+    "id": "krios_industry:cyclic_forester",
+    "count": 1
+  }
+}

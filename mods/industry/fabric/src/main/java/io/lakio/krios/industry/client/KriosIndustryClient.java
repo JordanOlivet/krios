@@ -29,6 +29,8 @@ public class KriosIndustryClient implements ClientModInitializer {
         MenuScreens.register(ModMenus.PLASMA_FORGE.get(), PlasmaForgeScreen::new);
         MenuScreens.register(ModMenus.CHRONO_FARMER.get(),
                 io.lakio.krios.industry.client.screen.ChronoFarmerScreen::new);
+        MenuScreens.register(ModMenus.CYCLIC_FORESTER.get(),
+                io.lakio.krios.industry.client.screen.CyclicForesterScreen::new);
         MenuScreens.register(ModMenus.KOIOS_CORE.get(), KoiosCoreScreen::new);
         MenuScreens.register(ModMenus.CALIBRATOR.get(), CalibratorScreen::new);
         BlockEntityRenderers.register(ModBlockEntities.KOIOS_CORE.get(), KoiosCoreRenderer::new);

@@ -2,60 +2,22 @@ package io.lakio.krios.industry.machine.farmer;
 
 import com.mojang.serialization.MapCodec;
 
-import io.lakio.krios.industry.machine.TieredMachine;
-import io.lakio.krios.industry.machine.UpgradeKitItem;
-import io.lakio.krios.industry.network.NetworkConductor;
-import io.lakio.krios.industry.tool.CalibratorItem;
+import io.lakio.krios.industry.machine.zone.ZoneMachineBlock;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.core.particles.DustParticleOptions;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.RandomSource;
-import net.minecraft.world.Containers;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.BaseEntityBlock;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Mirror;
-import net.minecraft.world.level.block.RenderShape;
-import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.phys.BlockHitResult;
 import org.joml.Vector3f;
 
-/**
- * Chrono Farmer: the first zone machine. No ticker at all — its only
- * clock is the vanilla scheduler (ADR-022); LIT is purely visual
- * ("worked on the last wake").
- */
-public class ChronoFarmerBlock extends BaseEntityBlock implements NetworkConductor, TieredMachine {
+/** Chrono Farmer: the first zone machine (green-cyan data bits). */
+public class ChronoFarmerBlock extends ZoneMachineBlock {
 
     // The codec is registry plumbing vanilla never uses at runtime; the
     // real tier rides the registered instances.
     private static final MapCodec<ChronoFarmerBlock> CODEC =
             simpleCodec(properties -> new ChronoFarmerBlock(properties, 1));
 
-    private final int tier;
-
     public ChronoFarmerBlock(Properties properties, int tier) {
-        super(properties);
-        this.tier = tier;
-        registerDefaultState(getStateDefinition().any()
-                .setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH)
-                .setValue(BlockStateProperties.LIT, false));
-    }
-
-    @Override
-    public int machineTier() {
-        return tier;
+        super(properties, tier, new Vector3f(0.35F, 0.95F, 0.7F));
     }
 
     @Override
@@ -64,108 +26,7 @@ public class ChronoFarmerBlock extends BaseEntityBlock implements NetworkConduct
     }
 
     @Override
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(BlockStateProperties.HORIZONTAL_FACING, BlockStateProperties.LIT);
-    }
-
-    @Override
-    public BlockState getStateForPlacement(BlockPlaceContext context) {
-        // Screen toward the player; the zone lies behind, where they look.
-        return defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING,
-                context.getHorizontalDirection().getOpposite());
-    }
-
-    @Override
-    protected BlockState rotate(BlockState state, Rotation rotation) {
-        return state.setValue(BlockStateProperties.HORIZONTAL_FACING,
-                rotation.rotate(state.getValue(BlockStateProperties.HORIZONTAL_FACING)));
-    }
-
-    @Override
-    protected BlockState mirror(BlockState state, Mirror mirror) {
-        return state.rotate(mirror.getRotation(state.getValue(BlockStateProperties.HORIZONTAL_FACING)));
-    }
-
-    /** Signature particles (art direction): green-cyan data bits while working. */
-    @Override
-    public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
-        if (!state.getValue(BlockStateProperties.LIT) || random.nextInt(3) != 0) {
-            return;
-        }
-        level.addParticle(new DustParticleOptions(new Vector3f(0.35F, 0.95F, 0.7F), 0.6F),
-                pos.getX() + 0.2 + random.nextDouble() * 0.6,
-                pos.getY() + 1.05,
-                pos.getZ() + 0.2 + random.nextDouble() * 0.6,
-                0, 0.02, 0);
-    }
-
-    @Override
-    protected RenderShape getRenderShape(BlockState state) {
-        return RenderShape.MODEL;
-    }
-
-    /** The Calibrator overrides the block's own right-click (diagnostic). */
-    @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level,
-            BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-        if (stack.getItem() instanceof CalibratorItem) {
-            return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
-        }
-        if (stack.getItem() instanceof UpgradeKitItem kit) {
-            return kit.useOnMachine(stack, level, pos, player);
-        }
-        return super.useItemOn(stack, state, level, pos, player, hand, hit);
-    }
-
-    @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new ChronoFarmerBlockEntity(pos, state);
-    }
-
-    @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof ChronoFarmerBlockEntity farmer) {
-            player.openMenu(farmer);
-        }
-        return InteractionResult.sidedSuccess(level.isClientSide);
-    }
-
-    /**
-     * Enter the wake chain on placement — including the upgrade kit's
-     * block swap, which drops pending ticks. LIT flips (same block) are
-     * ignored: the chain is already running.
-     */
-    @Override
-    protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
-        super.onPlace(state, level, pos, oldState, movedByPiston);
-        if (!level.isClientSide && !oldState.is(this)) {
-            level.scheduleTick(pos, this, 1);
-        }
-    }
-
-    @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof ChronoFarmerBlockEntity farmer) {
-            Containers.dropContents(level, pos, farmer);
-        }
-        super.onRemove(state, level, pos, newState, movedByPiston);
-    }
-
-    /** A neighbor changed: flow the buffer out and make sure the chain runs. */
-    @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos,
-            Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
-        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof ChronoFarmerBlockEntity farmer) {
-            farmer.onNeighborChanged();
-        }
-    }
-
-    /** The machine's only clock (ADR-022). */
-    @Override
-    protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-        if (level.getBlockEntity(pos) instanceof ChronoFarmerBlockEntity farmer) {
-            farmer.scheduledWake(level);
-        }
     }
 }

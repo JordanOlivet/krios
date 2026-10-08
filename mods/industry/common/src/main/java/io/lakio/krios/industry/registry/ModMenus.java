@@ -32,6 +32,10 @@ public final class ModMenus {
             register("chrono_farmer", () -> Services.REGISTRAR.createMenuType(
                     io.lakio.krios.industry.machine.farmer.ChronoFarmerMenu::new));
 
+    public static final Supplier<MenuType<io.lakio.krios.industry.machine.forester.CyclicForesterMenu>> CYCLIC_FORESTER =
+            register("cyclic_forester", () -> Services.REGISTRAR.createMenuType(
+                    io.lakio.krios.industry.machine.forester.CyclicForesterMenu::new));
+
     public static final Supplier<MenuType<KoiosCoreMenu>> KOIOS_CORE = register("koios_core",
             () -> Services.REGISTRAR.createMenuType(KoiosCoreMenu::new));
 

@@ -37,6 +37,16 @@ public final class KoiosBalance {
     public static final int TILL_ENERGY = 20;
     /** Topping one farmland block back up to full moisture. */
     public static final int HYDRATE_ENERGY = 5;
+
+    /** Forester class: a whole tree teaches half a grind (placeholder). */
+    public static final int FORESTER_XP_PERMILLE = 500;
+    /** Base data XP per tree felled by a Cyclic Forester. */
+    public static final int FELL_BASE_XP = GRIND_BASE_XP * FORESTER_XP_PERMILLE / 1000;
+    // Cyclic Forester energy, per block cut (placeholders, numbers pass).
+    public static final int LOG_CUT_ENERGY = 30;
+    public static final int LEAF_CUT_ENERGY = 5;
+    /** Blocks cut per wake while felling, x effective-tier speed factor. */
+    public static final int FELL_BLOCKS_BASE = 8;
     /** One extra random tick forced on a growing crop (Speed modules). */
     public static final int GROWTH_TICK_ENERGY = 15;
 

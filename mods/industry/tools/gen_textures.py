@@ -456,6 +456,50 @@ def actuator():
     return img
 
 
+def cyclic_forester_side():
+    img = Img(16, 16)
+    img.noise_rect(0, 0, 16, 16, METAL, 5, 87)
+    bevel(img)
+    for x in (2, 13):
+        img.rect(x, 2, 1, 12, COPPER_D)
+    # Tree glyph: trunk + canopy.
+    img.rect(7, 8, 2, 5, COPPER_D)
+    img.rect(5, 4, 6, 4, GROW_DIM)
+    img.rect(6, 3, 4, 1, GROW_DIM)
+    img.set(6, 5, GROW)
+    img.set(9, 4, GROW)
+    return img
+
+
+def cyclic_forester_front(lit):
+    img = cyclic_forester_side()
+    # Felling readout (4,4)-(12,12): canopy layers scanned top-down.
+    img.rect(4, 4, 8, 8, JOINT)
+    img.outline(4, 4, 8, 8, METAL_EDGE)
+    for row, width in enumerate((2, 4, 4)):
+        c = (GROW if row == 0 else CYAN) if lit else GROW_DIM
+        img.rect(8 - width // 2, 5 + row * 2, width, 1, c)
+    img.rect(7, 10, 2, 1, COPPER if lit else COPPER_D)
+    return img
+
+
+def cyclic_forester_top():
+    img = Img(16, 16)
+    img.noise_rect(0, 0, 16, 16, METAL, 4, 89)
+    img.outline(0, 0, 16, 16, METAL_EDGE)
+    # Saw ring around a sensor eye.
+    for i in range(4, 12):
+        img.set(i, 4, METAL_EDGE)
+        img.set(i, 11, METAL_EDGE)
+        img.set(4, i, METAL_EDGE)
+        img.set(11, i, METAL_EDGE)
+    for x, y in ((4, 4), (11, 4), (4, 11), (11, 11)):
+        img.set(x, y, COPPER)
+    img.rect(7, 7, 2, 2, CYAN_DIM)
+    img.set(7, 7, GROW)
+    return img
+
+
 def photon_array_top():
     """Photovoltaic cell grid: 3x3 cyan cells in a gunmetal frame, one
     amber status pip bottom-right. Flat slab top (photon_array.json)."""
@@ -939,6 +983,10 @@ def main():
         "block/chrono_farmer_front.png": chrono_farmer_front(False),
         "block/chrono_farmer_front_lit.png": chrono_farmer_front(True),
         "block/chrono_farmer_top.png": chrono_farmer_top(),
+        "block/cyclic_forester_side.png": cyclic_forester_side(),
+        "block/cyclic_forester_front.png": cyclic_forester_front(False),
+        "block/cyclic_forester_front_lit.png": cyclic_forester_front(True),
+        "block/cyclic_forester_top.png": cyclic_forester_top(),
         "block/neural_conduit.png": neural_conduit(),
         "block/photon_array_top.png": photon_array_top(),
         "block/photon_array_side.png": photon_array_side(),
