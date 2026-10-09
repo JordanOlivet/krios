@@ -253,3 +253,26 @@ The Chrono Farmer must keep its zone's farmland moist. Topping moisture up on ea
 - **First mixin of the codebase**: `FarmBlockMixin` injects at the head of `FarmBlock.isNearWater` and answers true for soil inside a registered zone (`HydrationZones`, a v0 static per-level index like `KoiosNetwork`). It lives in the **common** mixin config — one behavior, both loaders, no divergent paths.
 - **Rule for future mixins**: only when no loader API covers the need on both sides; common config by default; a HEAD inject or the narrowest injection point, never an overwrite; each one documents its reason in its Javadoc and is listed here.
 - Rejected: NeoForge tickets + a Fabric-only mixin (two code paths for one behavior), and faster re-moisturizing passes (still flickers, costs scans).
+
+## ADR-024 — Autonomous machines take no consumable prerequisite; tool enchantments become modules
+
+**Date**: 2026-10-09 · **Status**: accepted
+
+The roadmap gave the Quantum Lure a rod slot whose enchantments apply and whose durability wears. The user rejected it at design time: a line machine exists to make a process autonomous, and one that must be refilled with a tool on a schedule loses most of its point.
+
+- **No consumable is indispensable to run a machine.** Inputs that ARE the process (seeds, a generator's fuel, ores) stay; a tool the machine wears out to function does not.
+- **A tool's enchantments become machine modules** on the existing points model (Mk I = 1 pt, Mk II = 2), unlocked on the KOIOS ladder like every module. The player's effort moves from refilling to crafting upgrades. First instance: the Lure and Luck modules of the Quantum Lure (enchantments with no effect once there is no tool, such as Unbreaking or Mending, get no module).
+- **Machine-specific axes share the one module bay** (user call: choosing what to slot is part of the game) and are refused elsewhere by the server-side `mayPlace` gate — the energy-module precedent.
+- Applies to future lines with a natural tool (Mining Rig, Reaper Array...): their enchantments come as modules, never a tool slot. Supersedes the design doc's rod-slot line and the Cyclic Forester's "shears/silk slot may come later" note.
+
+## ADR-025 — The zone-machine core splits: zone core, planting layer, direct clients
+
+**Date**: 2026-10-09 · **Status**: accepted
+
+The Quantum Lure, the third zone machine, plants nothing, scans no cells and paces itself on catch timers. The core extracted with the Cyclic Forester assumed plantables throughout (plant slots, plantables-first routing, voiding toggle, cell scan, forced growth).
+
+- **`ZoneMachineBlockEntity`** keeps what every zone machine shares: the zone (behind the screen; edge per machine — tier-driven and resizable, or fixed), the ADR-022 wake chain (a machine supplies its work step, its next delay and its idle state), energy, the output buffer, faces, the module bay, KOIOS reporting and hologram sync. Its input area is generic: each machine declares how many input slots it has (zero allowed) and what they accept, and which module axes its bay takes.
+- **`PlantingZoneBlockEntity`** carries the plant slots, the cell scan with its cursor and pass bookkeeping, Speed as forced random ticks, and the plantables-first routing with the warned voiding toggle. The Chrono Farmer and the Cyclic Forester extend it; their behavior does not change.
+- **Direct clients** (the Quantum Lure first; the creature lines likely) extend the core and own their work model.
+- Menus and terminals follow the same split (zone menu/screen base, planting menu/screen, per-machine work areas).
+- Rejected: reusing the plant slots as a rod or input slot behind flags (routing and voiding logic would leak into machines with no plantables), and a separate non-zone base for the Lure (it still has a zone, a hologram and the zone pacing).
