@@ -1,5 +1,6 @@
 package io.lakio.krios.industry.machine.lure;
 
+import io.lakio.krios.industry.machine.zone.ZoneMachineBlockEntity;
 import io.lakio.krios.industry.machine.zone.ZoneMachineMenu;
 import io.lakio.krios.industry.registry.ModMenus;
 import net.minecraft.world.Container;
@@ -12,12 +13,13 @@ public class QuantumLureMenu extends ZoneMachineMenu {
     /** Client constructor. */
     public QuantumLureMenu(int containerId, Inventory playerInventory) {
         super(ModMenus.QUANTUM_LURE.get(), containerId, playerInventory, 0,
-                QuantumLureBlockEntity.DATA_COUNT, stack -> false, QuantumLureBlockEntity::acceptsModule);
+                ZoneMachineBlockEntity.BUFFER_SLOTS, QuantumLureBlockEntity.DATA_COUNT,
+                stack -> false, QuantumLureBlockEntity::acceptsModule);
     }
 
     public QuantumLureMenu(int containerId, Inventory playerInventory, Container container, ContainerData data) {
         super(ModMenus.QUANTUM_LURE.get(), containerId, playerInventory, container, data, 0,
-                stack -> false, QuantumLureBlockEntity::acceptsModule);
+                ZoneMachineBlockEntity.BUFFER_SLOTS, stack -> false, QuantumLureBlockEntity::acceptsModule);
     }
 
     /** QuantumLureBlockEntity.WATER_* reading of the last wake. */

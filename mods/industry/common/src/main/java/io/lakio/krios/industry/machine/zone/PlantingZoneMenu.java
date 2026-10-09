@@ -19,13 +19,14 @@ public class PlantingZoneMenu extends ZoneMachineMenu {
     protected PlantingZoneMenu(MenuType<?> type, int containerId, Inventory playerInventory,
             Predicate<ItemStack> plantable) {
         super(type, containerId, playerInventory, PlantingZoneBlockEntity.PLANT_SLOTS,
-                PlantingZoneBlockEntity.DATA_COUNT, plantable, ModuleType::isProcessAxis);
+                ZoneMachineBlockEntity.BUFFER_SLOTS, PlantingZoneBlockEntity.DATA_COUNT,
+                plantable, ModuleType::isProcessAxis);
     }
 
     protected PlantingZoneMenu(MenuType<?> type, int containerId, Inventory playerInventory,
             Container container, ContainerData data, Predicate<ItemStack> plantable) {
         super(type, containerId, playerInventory, container, data, PlantingZoneBlockEntity.PLANT_SLOTS,
-                plantable, ModuleType::isProcessAxis);
+                ZoneMachineBlockEntity.BUFFER_SLOTS, plantable, ModuleType::isProcessAxis);
     }
 
     /** Workable cells found by the last full pass; -1 until one completes. */

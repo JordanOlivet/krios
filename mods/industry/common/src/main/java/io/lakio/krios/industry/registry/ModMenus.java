@@ -40,6 +40,10 @@ public final class ModMenus {
             register("quantum_lure", () -> Services.REGISTRAR.createMenuType(
                     io.lakio.krios.industry.machine.lure.QuantumLureMenu::new));
 
+    public static final Supplier<MenuType<io.lakio.krios.industry.machine.pod.BreedingPodMenu>> BREEDING_POD =
+            register("breeding_pod", () -> Services.REGISTRAR.createMenuType(
+                    io.lakio.krios.industry.machine.pod.BreedingPodMenu::new));
+
     public static final Supplier<MenuType<KoiosCoreMenu>> KOIOS_CORE = register("koios_core",
             () -> Services.REGISTRAR.createMenuType(KoiosCoreMenu::new));
 

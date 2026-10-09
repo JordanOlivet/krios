@@ -99,6 +99,12 @@ public final class ModBlocks {
     public static final Supplier<Block> QUANTUM_LURE_TIER2 = registerWithItem("quantum_lure_tier2",
             () -> new io.lakio.krios.industry.machine.lure.QuantumLureBlock(machineProperties(9), 2));
 
+    public static final Supplier<Block> BREEDING_POD = registerWithItem("breeding_pod",
+            () -> new io.lakio.krios.industry.machine.pod.BreedingPodBlock(machineProperties(9), 1));
+
+    public static final Supplier<Block> BREEDING_POD_TIER2 = registerWithItem("breeding_pod_tier2",
+            () -> new io.lakio.krios.industry.machine.pod.BreedingPodBlock(machineProperties(9), 2));
+
     public static final Supplier<Block> NEURAL_CASING = registerWithItem("neural_casing",
             () -> new NeuralCasingBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.METAL)

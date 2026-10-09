@@ -43,7 +43,8 @@ public class UpgradeKitItem extends Item {
             ModBlocks.PLASMA_FORGE, ModBlocks.PLASMA_FORGE_TIER2,
             ModBlocks.CHRONO_FARMER, ModBlocks.CHRONO_FARMER_TIER2,
             ModBlocks.CYCLIC_FORESTER, ModBlocks.CYCLIC_FORESTER_TIER2,
-            ModBlocks.QUANTUM_LURE, ModBlocks.QUANTUM_LURE_TIER2);
+            ModBlocks.QUANTUM_LURE, ModBlocks.QUANTUM_LURE_TIER2,
+            ModBlocks.BREEDING_POD, ModBlocks.BREEDING_POD_TIER2);
 
     public UpgradeKitItem(int targetTier, Properties properties) {
         super(properties);

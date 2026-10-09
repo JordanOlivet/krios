@@ -30,9 +30,7 @@ public class QuantumLureScreen extends ZoneMachineScreen<QuantumLureMenu> {
     /** Gauges center on the old input column's middle. */
     private static final int GAUGE_CENTER_X = 55;
 
-    private static final int S = ZoneMachineMenu.MAP_SIZE;
     private static final int CELL = 8;
-    private static final int EYE_X = ZoneMachineMenu.MAP_X + S - 4 + BTN + 6;
 
     public QuantumLureScreen(QuantumLureMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);

@@ -18,8 +18,8 @@ import net.minecraft.world.item.ItemStack;
 import java.util.function.Predicate;
 
 /**
- * Shared zone-machine menu (ADR-025): the machine's input column (zero
- * slots allowed), 3x3 output buffer, module bay, synced zone/state data.
+ * Shared zone-machine menu (ADR-025): the machine's input column and 3x3
+ * output buffer (each zero allowed), module bay, synced zone/state data.
  * The input and module predicates come from the machine — the client menu
  * only sees a SimpleContainer and must not touch the block entity.
  */
@@ -51,14 +51,15 @@ public class ZoneMachineMenu extends AbstractContainerMenu implements MachineMen
 
     /** Client constructor. */
     protected ZoneMachineMenu(MenuType<?> type, int containerId, Inventory playerInventory,
-            int inputSlots, int dataCount, Predicate<ItemStack> input, Predicate<ModuleType> moduleAxes) {
+            int inputSlots, int bufferSlots, int dataCount, Predicate<ItemStack> input,
+            Predicate<ModuleType> moduleAxes) {
         this(type, containerId, playerInventory,
-                new SimpleContainer(ZoneMachineBlockEntity.inventorySize(inputSlots)),
-                new SimpleContainerData(dataCount), inputSlots, input, moduleAxes);
+                new SimpleContainer(ZoneMachineBlockEntity.inventorySize(inputSlots, bufferSlots)),
+                new SimpleContainerData(dataCount), inputSlots, bufferSlots, input, moduleAxes);
     }
 
     protected ZoneMachineMenu(MenuType<?> type, int containerId, Inventory playerInventory,
-            Container container, ContainerData data, int inputSlots,
+            Container container, ContainerData data, int inputSlots, int bufferSlots,
             Predicate<ItemStack> input, Predicate<ModuleType> moduleAxes) {
         super(type, containerId);
         this.container = container;
@@ -67,13 +68,13 @@ public class ZoneMachineMenu extends AbstractContainerMenu implements MachineMen
         this.moduleAxes = moduleAxes;
         this.inputSlots = inputSlots;
         int bufferFirst = inputSlots;
-        moduleSlotStart = inputSlots + ZoneMachineBlockEntity.BUFFER_SLOTS;
-        playerStart = ZoneMachineBlockEntity.inventorySize(inputSlots);
+        moduleSlotStart = inputSlots + bufferSlots;
+        playerStart = ZoneMachineBlockEntity.inventorySize(inputSlots, bufferSlots);
 
         for (int i = 0; i < inputSlots; i++) {
             addSlot(new InputSlot(container, i, INPUT_X, SLOT_TOP_Y + i * 18));
         }
-        for (int i = 0; i < ZoneMachineBlockEntity.BUFFER_SLOTS; i++) {
+        for (int i = 0; i < bufferSlots; i++) {
             addSlot(new OutputSlot(container, bufferFirst + i,
                     BUFFER_X + (i % 3) * 18, SLOT_TOP_Y + (i / 3) * 18));
         }

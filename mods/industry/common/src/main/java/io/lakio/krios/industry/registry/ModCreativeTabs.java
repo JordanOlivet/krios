@@ -34,6 +34,8 @@ public final class ModCreativeTabs {
                         output.accept(ModBlocks.CYCLIC_FORESTER_TIER2.get());
                         output.accept(ModBlocks.QUANTUM_LURE.get());
                         output.accept(ModBlocks.QUANTUM_LURE_TIER2.get());
+                        output.accept(ModBlocks.BREEDING_POD.get());
+                        output.accept(ModBlocks.BREEDING_POD_TIER2.get());
                         output.accept(ModBlocks.NEURAL_CASING.get());
                         output.accept(ModBlocks.NEURAL_CONDUIT.get());
                         output.accept(ModBlocks.KOIOS_CORE.get());

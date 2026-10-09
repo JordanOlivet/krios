@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SHS",
+    "ANA",
+    "III"
+  ],
+  "key": {
+    "S": {
+      "item": "krios_industry:chronite_shard"
+    },
+    "H": {
+      "item": "minecraft:hay_block"
+    },
+    "A": {
+      "item": "krios_industry:actuator"
+    },
+    "N": {
+      "tag": "c:ingots/neurite"
+    },
+    "I": {
+      "tag": "c:ingots/iron"
+    }
+  },
+  "result": {
+    "id": "krios_industry:breeding_pod",
+    "count": 1
+  }
+}

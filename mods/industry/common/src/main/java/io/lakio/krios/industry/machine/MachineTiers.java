@@ -59,6 +59,16 @@ public final class MachineTiers {
         return ZONE_EDGE[tier - 1];
     }
 
+    /**
+     * Breeding Pod population cap ceiling per species (design 2026-10-09):
+     * 8/16/32/64, the doubling invariant — and the lag guard.
+     */
+    private static final int[] POPULATION_CAP = {8, 16, 32, 64};
+
+    public static int populationCap(int tier) {
+        return POPULATION_CAP[tier - 1];
+    }
+
     /** Effective tier: min(machine, core) online; offline = tier 1 baseline. */
     public static int effectiveTier(@Nullable Network network, int machineTier) {
         return network != null && network.isValid()

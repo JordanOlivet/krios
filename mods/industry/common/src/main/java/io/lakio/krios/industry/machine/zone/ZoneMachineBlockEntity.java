@@ -69,7 +69,8 @@ import org.jetbrains.annotations.Nullable;
 public abstract class ZoneMachineBlockEntity extends BlockEntity
         implements WorldlyContainer, MenuProvider, NetworkNode, EnergySink, ConfigurableFaces, EnergyStats {
 
-    // Layout: inputs (per machine, from 0), output buffer, modules.
+    // Layout: inputs (per machine, from 0), output buffer (per machine,
+    // 9 by default, zero allowed), modules.
     public static final int BUFFER_SLOTS = 9;
     /** Physical bay ceiling; the machine tier gates the ACTIVE slots (2 per tier). */
     public static final int MODULE_SLOT_COUNT = 4;
@@ -150,6 +151,7 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
 
     private final int machineTier;
     private final int inputSlots;
+    private final int bufferSlots;
     protected final EnergyBuffer energy;
     protected final NonNullList<ItemStack> items;
     private final FaceConfig faceConfig = new FaceConfig();
@@ -231,24 +233,30 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
     public static final short SUPPORTED_FACE_BITS = (short) (PRESET_IN_BITS | PRESET_OUT_BITS);
 
     protected ZoneMachineBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state, int inputSlots) {
+        this(type, pos, state, inputSlots, BUFFER_SLOTS);
+    }
+
+    protected ZoneMachineBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state,
+            int inputSlots, int bufferSlots) {
         super(type, pos, state);
         machineTier = state.getBlock() instanceof TieredMachine tiered ? tiered.machineTier() : 1;
         energy = new EnergyBuffer(CAPACITY * machineTier, 0);
         this.inputSlots = inputSlots;
-        items = NonNullList.withSize(inventorySize(inputSlots), ItemStack.EMPTY);
+        this.bufferSlots = bufferSlots;
+        items = NonNullList.withSize(inventorySize(inputSlots, bufferSlots), ItemStack.EMPTY);
         inputSlotIds = new int[inputSlots];
         for (int i = 0; i < inputSlots; i++) {
             inputSlotIds[i] = i;
         }
-        bufferSlotIds = new int[BUFFER_SLOTS];
-        for (int i = 0; i < BUFFER_SLOTS; i++) {
+        bufferSlotIds = new int[bufferSlots];
+        for (int i = 0; i < bufferSlots; i++) {
             bufferSlotIds[i] = inputSlots + i;
         }
     }
 
-    /** Container size for a machine with {@code inputSlots} inputs (menus share it). */
-    public static int inventorySize(int inputSlots) {
-        return inputSlots + BUFFER_SLOTS + MODULE_SLOT_COUNT;
+    /** Container size for a machine's layout (menus share it). */
+    public static int inventorySize(int inputSlots, int bufferSlots) {
+        return inputSlots + bufferSlots + MODULE_SLOT_COUNT;
     }
 
     public int machineTier() {
@@ -266,7 +274,7 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
     }
 
     protected final int moduleSlotFirst() {
-        return inputSlots + BUFFER_SLOTS;
+        return inputSlots + bufferSlots;
     }
 
     protected final boolean isInputSlot(int slot) {
@@ -274,7 +282,7 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
     }
 
     protected final boolean isBufferSlot(int slot) {
-        return slot >= inputSlots && slot < inputSlots + BUFFER_SLOTS;
+        return slot >= inputSlots && slot < inputSlots + bufferSlots;
     }
 
     // --- Subclass contract ---
@@ -485,7 +493,7 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
     }
 
     private boolean bufferHasItems() {
-        for (int slot = bufferFirst(); slot < bufferFirst() + BUFFER_SLOTS; slot++) {
+        for (int slot = bufferFirst(); slot < bufferFirst() + bufferSlots; slot++) {
             if (!items.get(slot).isEmpty()) {
                 return true;
             }
@@ -569,8 +577,8 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
 
     /** The buffer's stacks, copied when simulating. */
     protected final ItemStack[] bufferView(boolean copy) {
-        ItemStack[] buffer = new ItemStack[BUFFER_SLOTS];
-        for (int i = 0; i < BUFFER_SLOTS; i++) {
+        ItemStack[] buffer = new ItemStack[bufferSlots];
+        for (int i = 0; i < bufferSlots; i++) {
             ItemStack stack = items.get(bufferFirst() + i);
             buffer[i] = copy ? stack.copy() : stack;
         }
@@ -578,7 +586,7 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
     }
 
     protected final void commitBuffer(ItemStack[] buffer) {
-        for (int i = 0; i < BUFFER_SLOTS; i++) {
+        for (int i = 0; i < bufferSlots; i++) {
             items.set(bufferFirst() + i, buffer[i]);
         }
     }
@@ -610,7 +618,7 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
             return false;
         }
         int before = bufferCount();
-        for (int slot = bufferFirst(); slot < bufferFirst() + BUFFER_SLOTS; slot++) {
+        for (int slot = bufferFirst(); slot < bufferFirst() + bufferSlots; slot++) {
             ItemFlow.pushOutput(level, worldPosition, this, slot, faceConfig);
         }
         return bufferCount() < before;
@@ -618,7 +626,7 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
 
     private int bufferCount() {
         int count = 0;
-        for (int slot = bufferFirst(); slot < bufferFirst() + BUFFER_SLOTS; slot++) {
+        for (int slot = bufferFirst(); slot < bufferFirst() + bufferSlots; slot++) {
             count += items.get(slot).getCount();
         }
         return count;

@@ -134,6 +134,133 @@ public abstract class ZoneMachineScreen<T extends ZoneMachineMenu> extends Machi
         minecraft.gameMode.handleInventoryButtonClick(menu.containerId, id);
     }
 
+    // --- Zone map and controls (resizable zones: planting machines, pods) ---
+
+    protected static final int S = ZoneMachineMenu.MAP_SIZE;
+    // Buttons sit slightly outside the map so a "27×27" label clears them.
+    protected static final int MINUS_X = ZoneMachineMenu.MAP_X - 6;
+    protected static final int PLUS_X = ZoneMachineMenu.MAP_X + S - 4;
+    protected static final int EYE_X = PLUS_X + BTN + 6;
+
+    /**
+     * The zone map with -/+ one ring per click, the edge label and the
+     * hologram eye (option A mockup, 2026-10-08).
+     */
+    protected void renderZoneControls(GuiGraphics gui) {
+        drawMap(gui);
+        int y = topPos + ZoneMachineMenu.CONTROLS_Y;
+        int minusX = leftPos + MINUS_X;
+        int plusX = leftPos + PLUS_X;
+        boolean canShrink = menu.zoneEdge() > 1;
+        boolean canGrow = menu.zoneEdge() < menu.zoneMaxEdge();
+        drawButton(gui, minusX, y, BTN, canShrink);
+        int glyph = canShrink ? 0xFFE8EAF0 : 0xFF5A6170;
+        gui.fill(minusX + 2, y + 4, minusX + 8, y + 6, glyph);
+        drawButton(gui, plusX, y, BTN, canGrow);
+        glyph = canGrow ? 0xFFE8EAF0 : 0xFF5A6170;
+        gui.fill(plusX + 2, y + 4, plusX + 8, y + 6, glyph);
+        gui.fill(plusX + 4, y + 2, plusX + 6, y + 8, glyph);
+        String label = menu.zoneEdge() + "×" + menu.zoneEdge();
+        gui.drawCenteredString(font, label, leftPos + ZoneMachineMenu.MAP_X + S / 2, y + 1, 0xFFE8EAF0);
+        renderEye(gui, EYE_X, ZoneMachineMenu.CONTROLS_Y);
+    }
+
+    /**
+     * Holographic zone map: the frame is the effective tier's maximum, the
+     * zone grows from the machine mark at the bottom edge (the zone starts
+     * right in front of the machine and stays adjacent when shrunk).
+     */
+    private void drawMap(GuiGraphics gui) {
+        int x = leftPos + ZoneMachineMenu.MAP_X;
+        int y = topPos + ZoneMachineMenu.MAP_Y;
+        gui.fill(x - 1, y - 1, x + S + 1, y + S + 1, 0xFF0C0E13);
+        gui.fill(x, y, x + S, y + S, 0xFF12151B);
+        // Tier maximum: dim frame.
+        int dim = 0xFF000000 | COLOR_ACCENT_DIM;
+        gui.fill(x, y, x + S, y + 1, dim);
+        gui.fill(x, y + S - 1, x + S, y + S, dim);
+        gui.fill(x, y, x + 1, y + S, dim);
+        gui.fill(x + S - 1, y, x + S, y + S, dim);
+
+        int max = menu.zoneMaxEdge();
+        int edge = Math.min(menu.zoneEdge(), max);
+        int px = Math.max(3, Math.round(edge * (float) S / max));
+        int left = x + (S - px) / 2;
+        int bottom = y + S;
+        int top = bottom - px;
+        gui.fill(left, top, left + px, bottom, 0x3031D8FF);
+        // Cell grid when cells are big enough to read.
+        float cell = px / (float) edge;
+        if (cell >= 3) {
+            for (int i = 1; i < edge; i++) {
+                int off = Math.round(i * cell);
+                gui.fill(left + off, top, left + off + 1, bottom, 0x3031D8FF);
+                gui.fill(left, top + off, left + px, top + off + 1, 0x3031D8FF);
+            }
+        }
+        int accent = 0xFF000000 | COLOR_ACCENT;
+        gui.fill(left, top, left + px, top + 1, accent);
+        gui.fill(left, bottom - 1, left + px, bottom, accent);
+        gui.fill(left, top, left + 1, bottom, accent);
+        gui.fill(left + px - 1, top, left + px, bottom, accent);
+        // The machine, just below the map's bottom edge.
+        gui.fill(x + S / 2 - 3, y + S + 2, x + S / 2 + 3, y + S + 4, 0xFF000000 | COLOR_ENERGY);
+    }
+
+    private boolean minusHit(double mouseX, double mouseY) {
+        return hit(mouseX, mouseY, MINUS_X, ZoneMachineMenu.CONTROLS_Y, BTN, BTN);
+    }
+
+    private boolean plusHit(double mouseX, double mouseY) {
+        return hit(mouseX, mouseY, PLUS_X, ZoneMachineMenu.CONTROLS_Y, BTN, BTN);
+    }
+
+    private boolean zoneEyeHit(double mouseX, double mouseY) {
+        return hit(mouseX, mouseY, EYE_X, ZoneMachineMenu.CONTROLS_Y, EYE_W, BTN);
+    }
+
+    private boolean mapHit(double mouseX, double mouseY) {
+        return hit(mouseX, mouseY, ZoneMachineMenu.MAP_X, ZoneMachineMenu.MAP_Y, S, S);
+    }
+
+    /** Tooltips of the zone controls; true when one was shown. */
+    protected boolean renderZoneTooltip(GuiGraphics gui, int mouseX, int mouseY) {
+        if (minusHit(mouseX, mouseY)) {
+            gui.renderTooltip(font, Component.translatable("gui.krios_industry.zone.shrink"), mouseX, mouseY);
+        } else if (plusHit(mouseX, mouseY)) {
+            gui.renderTooltip(font, Component.translatable("gui.krios_industry.zone.grow",
+                    menu.zoneMaxEdge(), menu.zoneMaxEdge()), mouseX, mouseY);
+        } else if (zoneEyeHit(mouseX, mouseY)) {
+            renderEyeTooltip(gui, mouseX, mouseY);
+        } else if (mapHit(mouseX, mouseY)) {
+            gui.renderComponentTooltip(font, List.of(
+                    Component.translatable("gui.krios_industry.zone.map",
+                            menu.zoneEdge(), menu.zoneEdge(), menu.zoneMaxEdge(), menu.zoneMaxEdge()),
+                    Component.translatable("gui.krios_industry.zone.map_front")
+                            .withStyle(net.minecraft.ChatFormatting.GRAY)), mouseX, mouseY);
+        } else {
+            return false;
+        }
+        return true;
+    }
+
+    /** Clicks on the zone controls; true when consumed. */
+    protected boolean clickZoneControls(double mouseX, double mouseY) {
+        if (minusHit(mouseX, mouseY) && menu.zoneEdge() > 1) {
+            clickButton(ZoneMachineBlockEntity.BUTTON_ZONE_SHRINK);
+            return true;
+        }
+        if (plusHit(mouseX, mouseY) && menu.zoneEdge() < menu.zoneMaxEdge()) {
+            clickButton(ZoneMachineBlockEntity.BUTTON_ZONE_GROW);
+            return true;
+        }
+        if (zoneEyeHit(mouseX, mouseY)) {
+            toggleEye();
+            return true;
+        }
+        return false;
+    }
+
     // --- Voice ---
 
     @Override

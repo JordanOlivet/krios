@@ -51,6 +51,13 @@ public final class KoiosBalance {
      * of ~15 layers falls in ~3 s at t1, visibly shrinking from the top.
      */
     public static final int FELL_LAYER_DELAY_TICKS = 4;
+    /** Base data XP per birth in a Breeding Pod (farm class permille). */
+    public static final int BREED_BASE_XP = GRIND_BASE_XP * FARM_XP_PERMILLE / 1000;
+    /** Breeding Pod energy per birth (placeholder, numbers pass). */
+    public static final int BREED_ENERGY = 100;
+    /** Speed modules: energy per animal per accelerated second (placeholder). */
+    public static final int ANIMAL_ACCEL_ENERGY_PER_SECOND = 2;
+
     /** Lure class: a catch teaches under a third of a grind (placeholder). */
     public static final int LURE_XP_PERMILLE = 300;
     /** Base data XP per catch of a Quantum Lure. */

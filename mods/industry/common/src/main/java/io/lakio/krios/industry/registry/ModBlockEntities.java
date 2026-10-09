@@ -49,6 +49,11 @@ public final class ModBlockEntities {
                     io.lakio.krios.industry.machine.lure.QuantumLureBlockEntity::new,
                     ModBlocks.QUANTUM_LURE.get(), ModBlocks.QUANTUM_LURE_TIER2.get()));
 
+    public static final Supplier<BlockEntityType<io.lakio.krios.industry.machine.pod.BreedingPodBlockEntity>> BREEDING_POD =
+            register("breeding_pod", () -> Services.REGISTRAR.createBlockEntityType(
+                    io.lakio.krios.industry.machine.pod.BreedingPodBlockEntity::new,
+                    ModBlocks.BREEDING_POD.get(), ModBlocks.BREEDING_POD_TIER2.get()));
+
     public static final Supplier<BlockEntityType<KoiosCoreBlockEntity>> KOIOS_CORE = register("koios_core",
             () -> Services.REGISTRAR.createBlockEntityType(KoiosCoreBlockEntity::new, ModBlocks.KOIOS_CORE.get()));
 
