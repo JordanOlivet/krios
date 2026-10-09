@@ -320,6 +320,8 @@ Structure per **ADR-020**: every machine is a line (base at t1, improved each ti
 
 **Intermediate items** (microchip, actuator, drill head, condensator, supraconductor...) are born with their first consuming machine, never ahead — then substitute into the compute chip and other recipes au fil de l'eau (numbers-pass decision 2026-10-05).
 
+**Deferred to the end of the mod's base** (user, 2026-10-09): the Forester's 2×2 trees and the Chrono Farmer's extra crops (melon/pumpkin, cane/cactus, cocoa, berries) come after the machine lines.
+
 **Kept in mind, not planned**: Recycler (needs a clear role in the loop first), villagers (breeding first, then trading automation — a whole system), auto-brewer, dedicated composter, fluid infrastructure (only if a machine truly needs it), the generators' simulated analog (concept to come).
 
 ### Chrono Farmer (design session 2026-10-08)
@@ -370,6 +372,22 @@ The third zone machine, and the first that acts on no block: it fishes. The road
 - **Recipe** (placeholder): fishing rod, actuators, chronite, neurite ingot, iron; Mk II through the upgrade kit.
 - **Terminal**: the seed column becomes a column of vertical line gauges (only the effective tier's lines), the 3×3 buffer stays, plus an open-water indicator (✓ / partial — no treasure / ✗) and the hologram eye. States: fishing / partial water / no water / buffer full / no energy. Modules and Stats annexes stacked as usual.
 - **Architecture (ADR-025)**: the zone core splits — `ZoneMachineBlockEntity` keeps zone, wake chain, energy, buffer, faces, modules and hologram with a generic, per-machine input area; `PlantingZoneBlockEntity` carries the plant slots, the cell scan, forced growth and plantables-first routing with the voiding toggle for the farmer and the forester; the Lure extends the core directly.
+
+### Breeding Pod (design session 2026-10-09)
+
+The first creature line, and the second direct client of the zone core (ADR-025). It produces animals, not items — the Harvest Pod and the Reaper Array will work the same pens later.
+
+- **The machine breeds directly** (user call, option B): two eligible adults of one species (adult, no cooldown, not in love), one food item per parent, then the animal's own vanilla `spawnChildFromBreeding` — hearts as in vanilla, subclass behavior kept (frogs get pregnant, modded animals follow their own rules), `canMate` asked first so untamed horses or wolves consume nothing. Rejected: feeding only and letting vanilla's AI pair them (no birth signal — no XP per birth, no Yield, wasted food when partners are out of reach).
+- **No XP orbs** (user): vanilla's breeding orb is discarded for now. The user wants XP storable once krios_storage exists — revisit then.
+- **Zone**: like the farmer's — behind the screen, 9/13/19/27 by tier, -/+ one ring; three blocks tall from the machine's Y (jumps, slabs). Never force-loads.
+- **Population cap per species** (lag guard): no birth once a species reaches N animals in the zone (babies count). Player-set with -/+ (shift: ±8), ceiling by tier **8 / 16 / 32 / 64**, default = the ceiling. Counted per species, so mixed pens work.
+- **Food**: 3 input slots taking the `krios_industry:breeding_food` item tag (the vanilla per-animal food tags, minus the axolotl's bucket and the parrot's); at breeding time the animal's own `isFood` decides — modded animals work, packs extend the tag.
+- **Modules**: Speed = time acceleration on the zone's animals at the usual ×(2+pts)/2 pace — baby growth and parent cooldowns both shorten, energy per animal accelerated; Yield = +25 % babies per point through the quarter accumulator (a bonus baby, no extra food, within the cap); Efficiency = cost.
+- **Pacing (ADR-022)**: 10 ticks after a wake that bred, 100 otherwise; at most 4 × tier speed factor births per wake.
+- Placeholders: 100 E per birth, 2 E per animal-second accelerated; KOIOS XP at the farm permille (200 → 2 XP per birth), diversity key `breed:<species>`. Recipe: chronite, hay bale, actuators, neurite ingot, iron.
+- **No output buffer** (ADR-025 amended: buffer size is per machine, zero allowed).
+- **Terminal**: food column, the farmer's zone map with -/+ and the hologram eye, and on the right a census of the zone (top species with count/cap, a mark at the cap, "+n others" past five) above the cap selector. States: breeding / cap reached / no fitting food / no eligible pair / no animals.
+- A shared "creature zone" layer waits for the Harvest Pod (rule of two).
 
 ## Open questions (implementation-time)
 

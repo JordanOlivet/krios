@@ -276,3 +276,5 @@ The Quantum Lure, the third zone machine, plants nothing, scans no cells and pac
 - **Direct clients** (the Quantum Lure first; the creature lines likely) extend the core and own their work model.
 - Menus and terminals follow the same split (zone menu/screen base, planting menu/screen, per-machine work areas).
 - Rejected: reusing the plant slots as a rod or input slot behind flags (routing and voiding logic would leak into machines with no plantables), and a separate non-zone base for the Lure (it still has a zone, a hologram and the zone pacing).
+
+**Amended with the Breeding Pod (2026-10-09)**: the output buffer's size is declared per machine like the inputs, zero allowed — the Breeding Pod produces animals, not items. The core also offers push-only wakes (a non-empty buffer drains between work wakes) and an immediate wake on a module swap (user play-test calls on the Lure).
