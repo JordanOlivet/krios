@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " F ",
+    "RNR",
+    "III"
+  ],
+  "key": {
+    "F": {
+      "item": "minecraft:fishing_rod"
+    },
+    "R": {
+      "tag": "c:dusts/redstone"
+    },
+    "N": {
+      "item": "krios_industry:neurite_ingot"
+    },
+    "I": {
+      "tag": "c:ingots/iron"
+    }
+  },
+  "result": {
+    "id": "krios_industry:lure_module",
+    "count": 1
+  }
+}

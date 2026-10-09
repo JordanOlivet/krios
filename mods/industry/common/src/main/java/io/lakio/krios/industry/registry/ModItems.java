@@ -63,6 +63,23 @@ public final class ModItems {
             () -> new ModuleItem(ModuleType.ENERGY, 1,
                     KoiosBalance.ENERGY_UNLOCK_LEVEL, new Item.Properties().stacksTo(16)));
 
+    // Quantum Lure only (ADR-024): a fishing rod's enchantments as modules.
+    public static final Supplier<Item> LURE_MODULE = register("lure_module",
+            () -> new ModuleItem(ModuleType.LURE, 1,
+                    KoiosBalance.LURE_UNLOCK_LEVEL, new Item.Properties().stacksTo(16)));
+
+    public static final Supplier<Item> LUCK_MODULE = register("luck_module",
+            () -> new ModuleItem(ModuleType.LUCK, 1,
+                    KoiosBalance.LUCK_UNLOCK_LEVEL, new Item.Properties().stacksTo(16)));
+
+    public static final Supplier<Item> LURE_MODULE_MK2 = register("lure_module_mk2",
+            () -> new ModuleItem(ModuleType.LURE, 2,
+                    KoiosBalance.LURE2_UNLOCK_LEVEL, new Item.Properties().stacksTo(16)));
+
+    public static final Supplier<Item> LUCK_MODULE_MK2 = register("luck_module_mk2",
+            () -> new ModuleItem(ModuleType.LUCK, 2,
+                    KoiosBalance.LUCK2_UNLOCK_LEVEL, new Item.Properties().stacksTo(16)));
+
     public static final Supplier<Item> CALIBRATOR = register("calibrator",
             () -> new CalibratorItem(new Item.Properties().stacksTo(1)));
 

@@ -20,7 +20,7 @@ public class StatsPanel extends AnnexPanel {
     public record Row(Icon icon, Supplier<Component> value, Component tooltip) {
     }
 
-    public enum Icon { SPEED, ENERGY_MULT, YIELD, OUTPUT, STORED, ZONE }
+    public enum Icon { SPEED, ENERGY_MULT, YIELD, OUTPUT, STORED, ZONE, LURE, LUCK }
 
     private static final int ROW_HEIGHT = 14;
     private static final int ICON_SPACE = 14;
@@ -117,6 +117,24 @@ public class StatsPanel extends AnnexPanel {
                         gui.fill(x + col * 3, y + row * 3, x + col * 3 + 2, y + row * 3 + 2, cyan);
                     }
                 }
+            }
+            case LURE -> {
+                // Fish hook: shank, bend and barb.
+                gui.fill(x + 5, y, x + 7, y + 6, cyan);
+                gui.fill(x + 1, y + 4, x + 3, y + 7, cyan);
+                gui.fill(x + 2, y + 7, x + 6, y + 9, cyan);
+                gui.fill(x + 5, y + 6, x + 7, y + 8, cyan);
+                gui.fill(x + 2, y + 3, x + 3, y + 4, cyan);
+            }
+            case LUCK -> {
+                // Four-leaf clover: four lobes around a stem.
+                int green = 0xFF5FE09A;
+                gui.fill(x + 1, y + 1, x + 4, y + 4, green);
+                gui.fill(x + 5, y + 1, x + 8, y + 4, green);
+                gui.fill(x + 1, y + 5, x + 4, y + 8, green);
+                gui.fill(x + 5, y + 5, x + 8, y + 8, green);
+                gui.fill(x + 4, y + 4, x + 5, y + 5, green);
+                gui.fill(x + 8, y + 8, x + 9, y + 9, green);
             }
             case STORED -> {
                 gui.fill(x, y + 1, x + 9, y + 8, amber);

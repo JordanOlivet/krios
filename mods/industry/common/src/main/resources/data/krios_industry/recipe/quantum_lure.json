@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SRS",
+    "ANA",
+    "III"
+  ],
+  "key": {
+    "S": {
+      "item": "krios_industry:chronite_shard"
+    },
+    "R": {
+      "item": "minecraft:fishing_rod"
+    },
+    "A": {
+      "item": "krios_industry:actuator"
+    },
+    "N": {
+      "tag": "c:ingots/neurite"
+    },
+    "I": {
+      "tag": "c:ingots/iron"
+    }
+  },
+  "result": {
+    "id": "krios_industry:quantum_lure",
+    "count": 1
+  }
+}

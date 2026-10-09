@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " F ",
+    "LNL",
+    "III"
+  ],
+  "key": {
+    "F": {
+      "item": "minecraft:rabbit_foot"
+    },
+    "L": {
+      "tag": "c:gems/lapis"
+    },
+    "N": {
+      "item": "krios_industry:neurite_ingot"
+    },
+    "I": {
+      "tag": "c:ingots/iron"
+    }
+  },
+  "result": {
+    "id": "krios_industry:luck_module",
+    "count": 1
+  }
+}

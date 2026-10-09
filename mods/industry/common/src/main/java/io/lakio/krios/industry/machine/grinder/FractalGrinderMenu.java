@@ -192,7 +192,7 @@ public class FractalGrinderMenu extends AbstractContainerMenu implements Machine
         @Override
         public boolean mayPlace(ItemStack stack) {
             if (!(stack.getItem() instanceof ModuleItem module)
-                    || module.getType() == io.lakio.krios.industry.machine.module.ModuleType.ENERGY
+                    || !module.getType().isProcessAxis()
                     || bayIndex >= activeModuleSlots()) {
                 return false;
             }

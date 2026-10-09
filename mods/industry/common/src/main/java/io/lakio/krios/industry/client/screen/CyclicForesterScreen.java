@@ -4,7 +4,7 @@ import io.lakio.krios.industry.machine.forester.CyclicForesterMenu;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 
-public class CyclicForesterScreen extends ZoneMachineScreen<CyclicForesterMenu> {
+public class CyclicForesterScreen extends PlantingZoneScreen<CyclicForesterMenu> {
 
     public CyclicForesterScreen(CyclicForesterMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);

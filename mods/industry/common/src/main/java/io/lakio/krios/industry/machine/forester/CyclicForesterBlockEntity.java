@@ -10,7 +10,7 @@ import java.util.Set;
 import io.lakio.krios.industry.koios.KoiosBalance;
 import io.lakio.krios.industry.machine.MachineTiers;
 import io.lakio.krios.industry.machine.ZoneGeometry;
-import io.lakio.krios.industry.machine.zone.ZoneMachineBlockEntity;
+import io.lakio.krios.industry.machine.zone.PlantingZoneBlockEntity;
 import io.lakio.krios.industry.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -38,7 +38,7 @@ import org.jetbrains.annotations.Nullable;
  * other cell both ways), fells grown trees PROGRESSIVELY — a detected tree
  * becomes a persisted top-down queue of logs and natural leaves, cut a few
  * blocks per wake — and routes saplings back to its plant slots. Pacing,
- * routing, energy and zone are the shared {@link ZoneMachineBlockEntity}.
+ * routing, energy and zone are the shared {@link PlantingZoneBlockEntity}.
  *
  * <p>Tree detection: a log at zone level on dirt-like soil, anywhere in the
  * zone (a pre-existing tree is cleared too; only PLANTING follows the
@@ -49,7 +49,7 @@ import org.jetbrains.annotations.Nullable;
  * neighbor. No anti-house guard (user call after play): placing the
  * machine is the player's responsibility, a leafless log stump is felled.
  */
-public class CyclicForesterBlockEntity extends ZoneMachineBlockEntity {
+public class CyclicForesterBlockEntity extends PlantingZoneBlockEntity {
 
     private static final int MAX_HEIGHT = 32;
     /**

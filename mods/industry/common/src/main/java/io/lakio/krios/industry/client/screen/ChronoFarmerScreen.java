@@ -4,7 +4,7 @@ import io.lakio.krios.industry.machine.farmer.ChronoFarmerMenu;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 
-public class ChronoFarmerScreen extends ZoneMachineScreen<ChronoFarmerMenu> {
+public class ChronoFarmerScreen extends PlantingZoneScreen<ChronoFarmerMenu> {
 
     public ChronoFarmerScreen(ChronoFarmerMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);

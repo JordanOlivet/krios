@@ -38,6 +38,8 @@ public final class KriosIndustryClient {
                 io.lakio.krios.industry.client.screen.ChronoFarmerScreen::new);
         event.register(ModMenus.CYCLIC_FORESTER.get(),
                 io.lakio.krios.industry.client.screen.CyclicForesterScreen::new);
+        event.register(ModMenus.QUANTUM_LURE.get(),
+                io.lakio.krios.industry.client.screen.QuantumLureScreen::new);
         event.register(ModMenus.KOIOS_CORE.get(), KoiosCoreScreen::new);
         event.register(ModMenus.CALIBRATOR.get(), CalibratorScreen::new);
     }

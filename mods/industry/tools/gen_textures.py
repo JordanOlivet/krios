@@ -500,6 +500,48 @@ def cyclic_forester_top():
     return img
 
 
+def quantum_lure_side():
+    img = Img(16, 16)
+    img.noise_rect(0, 0, 16, 16, METAL, 5, 91)
+    bevel(img)
+    for x in (2, 13):
+        img.rect(x, 2, 1, 12, COPPER_D)
+    # Line glyph: a cyan line dropping to a hook.
+    img.rect(8, 3, 1, 7, CYAN_DIM)
+    img.rect(6, 10, 1, 2, CYAN)
+    img.rect(7, 12, 2, 1, CYAN)
+    img.rect(8, 10, 1, 2, CYAN)
+    return img
+
+
+def quantum_lure_front(lit):
+    img = quantum_lure_side()
+    # Sonar readout (4,4)-(12,12): concentric ripples around a bobber.
+    img.rect(4, 4, 8, 8, JOINT)
+    img.outline(4, 4, 8, 8, METAL_EDGE)
+    ring = CYAN if lit else CYAN_DIM
+    for x, y in ((6, 6), (9, 6), (6, 9), (9, 9), (7, 5), (8, 5), (7, 10), (8, 10),
+                 (5, 7), (5, 8), (10, 7), (10, 8)):
+        img.set(x, y, ring)
+    img.rect(7, 7, 2, 2, ERROR if lit else COPPER_D)
+    img.set(7, 7, ENERGY_HI if lit else COPPER)
+    return img
+
+
+def quantum_lure_top():
+    img = Img(16, 16)
+    img.noise_rect(0, 0, 16, 16, METAL, 4, 93)
+    img.outline(0, 0, 16, 16, METAL_EDGE)
+    # Reel housing: a spool with a cyan line wound on it.
+    img.rect(4, 4, 8, 8, JOINT)
+    img.outline(4, 4, 8, 8, METAL_EDGE)
+    for y in (6, 8, 10):
+        img.rect(5, y - 1, 6, 1, CYAN_DIM)
+    img.rect(7, 7, 2, 2, COPPER)
+    img.set(7, 7, ENERGY)
+    return img
+
+
 def photon_array_top():
     """Photovoltaic cell grid: 3x3 cyan cells in a gunmetal frame, one
     amber status pip bottom-right. Flat slab top (photon_array.json)."""
@@ -772,6 +814,10 @@ SPEED_GLYPH = [(6, 6), (7, 7), (6, 8), (8, 6), (9, 7), (8, 8), (6, 9), (8, 9)]
 ENERGY_GLYPH = [(8, 5), (7, 6), (8, 6), (6, 7), (7, 7), (8, 7), (9, 7), (8, 8), (7, 9)]
 EFFICIENCY_GLYPH = [(8, 5), (7, 6), (8, 6), (7, 7), (8, 7), (9, 7), (7, 8), (8, 8), (7, 9)]
 YIELD_GLYPH = [(8, 5), (8, 6), (8, 7), (8, 8), (8, 9), (6, 7), (7, 7), (9, 7), (10, 7)]
+# Fish hook (Quantum Lure's Lure module) and four-leaf clover (Luck).
+LURE_GLYPH = [(8, 5), (8, 6), (8, 7), (8, 8), (7, 9), (6, 9), (6, 8), (9, 9)]
+LUCK_GLYPH = [(6, 6), (7, 6), (9, 6), (10, 6), (6, 7), (10, 7), (8, 8),
+              (6, 9), (10, 9), (6, 10), (7, 10), (9, 10), (10, 10)]
 
 
 # ---------------------------------------------------------------- GUI
@@ -987,6 +1033,10 @@ def main():
         "block/cyclic_forester_front.png": cyclic_forester_front(False),
         "block/cyclic_forester_front_lit.png": cyclic_forester_front(True),
         "block/cyclic_forester_top.png": cyclic_forester_top(),
+        "block/quantum_lure_side.png": quantum_lure_side(),
+        "block/quantum_lure_front.png": quantum_lure_front(False),
+        "block/quantum_lure_front_lit.png": quantum_lure_front(True),
+        "block/quantum_lure_top.png": quantum_lure_top(),
         "block/neural_conduit.png": neural_conduit(),
         "block/photon_array_top.png": photon_array_top(),
         "block/photon_array_side.png": photon_array_side(),
@@ -1011,6 +1061,10 @@ def main():
         "item/efficiency_module_mk2.png": module(EFFICIENCY_GLYPH, ENERGY, mk2=True),
         "item/yield_module_mk2.png": module(YIELD_GLYPH, CYAN_HI, mk2=True),
         "item/energy_module.png": module(ENERGY_GLYPH, ENERGY_HI),
+        "item/lure_module.png": module(LURE_GLYPH, CYAN),
+        "item/luck_module.png": module(LUCK_GLYPH, GROW),
+        "item/lure_module_mk2.png": module(LURE_GLYPH, CYAN, mk2=True),
+        "item/luck_module_mk2.png": module(LUCK_GLYPH, GROW, mk2=True),
         "gui/fractal_grinder.png": gui_fractal_grinder(),
         "gui/plasma_forge.png": gui_fractal_grinder(),
         "gui/thermal_reactor.png": gui_thermal_reactor(),

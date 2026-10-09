@@ -12,7 +12,6 @@ import io.lakio.krios.industry.machine.EnergyStats;
 import io.lakio.krios.industry.machine.ItemFlow;
 import io.lakio.krios.industry.machine.MachineTiers;
 import io.lakio.krios.industry.machine.TieredMachine;
-import io.lakio.krios.industry.machine.ZoneGeometry;
 import io.lakio.krios.industry.machine.module.ModuleItem;
 import io.lakio.krios.industry.machine.module.ModuleType;
 import io.lakio.krios.industry.machine.reactor.ThermalReactorBlockEntity;
@@ -31,8 +30,6 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.WorldlyContainer;
@@ -45,40 +42,37 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Shared core of the zone machines (extracted with the Cyclic Forester,
- * the second client — design 2026-10-08). Everything that is not "what to
- * do with one cell" lives here:
+ * split per ADR-025 with the Quantum Lure). Everything every zone machine
+ * shares lives here:
  *
  * <ul>
- * <li>the zone: behind the screen, edge by effective tier, -/+ one ring,
- * synced to clients for the hologram;</li>
- * <li>the ADR-022 wake chain: scheduled ticks only, 10 ticks after a wake
- * that acted, 100 otherwise; a full buffer is the one true stop;</li>
- * <li>the plantables-first routing into 3 plant slots, then the 9-slot
- * buffer, with the warned voiding toggle;</li>
- * <li>energy (pull before AND after the work), faces, modules, Speed
- * modules as forced random ticks, KOIOS reporting, persistence.</li>
+ * <li>the zone: behind the screen, edge per machine (by effective tier
+ * with -/+ one ring, or fixed), synced to clients for the hologram;</li>
+ * <li>the ADR-022 wake chain: scheduled ticks only; the machine supplies
+ * its work step, its next delay and its idle state; a full buffer is the
+ * one true stop;</li>
+ * <li>a generic input area (each machine declares its slot count, zero
+ * allowed, and what they accept), the 9-slot output buffer, the module
+ * bay (each machine declares the axes it takes);</li>
+ * <li>energy (pull before AND after the work), faces, KOIOS reporting,
+ * persistence.</li>
  * </ul>
  *
- * Subclasses implement {@link #workCell} (and optionally
- * {@link #workQueued} for multi-wake jobs such as progressive felling).
+ * Plant slots, the cell scan and plantables-first routing live one layer
+ * down, in {@link PlantingZoneBlockEntity}.
  */
 public abstract class ZoneMachineBlockEntity extends BlockEntity
         implements WorldlyContainer, MenuProvider, NetworkNode, EnergySink, ConfigurableFaces, EnergyStats {
 
-    // Layout: plantables (seeds, saplings), output buffer, modules.
-    public static final int PLANT_FIRST = 0;
-    public static final int PLANT_SLOTS = 3;
-    public static final int BUFFER_FIRST = PLANT_FIRST + PLANT_SLOTS;
+    // Layout: inputs (per machine, from 0), output buffer, modules.
     public static final int BUFFER_SLOTS = 9;
-    public static final int MODULE_SLOT_FIRST = BUFFER_FIRST + BUFFER_SLOTS;
     /** Physical bay ceiling; the machine tier gates the ACTIVE slots (2 per tier). */
     public static final int MODULE_SLOT_COUNT = 4;
-    public static final int MODULE_SLOT_LAST = MODULE_SLOT_FIRST + MODULE_SLOT_COUNT - 1;
-    public static final int INVENTORY_SIZE = MODULE_SLOT_LAST + 1;
 
     /** Same buffer as the grinder and the forge (8k per tier). */
     public static final int CAPACITY = 8_000;
@@ -91,27 +85,21 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
     /** Vanilla menu-button ids (faces use 0..95, distribution 100). */
     public static final int BUTTON_ZONE_SHRINK = 101;
     public static final int BUTTON_ZONE_GROW = 102;
-    public static final int BUTTON_TOGGLE_VOID = 103;
 
-    // Terminal state line (synced code).
+    // Terminal state line (synced code); machines add their own from 3.
     public static final int STATE_WAITING = 0;
     public static final int STATE_WORKING = 1;
     public static final int STATE_BUFFER_FULL = 2;
-    public static final int STATE_NO_PLANTS = 3;
-    public static final int STATE_EMPTY_ZONE = 4;
 
-    /** Elapsed ticks credited to forced growth are capped (long gaps, reloads). */
-    private static final int MAX_ELAPSED_TICKS = 200;
     /**
-     * Vanilla random tick odds per block per game tick are 3/4096 (default
-     * randomTickSpeed); Speed modules add pts/2 of that rate, the same
-     * x(2+pts)/2 pace as every other machine. Fixed-point carry: 8192.
+     * Synced data shared by every zone machine (indexes below); machine
+     * data starts at this index (see {@link #machineData}).
      */
-    private static final int GROWTH_ODDS_NUM = 3;
-    private static final int GROWTH_ODDS_DEN = 8192;
+    public static final int BASE_DATA_COUNT = 21;
 
-    private static final int[] PLANT_SLOT_IDS = {0, 1, 2};
-    private static final int[] BUFFER_SLOT_IDS = {3, 4, 5, 6, 7, 8, 9, 10, 11};
+    /** Elapsed ticks credited per wake are capped (long gaps, reloads). */
+    private static final int MAX_ELAPSED_TICKS = 200;
+
     private static final int[] NO_SLOTS = {};
 
     /** Outcome of one unit of work. */
@@ -119,9 +107,13 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
 
     /**
      * Per-wake work context: module effects, the action budget and the
-     * operations to report to KOIOS (key -> count).
+     * operations to report to KOIOS (key -> count). Module points are
+     * zero offline (modules inert, vanilla parity).
      */
     protected static final class Work {
+        public final boolean online;
+        public final int elapsed;
+        public final int speedPoints;
         public final int efficiencyPermille;
         public final int yieldPoints;
         public final int effectiveTier;
@@ -132,7 +124,11 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
         @Nullable
         private Map<String, Integer> operations;
 
-        Work(int efficiencyPermille, int yieldPoints, int effectiveTier, int budget) {
+        Work(boolean online, int elapsed, int speedPoints, int efficiencyPermille, int yieldPoints,
+                int effectiveTier, int budget) {
+            this.online = online;
+            this.elapsed = elapsed;
+            this.speedPoints = speedPoints;
             this.efficiencyPermille = efficiencyPermille;
             this.yieldPoints = yieldPoints;
             this.effectiveTier = effectiveTier;
@@ -153,31 +149,35 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
     }
 
     private final int machineTier;
+    private final int inputSlots;
     protected final EnergyBuffer energy;
-    protected final NonNullList<ItemStack> items = NonNullList.withSize(INVENTORY_SIZE, ItemStack.EMPTY);
+    protected final NonNullList<ItemStack> items;
     private final FaceConfig faceConfig = new FaceConfig();
+    private final int[] inputSlotIds;
+    private final int[] bufferSlotIds;
 
-    /** Plantable surplus is destroyed instead of buffered (off by default). */
-    private boolean voidSurplus;
-    /** Configured zone edge; 0 = the tier maximum (follows upgrades). */
+    /** Configured zone edge; 0 = the maximum (follows upgrades). */
     private int zoneSetting;
-    /** Edge last shipped to clients (hologram); also the scan's edge. */
+    /** Edge last shipped to clients (hologram); also the work's edge. */
     private int syncedEdge;
-    /** Next cell to scan; a pass sweeps the zone row by row. */
-    private int cursor;
     /** Yield modules' quarter carry (ADR-006), shared by the subclass. */
     protected int yieldQuarters;
-    private long growthCarry;
     private long lastWakeTime;
+    /**
+     * Game time of the next WORK wake. Wakes before it only push the
+     * buffer out (user call after the Lure's play test: a non-empty buffer
+     * keeps flowing to its targets between actions). 0 = work at the next
+     * wake (modules changed).
+     */
+    private long nextWorkTime;
+    /**
+     * Stopped on a full buffer (ADR-022's one true stop): wakes only push,
+     * until a push frees room or a kick (player, hopper, face edit) says
+     * the state changed.
+     */
+    private boolean paused;
     /** Suppresses kicks fired by our own setItem calls during a wake. */
     private boolean inWake;
-
-    // Pass bookkeeping, published when a full pass completes.
-    private int passWorkable;
-    private boolean passNoPlants;
-    /** Workable cells found by the last full pass; -1 until one completes. */
-    private int workableCells = -1;
-    private boolean lastPassNoPlants;
 
     private int stateCode = STATE_WAITING;
     /** Average draw over the last wake interval, E/t. */
@@ -204,12 +204,11 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
                 case 17 -> starved ? 1 : 0;
                 case 18 -> machineTier;
                 case 19 -> effectiveTier();
-                case 20 -> workableCells;
-                case 21 -> stateCode;
-                case 22 -> voidSurplus ? 1 : 0;
+                case 20 -> stateCode;
                 // 4..9: raw face-config shorts (11 bits, short-safe).
                 default -> index >= 4 && index < 10
-                        ? faceConfig.bits(Direction.from3DDataValue(index - 4)) : 0;
+                        ? faceConfig.bits(Direction.from3DDataValue(index - 4))
+                        : index >= BASE_DATA_COUNT ? machineData(index) : 0;
             };
         }
 
@@ -220,57 +219,124 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
 
         @Override
         public int getCount() {
-            return ZoneMachineMenu.DATA_COUNT;
+            return dataCount();
         }
     };
 
-    // Plantables come in, harvest goes out — same contract shape as the grinder.
+    // Inputs come in, products go out — same contract shape as the grinder.
     private static final short PRESET_IN_BITS = (short) (FaceConfig.flowBits(Flow.ENERGY, false)
             | FaceConfig.flowBits(Flow.ITEM, false));
     private static final short PRESET_OUT_BITS = (short) FaceConfig.flowBits(Flow.ITEM, true);
     /** Single source for the GUI hologram columns and the in-world overlay. */
     public static final short SUPPORTED_FACE_BITS = (short) (PRESET_IN_BITS | PRESET_OUT_BITS);
 
-    protected ZoneMachineBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
+    protected ZoneMachineBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state, int inputSlots) {
         super(type, pos, state);
         machineTier = state.getBlock() instanceof TieredMachine tiered ? tiered.machineTier() : 1;
         energy = new EnergyBuffer(CAPACITY * machineTier, 0);
+        this.inputSlots = inputSlots;
+        items = NonNullList.withSize(inventorySize(inputSlots), ItemStack.EMPTY);
+        inputSlotIds = new int[inputSlots];
+        for (int i = 0; i < inputSlots; i++) {
+            inputSlotIds[i] = i;
+        }
+        bufferSlotIds = new int[BUFFER_SLOTS];
+        for (int i = 0; i < BUFFER_SLOTS; i++) {
+            bufferSlotIds[i] = inputSlots + i;
+        }
+    }
+
+    /** Container size for a machine with {@code inputSlots} inputs (menus share it). */
+    public static int inventorySize(int inputSlots) {
+        return inputSlots + BUFFER_SLOTS + MODULE_SLOT_COUNT;
     }
 
     public int machineTier() {
         return machineTier;
     }
 
+    // --- Layout ---
+
+    protected final int inputSlots() {
+        return inputSlots;
+    }
+
+    protected final int bufferFirst() {
+        return inputSlots;
+    }
+
+    protected final int moduleSlotFirst() {
+        return inputSlots + BUFFER_SLOTS;
+    }
+
+    protected final boolean isInputSlot(int slot) {
+        return slot >= 0 && slot < inputSlots;
+    }
+
+    protected final boolean isBufferSlot(int slot) {
+        return slot >= inputSlots && slot < inputSlots + BUFFER_SLOTS;
+    }
+
     // --- Subclass contract ---
 
-    /** The block state this item plants, or null when it is not a plantable we handle. */
-    @Nullable
-    protected abstract BlockState plantableState(ItemStack stack);
-
     /**
-     * One zone cell at the machine's level. Call {@link #markWorkable} for
-     * cells the machine can work, {@link #markNoPlants} when a cell waits
-     * for a plantable the slots lack.
+     * One wake's work, after the energy top-up and before the reporting.
+     * Count actions in {@code work.actions}, set {@code work.blocked} on a
+     * full buffer and {@code work.starved} when energy ran out.
      */
-    protected abstract CellResult workCell(ServerLevel level, BlockPos pos, int row, int col, Work work);
+    protected abstract void work(ServerLevel level, Work work);
 
-    /** A block Speed modules should randomly tick (growing plant). */
-    protected abstract boolean isGrowing(BlockState state);
+    /** State code when the wake neither worked, blocked nor starved. */
+    protected abstract int idleState();
 
     /** Base data XP per reported operation (reduced, self-sufficient class). */
     protected abstract int operationXp();
 
-    /**
-     * Multi-wake jobs, run BEFORE the zone scan (progressive felling).
-     * Returns true while the job keeps the machine busy — the scan then
-     * waits for the next wake.
-     */
-    protected boolean workQueued(ServerLevel level, Work work) {
+    /** What an input slot accepts (hoppers, the menu, shift-click). */
+    protected boolean acceptsInput(ItemStack stack) {
         return false;
     }
 
-    /** Zone edge or direction changed (server side). */
+    /** Delay before the next wake, unless the buffer is full. */
+    protected int nextDelay(Work work) {
+        // Starvation backs off like idleness: each wake still pulls (the
+        // pull relights the producers), without polling every 10 ticks.
+        return work.actions > 0 ? KoiosBalance.ZONE_ACTIVE_DELAY_TICKS : KoiosBalance.ZONE_IDLE_DELAY_TICKS;
+    }
+
+    /** LIT ("working", visual) after this wake. */
+    protected boolean isWorking(Work work) {
+        return work.actions > 0;
+    }
+
+    /** Synced data count: the base block plus the machine's own. */
+    protected int dataCount() {
+        return BASE_DATA_COUNT;
+    }
+
+    /** Machine-specific synced data, from {@link #BASE_DATA_COUNT}. */
+    protected int machineData(int index) {
+        return 0;
+    }
+
+    /** Machine-specific menu buttons (ids outside the shared channel). */
+    protected boolean handleMachineButton(int id) {
+        return false;
+    }
+
+    /**
+     * The module bay changed (server side), just before the immediate wake:
+     * machines with work in flight rescale it to the new modules.
+     */
+    protected void onModulesChanged() {
+    }
+
+    /** Zone edge or direction changed (server side; also on load). */
     protected void onZoneChanged() {
+    }
+
+    /** The synced edge just changed (server side, never on load). */
+    protected void onEdgeChanged() {
     }
 
     // --- Zone ---
@@ -279,13 +345,19 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
         return MachineTiers.effectiveTier(NetworkManager.networkOf(this), machineTier);
     }
 
-    private int maxEdge() {
+    /** Largest zone edge; the tier ladder by default. */
+    protected int maxEdge() {
         return MachineTiers.zoneEdge(effectiveTier());
+    }
+
+    /** Whether the player may shrink the zone (-/+); fixed zones say no. */
+    protected boolean zoneResizable() {
+        return true;
     }
 
     private int currentEdge() {
         int max = maxEdge();
-        return zoneSetting <= 0 ? max : Math.min(zoneSetting, max);
+        return zoneSetting <= 0 || !zoneResizable() ? max : Math.min(zoneSetting, max);
     }
 
     /** Zone edge as last synced (client side: the hologram's source). */
@@ -306,8 +378,7 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
         int edge = currentEdge();
         if (edge != syncedEdge) {
             syncedEdge = edge;
-            cursor = 0;
-            resetPass();
+            onEdgeChanged();
             onZoneChanged();
             setChanged();
             syncToClients();
@@ -316,6 +387,9 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
 
     /** One ring per click; reaching the maximum goes back to "follow the tier". */
     private void resizeZone(int delta) {
+        if (!zoneResizable()) {
+            return;
+        }
         int max = maxEdge();
         int edge = Math.max(1, Math.min(max, currentEdge() + delta));
         zoneSetting = edge >= max ? 0 : edge;
@@ -330,6 +404,7 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
         if (level == null || level.isClientSide || inWake) {
             return;
         }
+        paused = false;
         Block block = getBlockState().getBlock();
         if (!level.getBlockTicks().hasScheduledTick(worldPosition, block)) {
             level.scheduleTick(worldPosition, block, KoiosBalance.ZONE_ACTIVE_DELAY_TICKS);
@@ -341,20 +416,81 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
         kick();
     }
 
+    /**
+     * Wakes the machine at the next tick, replacing a later pending wake
+     * (vanilla keeps one scheduled tick per block: clear, then schedule).
+     * Player-driven only — never called from inside a wake.
+     */
+    protected void wakeSoon() {
+        if (level instanceof ServerLevel server && !inWake) {
+            nextWorkTime = 0;
+            paused = false;
+            server.getBlockTicks().clearArea(new BoundingBox(worldPosition));
+            server.scheduleTick(worldPosition, getBlockState().getBlock(), 1);
+        }
+    }
+
     public void scheduledWake(ServerLevel level) {
         inWake = true;
         try {
+            long now = level.getGameTime();
+            if (paused) {
+                if (!pushBuffer()) {
+                    // Still jammed: only the manual item faces keep a
+                    // (slow) chain alive, to push the buffer out.
+                    ItemFlow.scheduleWake(level, worldPosition, faceConfig);
+                    return;
+                }
+                paused = false;
+            } else if (nextWorkTime > 0 && now < nextWorkTime) {
+                pushWake(level, now);
+                return;
+            }
             int delay = wake(level);
             if (delay > 0) {
-                level.scheduleTick(worldPosition, getBlockState().getBlock(), delay);
+                nextWorkTime = now + delay;
+                scheduleNext(level, now);
             } else {
-                // Paused on a full buffer: only the manual item faces keep
-                // a (slow) chain alive, to push the buffer out.
+                paused = true;
+                nextWorkTime = 0;
                 ItemFlow.scheduleWake(level, worldPosition, faceConfig);
             }
         } finally {
             inWake = false;
         }
+    }
+
+    /**
+     * A wake between two work wakes: push the buffer only. While items
+     * keep leaving, push again soon; once nothing moves (targets full or
+     * none), fall back to the work cadence — a full chest notifies nobody
+     * when it empties, the work wakes retry anyway.
+     */
+    private void pushWake(ServerLevel level, long now) {
+        if (pushBuffer() && bufferHasItems()) {
+            scheduleNext(level, now);
+        } else {
+            level.scheduleTick(worldPosition, getBlockState().getBlock(),
+                    (int) Math.max(1, nextWorkTime - now));
+        }
+    }
+
+    /** Next wake: the work wake, or sooner to push a non-empty buffer. */
+    private void scheduleNext(ServerLevel level, long now) {
+        long delay = Math.max(1, nextWorkTime - now);
+        if (bufferHasItems()) {
+            delay = Math.min(delay, KoiosBalance.ZONE_PUSH_DELAY_TICKS);
+        }
+        level.scheduleTick(worldPosition, getBlockState().getBlock(), (int) delay);
+    }
+
+    private boolean bufferHasItems() {
+        for (int slot = bufferFirst(); slot < bufferFirst() + BUFFER_SLOTS; slot++) {
+            if (!items.get(slot).isEmpty()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** One wake; returns the next delay, or 0 to stop (buffer full). */
@@ -374,21 +510,15 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
         syncEdgeIfChanged();
 
         int effectiveTier = MachineTiers.effectiveTier(network, machineTier);
-        int speedPoints = online ? modulePoints(ModuleType.SPEED) : 0;
-        Work work = new Work(
+        Work work = new Work(online, elapsed,
+                online ? modulePoints(ModuleType.SPEED) : 0,
                 KoiosBalance.efficiencyPermille(online ? modulePoints(ModuleType.EFFICIENCY) : 0),
                 online ? modulePoints(ModuleType.YIELD) : 0,
                 effectiveTier,
                 KoiosBalance.ZONE_ACTIONS_BASE * MachineTiers.speedFactor(effectiveTier));
         int storedBefore = energy.getStored();
 
-        boolean busy = workQueued(level, work);
-        if (!busy && !work.stopped()) {
-            scan(level, work);
-        }
-        if (!work.starved && speedPoints > 0) {
-            work.starved = forceGrowth(level, elapsed, speedPoints, work.efficiencyPermille);
-        }
+        work(level, work);
         if (work.operations != null) {
             reportOperations(network, work.operations);
         }
@@ -405,113 +535,11 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
         }
         stateCode = work.starved ? STATE_WAITING
                 : work.blocked ? STATE_BUFFER_FULL
-                : work.actions > 0 ? STATE_WORKING
-                : workableCells == 0 ? STATE_EMPTY_ZONE
-                : lastPassNoPlants ? STATE_NO_PLANTS
-                : STATE_WAITING;
-        setLit(level, work.actions > 0);
+                : isWorking(work) ? STATE_WORKING
+                : idleState();
+        setLit(level, isWorking(work));
         setChanged();
-        if (work.blocked) {
-            return 0;
-        }
-        // Starvation backs off like idleness: each wake still pulls (the
-        // pull relights the producers), without polling every 10 ticks.
-        return work.actions > 0 ? activeDelay() : KoiosBalance.ZONE_IDLE_DELAY_TICKS;
-    }
-
-    /** Delay after a wake that acted; multi-wake jobs may set their own pace. */
-    protected int activeDelay() {
-        return KoiosBalance.ZONE_ACTIVE_DELAY_TICKS;
-    }
-
-    /** Sweeps cells from the cursor until a full pass or the action budget. */
-    private void scan(ServerLevel level, Work work) {
-        int edge = syncedEdge;
-        int cells = edge * edge;
-        if (cursor >= cells) {
-            cursor = 0;
-            resetPass();
-        }
-        Direction direction = zoneDirection();
-        for (int scanned = 0; scanned < cells && work.actions < work.budget; scanned++) {
-            BlockPos pos = ZoneGeometry.cell(worldPosition, direction, edge, cursor);
-            // Zones stop at unloaded chunks — never force-load (design).
-            CellResult result = level.isLoaded(pos)
-                    ? workCell(level, pos, cursor / edge, cursor % edge, work) : CellResult.SKIP;
-            if (result == CellResult.BLOCKED) {
-                work.blocked = true;
-                return;
-            }
-            if (result == CellResult.STARVED) {
-                work.starved = true;
-                return;
-            }
-            if (result == CellResult.ACTED) {
-                work.actions++;
-            }
-            if (++cursor >= cells) {
-                endPass();
-            }
-            if (workQueuedPending()) {
-                // A cell started a multi-wake job: it runs next wake.
-                return;
-            }
-        }
-    }
-
-    /** True while a multi-wake job is pending (subclass state). */
-    protected boolean workQueuedPending() {
-        return false;
-    }
-
-    protected final void markWorkable() {
-        passWorkable++;
-    }
-
-    protected final void markNoPlants() {
-        passNoPlants = true;
-    }
-
-    private void resetPass() {
-        passWorkable = 0;
-        passNoPlants = false;
-    }
-
-    private void endPass() {
-        workableCells = passWorkable;
-        lastPassNoPlants = passNoPlants;
-        cursor = 0;
-        resetPass();
-    }
-
-    /**
-     * Speed modules: extra random ticks on growing plants of the zone, the
-     * vanilla rate scaled by pts/2. Returns true when energy ran out.
-     */
-    private boolean forceGrowth(ServerLevel level, int elapsed, int speedPoints, int efficiency) {
-        int edge = syncedEdge;
-        int cells = edge * edge;
-        growthCarry += (long) cells * elapsed * speedPoints * GROWTH_ODDS_NUM;
-        long due = growthCarry / GROWTH_ODDS_DEN;
-        growthCarry -= due * GROWTH_ODDS_DEN;
-        int ticks = (int) Math.min(due, KoiosBalance.ZONE_MAX_GROWTH_TICKS_PER_WAKE);
-        int tickCost = cost(level, KoiosBalance.GROWTH_TICK_ENERGY, efficiency);
-        Direction direction = zoneDirection();
-        for (int i = 0; i < ticks; i++) {
-            BlockPos pos = ZoneGeometry.cell(worldPosition, direction, edge, level.random.nextInt(cells));
-            if (!level.isLoaded(pos)) {
-                continue;
-            }
-            BlockState state = level.getBlockState(pos);
-            if (!isGrowing(state)) {
-                continue;
-            }
-            if (!energy.consume(tickCost)) {
-                return true;
-            }
-            state.randomTick(level, pos, level.random);
-        }
-        return false;
+        return work.blocked ? 0 : Math.max(1, nextDelay(work));
     }
 
     // --- Helpers for subclasses ---
@@ -520,102 +548,43 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
         return KoiosBalance.scaledEnergyCost(level, base * efficiencyPermille / 1000);
     }
 
-    /** First plant slot whose plantable can stand at {@code pos}. */
-    protected int plantSlotFor(Level level, BlockPos pos) {
-        for (int slot = PLANT_FIRST; slot < PLANT_FIRST + PLANT_SLOTS; slot++) {
-            BlockState plant = plantableState(items.get(slot));
-            if (plant != null && plant.canSurvive(level, pos)) {
-                return slot;
-            }
-        }
-        return -1;
-    }
-
-    protected int plantSlotMatching(ItemStack plantable) {
-        if (plantable.isEmpty()) {
-            return -1;
-        }
-        for (int slot = PLANT_FIRST; slot < PLANT_FIRST + PLANT_SLOTS; slot++) {
-            if (items.get(slot).is(plantable.getItem())) {
-                return slot;
-            }
-        }
-        return -1;
-    }
-
-    /** Plants the slot's item at {@code pos} (one item consumed). */
-    protected void plant(ServerLevel level, BlockPos pos, int slot, SoundEvent sound) {
-        ItemStack stack = items.get(slot);
-        BlockState plant = plantableState(stack);
-        stack.shrink(1);
-        level.setBlock(pos, plant, 3);
-        level.playSound(null, pos, sound, SoundSource.BLOCKS, 0.5F, 1.0F);
-    }
-
-    protected static boolean takeOne(List<ItemStack> drops, ItemStack wanted) {
-        if (wanted.isEmpty()) {
-            return false;
-        }
-        for (ItemStack drop : drops) {
-            if (drop.is(wanted.getItem()) && !drop.isEmpty()) {
-                drop.shrink(1);
-                return true;
-            }
-        }
-        return false;
-    }
-
     // --- Output buffer ---
 
     /**
-     * Routes one batch of drops (user design 2026-10-08): everything
-     * plantable tops the plant slots up first — no guessing what counts as
-     * a seed — then the surplus goes to the buffer, or is destroyed when
-     * the player enabled voiding (warned in the terminal: plantable
-     * products are destroyed too). Everything else goes to the buffer.
-     * {@code usedPlantSlot} (or -1) paid a replant from the slots.
-     * Simulate first: false means the buffer cannot take the rest and
-     * nothing may change.
+     * Stows one batch of drops into the buffer. Simulate first: false
+     * means the buffer cannot take everything and nothing may change.
      */
-    protected boolean stow(List<ItemStack> drops, int usedPlantSlot, boolean simulate) {
-        ItemStack[] plants = new ItemStack[PLANT_SLOTS];
-        ItemStack[] buffer = new ItemStack[BUFFER_SLOTS];
-        for (int i = 0; i < PLANT_SLOTS; i++) {
-            ItemStack stack = items.get(PLANT_FIRST + i);
-            plants[i] = simulate ? stack.copy() : stack;
-        }
-        for (int i = 0; i < BUFFER_SLOTS; i++) {
-            ItemStack stack = items.get(BUFFER_FIRST + i);
-            buffer[i] = simulate ? stack.copy() : stack;
-        }
-        if (usedPlantSlot >= 0) {
-            plants[usedPlantSlot - PLANT_FIRST].shrink(1);
-        }
+    protected boolean stow(List<ItemStack> drops, boolean simulate) {
+        ItemStack[] buffer = bufferView(simulate);
         for (ItemStack drop : drops) {
-            ItemStack rest = simulate ? drop.copy() : drop;
-            if (plantableState(rest) != null) {
-                rest = merge(plants, rest);
-                if (voidSurplus) {
-                    continue;
-                }
-            }
-            if (!merge(buffer, rest).isEmpty()) {
+            if (!merge(buffer, simulate ? drop.copy() : drop).isEmpty()) {
                 return false;
             }
         }
         if (!simulate) {
-            for (int i = 0; i < PLANT_SLOTS; i++) {
-                items.set(PLANT_FIRST + i, plants[i]);
-            }
-            for (int i = 0; i < BUFFER_SLOTS; i++) {
-                items.set(BUFFER_FIRST + i, buffer[i]);
-            }
+            commitBuffer(buffer);
         }
         return true;
     }
 
+    /** The buffer's stacks, copied when simulating. */
+    protected final ItemStack[] bufferView(boolean copy) {
+        ItemStack[] buffer = new ItemStack[BUFFER_SLOTS];
+        for (int i = 0; i < BUFFER_SLOTS; i++) {
+            ItemStack stack = items.get(bufferFirst() + i);
+            buffer[i] = copy ? stack.copy() : stack;
+        }
+        return buffer;
+    }
+
+    protected final void commitBuffer(ItemStack[] buffer) {
+        for (int i = 0; i < BUFFER_SLOTS; i++) {
+            items.set(bufferFirst() + i, buffer[i]);
+        }
+    }
+
     /** Stacks onto matching slots first, then empty ones; returns the rest. */
-    private static ItemStack merge(ItemStack[] slots, ItemStack stack) {
+    protected static ItemStack merge(ItemStack[] slots, ItemStack stack) {
         for (ItemStack slot : slots) {
             if (stack.isEmpty()) {
                 return ItemStack.EMPTY;
@@ -635,12 +604,35 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
         return stack;
     }
 
-    private void pushBuffer() {
+    /** Pushes every buffer slot out; true when anything left. */
+    private boolean pushBuffer() {
         if (level == null || level.isClientSide) {
-            return;
+            return false;
         }
-        for (int slot = BUFFER_FIRST; slot < BUFFER_FIRST + BUFFER_SLOTS; slot++) {
+        int before = bufferCount();
+        for (int slot = bufferFirst(); slot < bufferFirst() + BUFFER_SLOTS; slot++) {
             ItemFlow.pushOutput(level, worldPosition, this, slot, faceConfig);
+        }
+        return bufferCount() < before;
+    }
+
+    private int bufferCount() {
+        int count = 0;
+        for (int slot = bufferFirst(); slot < bufferFirst() + BUFFER_SLOTS; slot++) {
+            count += items.get(slot).getCount();
+        }
+        return count;
+    }
+
+    private boolean isModuleSlot(int slot) {
+        return slot >= moduleSlotFirst() && slot < moduleSlotFirst() + MODULE_SLOT_COUNT;
+    }
+
+    /** A module went in or out: its effect applies now, not at the next action. */
+    private void modulesChanged(int slot) {
+        if (isModuleSlot(slot) && level != null && !level.isClientSide && !inWake) {
+            onModulesChanged();
+            wakeSoon();
         }
     }
 
@@ -679,9 +671,16 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
 
     // --- Modules ---
 
-    private int modulePoints(ModuleType type) {
+    /** On a valid network (modules are inert offline). */
+    protected boolean isOnline() {
+        Network network = NetworkManager.networkOf(this);
+        return network != null && network.isValid();
+    }
+
+    /** Point total on one axis across the bay (raw: callers gate on online). */
+    protected int modulePoints(ModuleType type) {
         int points = 0;
-        for (int slot = MODULE_SLOT_FIRST; slot <= MODULE_SLOT_LAST; slot++) {
+        for (int slot = moduleSlotFirst(); slot < moduleSlotFirst() + MODULE_SLOT_COUNT; slot++) {
             if (items.get(slot).getItem() instanceof ModuleItem module && module.getType() == type) {
                 points += module.points();
             }
@@ -831,7 +830,7 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
         }
     }
 
-    private void syncToClients() {
+    protected final void syncToClients() {
         if (level != null && !level.isClientSide) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
         }
@@ -839,19 +838,15 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
 
     /**
      * Menu buttons through the vanilla channel (no custom packets): zone
-     * resize, voiding toggle, then the face-config protocol shared with
-     * every machine.
+     * resize, the machine's own buttons, then the face-config protocol
+     * shared with every machine.
      */
     public boolean handleButton(int id) {
         if (id == BUTTON_ZONE_SHRINK || id == BUTTON_ZONE_GROW) {
             resizeZone(id == BUTTON_ZONE_SHRINK ? -2 : 2);
             return true;
         }
-        if (id == BUTTON_TOGGLE_VOID) {
-            voidSurplus = !voidSurplus;
-            setChanged();
-            // A buffer jammed with plantables may resume once they stop landing.
-            kick();
+        if (handleMachineButton(id)) {
             return true;
         }
         int faceIndex = id / 16;
@@ -885,7 +880,7 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
         return true;
     }
 
-    // --- WorldlyContainer (hoppers: plantables top/sides, harvest bottom;
+    // --- WorldlyContainer (hoppers: inputs top/sides, products bottom;
     // a MANUAL face config is a complete contract) ---
 
     private boolean allowsItem(Direction face, boolean out) {
@@ -895,20 +890,19 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
     @Override
     public int[] getSlotsForFace(Direction side) {
         if (side == Direction.DOWN) {
-            return allowsItem(side, true) ? BUFFER_SLOT_IDS : NO_SLOTS;
+            return allowsItem(side, true) ? bufferSlotIds : NO_SLOTS;
         }
-        return allowsItem(side, false) ? PLANT_SLOT_IDS : NO_SLOTS;
+        return allowsItem(side, false) ? inputSlotIds : NO_SLOTS;
     }
 
     @Override
     public boolean canPlaceItemThroughFace(int slot, ItemStack stack, @Nullable Direction side) {
-        return slot >= PLANT_FIRST && slot < PLANT_FIRST + PLANT_SLOTS
-                && (side == null || allowsItem(side, false)) && plantableState(stack) != null;
+        return isInputSlot(slot) && (side == null || allowsItem(side, false)) && acceptsInput(stack);
     }
 
     @Override
     public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
-        return slot >= BUFFER_FIRST && slot < BUFFER_FIRST + BUFFER_SLOTS && allowsItem(side, true);
+        return isBufferSlot(slot) && allowsItem(side, true);
     }
 
     @Override
@@ -937,6 +931,7 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
         setChanged();
         // Freeing the buffer resumes a paused machine.
         kick();
+        modulesChanged(slot);
         return result;
     }
 
@@ -944,6 +939,7 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
     public ItemStack removeItemNoUpdate(int slot) {
         ItemStack result = ContainerHelper.takeItem(items, slot);
         kick();
+        modulesChanged(slot);
         return result;
     }
 
@@ -951,13 +947,14 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
     public void setItem(int slot, ItemStack stack) {
         items.set(slot, stack);
         setChanged();
-        // New plantables, a module swap or an emptied buffer slot.
+        // New inputs, a module swap or an emptied buffer slot.
         kick();
+        modulesChanged(slot);
     }
 
     @Override
     public boolean canPlaceItem(int slot, ItemStack stack) {
-        return slot >= PLANT_FIRST && slot < PLANT_FIRST + PLANT_SLOTS && plantableState(stack) != null;
+        return isInputSlot(slot) && acceptsInput(stack);
     }
 
     @Override
@@ -1000,10 +997,7 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
         faceConfig.save(tag);
         tag.putInt("ZoneSetting", zoneSetting);
         tag.putInt("ZoneEdge", syncedEdge);
-        tag.putInt("Cursor", cursor);
         tag.putInt("YieldQuarters", yieldQuarters);
-        tag.putLong("GrowthCarry", growthCarry);
-        tag.putBoolean("VoidSurplusSeeds", voidSurplus);
     }
 
     @Override
@@ -1014,9 +1008,6 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
         faceConfig.load(tag);
         zoneSetting = tag.getInt("ZoneSetting");
         syncedEdge = tag.getInt("ZoneEdge");
-        cursor = tag.getInt("Cursor");
         yieldQuarters = tag.getInt("YieldQuarters");
-        growthCarry = tag.getLong("GrowthCarry");
-        voidSurplus = tag.getBoolean("VoidSurplusSeeds");
     }
 }

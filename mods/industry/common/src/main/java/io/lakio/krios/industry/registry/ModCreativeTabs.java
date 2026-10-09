@@ -32,6 +32,8 @@ public final class ModCreativeTabs {
                         output.accept(ModBlocks.CHRONO_FARMER_TIER2.get());
                         output.accept(ModBlocks.CYCLIC_FORESTER.get());
                         output.accept(ModBlocks.CYCLIC_FORESTER_TIER2.get());
+                        output.accept(ModBlocks.QUANTUM_LURE.get());
+                        output.accept(ModBlocks.QUANTUM_LURE_TIER2.get());
                         output.accept(ModBlocks.NEURAL_CASING.get());
                         output.accept(ModBlocks.NEURAL_CONDUIT.get());
                         output.accept(ModBlocks.KOIOS_CORE.get());
@@ -47,6 +49,10 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.EFFICIENCY_MODULE_MK2.get());
                         output.accept(ModItems.YIELD_MODULE_MK2.get());
                         output.accept(ModItems.ENERGY_MODULE.get());
+                        output.accept(ModItems.LURE_MODULE.get());
+                        output.accept(ModItems.LUCK_MODULE.get());
+                        output.accept(ModItems.LURE_MODULE_MK2.get());
+                        output.accept(ModItems.LUCK_MODULE_MK2.get());
                         output.accept(ModItems.CALIBRATOR.get());
                         output.accept(ModItems.COMPUTE_CHIP.get());
                         output.accept(ModItems.UPGRADE_KIT_TIER2.get());

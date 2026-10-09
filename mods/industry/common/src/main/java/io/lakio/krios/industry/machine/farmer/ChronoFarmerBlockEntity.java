@@ -6,7 +6,7 @@ import java.util.List;
 import io.lakio.krios.industry.koios.KoiosBalance;
 import io.lakio.krios.industry.machine.HydrationZones;
 import io.lakio.krios.industry.machine.ZoneGeometry;
-import io.lakio.krios.industry.machine.zone.ZoneMachineBlockEntity;
+import io.lakio.krios.industry.machine.zone.PlantingZoneBlockEntity;
 import io.lakio.krios.industry.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -35,9 +35,9 @@ import org.jetbrains.annotations.Nullable;
  * behind its screen, keeps the farmland moist, replants (seeds from the
  * harvest first, the seed slots back it up), tills dirt it can plant right
  * away. Everything else — pacing, routing, energy, zone — is the shared
- * {@link ZoneMachineBlockEntity}.
+ * {@link PlantingZoneBlockEntity}.
  */
-public class ChronoFarmerBlockEntity extends ZoneMachineBlockEntity {
+public class ChronoFarmerBlockEntity extends PlantingZoneBlockEntity {
 
     public ChronoFarmerBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.CHRONO_FARMER.get(), pos, state);
@@ -215,7 +215,7 @@ public class ChronoFarmerBlockEntity extends ZoneMachineBlockEntity {
         if (level.getRawBrightness(cropPos, 0) < 8 && !level.canSeeSky(cropPos)) {
             return -1;
         }
-        for (int slot = PLANT_FIRST; slot < PLANT_FIRST + PLANT_SLOTS; slot++) {
+        for (int slot = 0; slot < PLANT_SLOTS; slot++) {
             BlockState plant = plantFor(items.get(slot));
             if (plant != null && plant.getBlock() instanceof CropBlock) {
                 return slot;

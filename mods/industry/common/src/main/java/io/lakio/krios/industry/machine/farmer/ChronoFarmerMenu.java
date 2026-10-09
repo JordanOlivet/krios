@@ -1,12 +1,12 @@
 package io.lakio.krios.industry.machine.farmer;
 
-import io.lakio.krios.industry.machine.zone.ZoneMachineMenu;
+import io.lakio.krios.industry.machine.zone.PlantingZoneMenu;
 import io.lakio.krios.industry.registry.ModMenus;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ContainerData;
 
-public class ChronoFarmerMenu extends ZoneMachineMenu {
+public class ChronoFarmerMenu extends PlantingZoneMenu {
 
     /** Client constructor. */
     public ChronoFarmerMenu(int containerId, Inventory playerInventory) {

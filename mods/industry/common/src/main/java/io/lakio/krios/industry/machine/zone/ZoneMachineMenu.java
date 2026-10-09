@@ -18,22 +18,19 @@ import net.minecraft.world.item.ItemStack;
 import java.util.function.Predicate;
 
 /**
- * Shared zone-machine menu (Chrono Farmer, Cyclic Forester...): plant
- * column, 3x3 harvest buffer, module bay, synced zone/state data. The
- * plantable predicate comes from the machine — the client menu only sees
- * a SimpleContainer and must not touch the block entity.
+ * Shared zone-machine menu (ADR-025): the machine's input column (zero
+ * slots allowed), 3x3 output buffer, module bay, synced zone/state data.
+ * The input and module predicates come from the machine — the client menu
+ * only sees a SimpleContainer and must not touch the block entity.
  */
 public class ZoneMachineMenu extends AbstractContainerMenu implements MachineMenu {
 
-    /** Zone + energy + faces + status + pos + draw/starved + tiers + cells/state + void toggle. */
-    public static final int DATA_COUNT = 23;
-
     /**
-     * Work-area geometry (option A mockup, 2026-10-08): plant column on the
-     * left, zone map in the center, 3x3 output buffer on the right. Shared
-     * with the screen, which draws the map and its controls around it.
+     * Work-area geometry (option A mockup, 2026-10-08): input column on
+     * the left, zone map (or the machine's own display) in the center, 3x3
+     * output buffer on the right. Shared with the screens.
      */
-    public static final int PLANT_X = 36;
+    public static final int INPUT_X = 36;
     public static final int SLOT_TOP_Y = 26;
     public static final int BUFFER_X = 180;
     public static final int MAP_X = 93;
@@ -43,41 +40,45 @@ public class ZoneMachineMenu extends AbstractContainerMenu implements MachineMen
 
     private final Container container;
     private final ContainerData data;
-    private final Predicate<ItemStack> plantable;
+    private final Predicate<ItemStack> input;
+    private final Predicate<ModuleType> moduleAxes;
+    private final int inputSlots;
+    private final int moduleSlotStart;
+    private final int playerStart;
     // Client-side module bay visibility (annex panel); the server instance
     // stays true so quickMoveStack keeps routing into hidden slots.
     private boolean moduleBayOpen = true;
 
-    private static final int PLANT_START = ZoneMachineBlockEntity.PLANT_FIRST;
-    private static final int PLANT_END = PLANT_START + ZoneMachineBlockEntity.PLANT_SLOTS;
-    private static final int MODULE_SLOT_START = ZoneMachineBlockEntity.MODULE_SLOT_FIRST;
-    private static final int PLAYER_START = ZoneMachineBlockEntity.INVENTORY_SIZE;
-    private static final int PLAYER_END = PLAYER_START + 36;
-
     /** Client constructor. */
     protected ZoneMachineMenu(MenuType<?> type, int containerId, Inventory playerInventory,
-            Predicate<ItemStack> plantable) {
-        this(type, containerId, playerInventory, new SimpleContainer(ZoneMachineBlockEntity.INVENTORY_SIZE),
-                new SimpleContainerData(DATA_COUNT), plantable);
+            int inputSlots, int dataCount, Predicate<ItemStack> input, Predicate<ModuleType> moduleAxes) {
+        this(type, containerId, playerInventory,
+                new SimpleContainer(ZoneMachineBlockEntity.inventorySize(inputSlots)),
+                new SimpleContainerData(dataCount), inputSlots, input, moduleAxes);
     }
 
     protected ZoneMachineMenu(MenuType<?> type, int containerId, Inventory playerInventory,
-            Container container, ContainerData data, Predicate<ItemStack> plantable) {
+            Container container, ContainerData data, int inputSlots,
+            Predicate<ItemStack> input, Predicate<ModuleType> moduleAxes) {
         super(type, containerId);
         this.container = container;
         this.data = data;
-        this.plantable = plantable;
+        this.input = input;
+        this.moduleAxes = moduleAxes;
+        this.inputSlots = inputSlots;
+        int bufferFirst = inputSlots;
+        moduleSlotStart = inputSlots + ZoneMachineBlockEntity.BUFFER_SLOTS;
+        playerStart = ZoneMachineBlockEntity.inventorySize(inputSlots);
 
-        for (int i = 0; i < ZoneMachineBlockEntity.PLANT_SLOTS; i++) {
-            addSlot(new PlantSlot(container, ZoneMachineBlockEntity.PLANT_FIRST + i,
-                    PLANT_X, SLOT_TOP_Y + i * 18));
+        for (int i = 0; i < inputSlots; i++) {
+            addSlot(new InputSlot(container, i, INPUT_X, SLOT_TOP_Y + i * 18));
         }
         for (int i = 0; i < ZoneMachineBlockEntity.BUFFER_SLOTS; i++) {
-            addSlot(new OutputSlot(container, ZoneMachineBlockEntity.BUFFER_FIRST + i,
+            addSlot(new OutputSlot(container, bufferFirst + i,
                     BUFFER_X + (i % 3) * 18, SLOT_TOP_Y + (i / 3) * 18));
         }
         for (int i = 0; i < ZoneMachineBlockEntity.MODULE_SLOT_COUNT; i++) {
-            addSlot(new ModuleSlot(container, ZoneMachineBlockEntity.MODULE_SLOT_FIRST + i,
+            addSlot(new ModuleSlot(container, moduleSlotStart + i,
                     MODULE_SLOT_X, MODULE_SLOT_Y + i * MODULE_SLOT_STEP, i));
         }
 
@@ -93,6 +94,20 @@ public class ZoneMachineMenu extends AbstractContainerMenu implements MachineMen
         addDataSlots(data);
     }
 
+    /** Raw synced value (machine data starts at BASE_DATA_COUNT). */
+    protected final int data(int index) {
+        return data.get(index);
+    }
+
+    /** First module-bay slot index (menu and container indexes agree). */
+    public int moduleSlotFirst() {
+        return moduleSlotStart;
+    }
+
+    public int inputSlotCount() {
+        return inputSlots;
+    }
+
     @Override
     public void setModuleBayOpen(boolean open) {
         moduleBayOpen = open;
@@ -105,16 +120,16 @@ public class ZoneMachineMenu extends AbstractContainerMenu implements MachineMen
         if (slot.hasItem()) {
             ItemStack stack = slot.getItem();
             result = stack.copy();
-            if (index < PLAYER_START) {
-                if (!moveItemStackTo(stack, PLAYER_START, PLAYER_END, true)) {
+            if (index < playerStart) {
+                if (!moveItemStackTo(stack, playerStart, playerStart + 36, true)) {
                     return ItemStack.EMPTY;
                 }
             } else if (stack.getItem() instanceof ModuleItem) {
-                if (!moveItemStackTo(stack, MODULE_SLOT_START, PLAYER_START, false)) {
+                if (!moveItemStackTo(stack, moduleSlotStart, playerStart, false)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (plantable.test(stack)) {
-                if (!moveItemStackTo(stack, PLANT_START, PLANT_END, false)) {
+            } else if (inputSlots > 0 && input.test(stack)) {
+                if (!moveItemStackTo(stack, 0, inputSlots, false)) {
                     return ItemStack.EMPTY;
                 }
             } else {
@@ -129,20 +144,20 @@ public class ZoneMachineMenu extends AbstractContainerMenu implements MachineMen
         return result;
     }
 
-    /** Plantables only — what the machine can actually plant. */
-    private class PlantSlot extends Slot {
+    /** Inputs only — what the machine can actually use. */
+    private class InputSlot extends Slot {
 
-        PlantSlot(Container container, int slot, int x, int y) {
+        InputSlot(Container container, int slot, int x, int y) {
             super(container, slot, x, y);
         }
 
         @Override
         public boolean mayPlace(ItemStack stack) {
-            return plantable.test(stack);
+            return input.test(stack);
         }
     }
 
-    /** Harvest buffer: take-only. */
+    /** Output buffer: take-only. */
     private static class OutputSlot extends Slot {
 
         OutputSlot(Container container, int slot, int x, int y) {
@@ -162,8 +177,9 @@ public class ZoneMachineMenu extends AbstractContainerMenu implements MachineMen
 
     /**
      * The KOIOS gate: a module goes in only when the network's level
-     * allows it; the machine tier gates the slot itself, and the energy
-     * module stays a generator's. Server-authoritative.
+     * allows it; the machine tier gates the slot itself, and each machine
+     * names the axes it takes (the energy module stays a generator's, Lure
+     * and Luck the Quantum Lure's). Server-authoritative.
      */
     private class ModuleSlot extends Slot {
 
@@ -177,7 +193,7 @@ public class ZoneMachineMenu extends AbstractContainerMenu implements MachineMen
         @Override
         public boolean mayPlace(ItemStack stack) {
             if (!(stack.getItem() instanceof ModuleItem module)
-                    || module.getType() == ModuleType.ENERGY
+                    || !moduleAxes.test(module.getType())
                     || bayIndex >= activeModuleSlots()) {
                 return false;
             }
@@ -227,19 +243,9 @@ public class ZoneMachineMenu extends AbstractContainerMenu implements MachineMen
         return Math.max(1, data.get(1));
     }
 
-    /** Workable cells found by the last full pass; -1 until one completes. */
-    public int workableCells() {
-        return data.get(20);
-    }
-
-    /** Plantable surplus is destroyed instead of buffered. */
-    public boolean voidSurplus() {
-        return data.get(22) != 0;
-    }
-
-    /** ZoneMachineBlockEntity.STATE_* code for the voice line. */
+    /** ZoneMachineBlockEntity.STATE_* code (or the machine's own) for the voice line. */
     public int stateCode() {
-        return data.get(21);
+        return data.get(20);
     }
 
     @Override

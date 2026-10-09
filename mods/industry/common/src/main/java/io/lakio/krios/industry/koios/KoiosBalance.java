@@ -51,6 +51,25 @@ public final class KoiosBalance {
      * of ~15 layers falls in ~3 s at t1, visibly shrinking from the top.
      */
     public static final int FELL_LAYER_DELAY_TICKS = 4;
+    /** Lure class: a catch teaches under a third of a grind (placeholder). */
+    public static final int LURE_XP_PERMILLE = 300;
+    /** Base data XP per catch of a Quantum Lure. */
+    public static final int CATCH_BASE_XP = GRIND_BASE_XP * LURE_XP_PERMILLE / 1000;
+    /** Quantum Lure energy per catch (placeholder, numbers pass). */
+    public static final int CATCH_ENERGY = 200;
+    /**
+     * Vanilla fishing wait (FishingHook): 100-600 ticks until a bite, then
+     * 20-80 until the hook. A Lure module point takes off what one level of
+     * the enchantment does (5 s); the floor guards the far end of the
+     * points model.
+     */
+    public static final int FISH_LURED_MIN_TICKS = 100;
+    public static final int FISH_LURED_MAX_TICKS = 600;
+    public static final int FISH_HOOKED_MIN_TICKS = 20;
+    public static final int FISH_HOOKED_MAX_TICKS = 80;
+    public static final int LURE_TICKS_PER_POINT = 100;
+    public static final int FISH_MIN_WAIT_TICKS = 20;
+
     /** One extra random tick forced on a growing crop (Speed modules). */
     public static final int GROWTH_TICK_ENERGY = 15;
 
@@ -62,6 +81,12 @@ public final class KoiosBalance {
      */
     public static final int ZONE_ACTIVE_DELAY_TICKS = 10;
     public static final int ZONE_IDLE_DELAY_TICKS = 100;
+    /**
+     * Between work wakes, a non-empty output buffer is pushed every N
+     * ticks while items keep leaving (a hopper moves one item per 8 ticks;
+     * we move whole stacks).
+     */
+    public static final int ZONE_PUSH_DELAY_TICKS = 10;
     public static final int ZONE_ACTIONS_BASE = 4;
     /** Forced growth ticks per wake are capped (no burst after a long gap). */
     public static final int ZONE_MAX_GROWTH_TICKS_PER_WAKE = 64;
@@ -100,6 +125,12 @@ public final class KoiosBalance {
     public static final int ENERGY_UNLOCK_LEVEL = 6;
     public static final int EFFICIENCY2_UNLOCK_LEVEL = 7;
     public static final int YIELD2_UNLOCK_LEVEL = 8;
+    // Quantum Lure modules (ADR-024) mirror the axes they echo: Lure with
+    // Speed, Luck with Yield, Mk II on the same rungs of the t2 ladder.
+    public static final int LURE_UNLOCK_LEVEL = SPEED_UNLOCK_LEVEL;
+    public static final int LUCK_UNLOCK_LEVEL = YIELD_UNLOCK_LEVEL;
+    public static final int LURE2_UNLOCK_LEVEL = SPEED2_UNLOCK_LEVEL;
+    public static final int LUCK2_UNLOCK_LEVEL = YIELD2_UNLOCK_LEVEL;
 
     /**
      * Efficiency multiplier per POINT total, permille: ~x0.8 per point

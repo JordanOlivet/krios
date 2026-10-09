@@ -93,6 +93,12 @@ public final class ModBlocks {
     public static final Supplier<Block> CYCLIC_FORESTER_TIER2 = registerWithItem("cyclic_forester_tier2",
             () -> new io.lakio.krios.industry.machine.forester.CyclicForesterBlock(machineProperties(9), 2));
 
+    public static final Supplier<Block> QUANTUM_LURE = registerWithItem("quantum_lure",
+            () -> new io.lakio.krios.industry.machine.lure.QuantumLureBlock(machineProperties(9), 1));
+
+    public static final Supplier<Block> QUANTUM_LURE_TIER2 = registerWithItem("quantum_lure_tier2",
+            () -> new io.lakio.krios.industry.machine.lure.QuantumLureBlock(machineProperties(9), 2));
+
     public static final Supplier<Block> NEURAL_CASING = registerWithItem("neural_casing",
             () -> new NeuralCasingBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.METAL)
