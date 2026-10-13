@@ -390,6 +390,24 @@ The first creature line, and the second direct client of the zone core (ADR-025)
 - **Terminal**: food column, the farmer's zone map with -/+ and the hologram eye, and on the right a census of the zone (top species with count/cap, a mark at the cap, "+n others" past five) above the cap selector. States: breeding / cap reached / no fitting food / no eligible pair / no animals.
 - A shared "creature zone" layer waits for the Harvest Pod (rule of two).
 
+### Harvest Pod (design session 2026-10-13)
+
+The second creature line: it works the same pens as the Breeding Pod and collects what living animals give. Second creature client, so the shared creature layer is extracted now (ADR-025 amendment).
+
+- **Function (t1)**, three jobs, no tool (ADR-024):
+  - **Shearing**: every vanilla `Shearable` animal that is `readyForShearing()` is sheared directly by the machine (`shear()`) — sheep in practice. **Mooshrooms are never sheared**: shearing turns them into cows, the machine would destroy what it farms. **Wool regrowth stays vanilla** (user): a sheep regrows only by eating grass under it, so the pen needs grass; a forced regrowth may come later as a module or a tier perk.
+  - **Milking**: cows and goats, one empty bucket in → one milk bucket out. **Mooshrooms**: one bowl in → one mushroom stew out (user).
+  - **Pickup**: item entities in the zone that match the `krios_industry:creature_drops` item tag only (user) — eggs, armadillo and turtle scutes; packs extend it. Never a generic vacuum: it would swallow player items and overlap a future dedicated one.
+- **No per-job toggles** (user): shearing and pickup always run; milking runs when the matching container is in the input. The input is the switch.
+- **Zone**: identical to the Breeding Pod — behind the screen, 9/13/19/27 by tier, -/+ one ring, three blocks tall, pinnable hologram; never force-loads.
+- **Inventory**: 3 input slots (empty buckets, bowls), a 9-slot output buffer; buffer full → pause (thermostat model).
+- **Modules**: Speed = time acceleration on the zone's producers at the usual ×(2+pts)/2 pace — the chicken's egg timer (`eggTime`, public) and the armadillo's scute timer (`scuteTime`, private: a common accessor mixin, ADR-023), energy per animal accelerated; Yield = +25 % per point on wool, eggs and scutes through the quarter accumulator (never on milk or stew — a bucket stays a bucket); Efficiency = cost.
+- **Pacing (ADR-022)**: short delay after a productive wake, idle backoff otherwise; a per-wake action budget scaled by the tier speed factor, as for the Breeding Pod.
+- Placeholders: 50 E per shear or milking, 10 E per item picked up, 2 E per animal-second accelerated; KOIOS XP at the farm permille (200), diversity keys `shear:<species>`, `milk:<species>`, `pickup:<item>`. Recipe: shears, bucket, actuators, chronite, neurite ingot, iron; Mk II through the upgrade kit.
+- **Terminal**: input column, the shared zone map with -/+ and the hologram eye, 3×3 buffer. The census of what is harvestable (sheep ready n/total, cows and goats marked when buckets are missing, mooshrooms when bowls are missing, timed producers) lives in a **Census annex panel** (user, option A of the mockup: the main frame has no room beside the buffer), stacked on the right like Stats, expanded by default. States: harvesting / nothing ready / no containers (milkable animals present, input empty) / buffer full / no animals.
+- **Shared Census annex** (user): the Breeding Pod's census moves into the same annex panel — one component and one row format for every creature machine. The Breeding Pod keeps its cap selector in the main frame (a control, not information), with a one-line summary under it (species count, how many at the cap) so the essentials survive a collapsed annex.
+- **Creature layer**: `CreatureZoneBlockEntity` sits between the zone core and both pods — three-block zone box, animal scan grouped by species, synced census rows rendered by the shared Census annex, time acceleration. The Breeding Pod keeps breeding, the population cap and food; its behavior and NBT keys do not change.
+
 ## Open questions (implementation-time)
 
 - **Responsiveness vs. the tickless policy (consigned 2026-10-09, user)**: several play-test papercuts trace back to ADR-012/ADR-022 — outputs only leaving after an action, modules applying at the next action (both patched for the zone machines the same day: push-only wakes while the buffer drains, an immediate wake + in-flight rescale on a module swap). The user questions whether ticking is really that costly and expects krios_storage to make it worse. To revisit later as a whole: measure the actual cost of tickers vs. scheduled wakes, and settle a model that feels smooth and reactive (e.g. ticking while there is something to do, tickless only when truly idle). Not now.
