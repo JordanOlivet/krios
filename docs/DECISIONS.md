@@ -292,3 +292,28 @@ The roadmap (ADR-020/021) carried two killing machines: the Reaper Array for liv
 - **Nothing is protected by default** (user): tamed animals, named mobs, villagers, golems and bosses fall to the filter like the rest — the player answers for where the field stands. Players are never targets by construction (the scan covers mobs). A later filtering module may offer finer choices.
 - **Architecture**: the Phase Death Field is the third client of the creature layer, whose scan widens from animals to mobs (scan class per machine; census unchanged).
 - The simulated form does not change: both machines already pointed at the Oblivion Engine. The `reaper_array` id is never registered; ADR-021's naming table keeps the row as history.
+
+## ADR-027 — Machines tick through a managed device scheduler
+
+**Date**: 2026-10-13 · **Status**: accepted
+
+Play kept surfacing responsiveness papercuts (outputs leaving only after an action, modules applying at the next action), each patched on top of the tickless chains (ADR-012 "idle costs nothing", ADR-017 scheduled wakes, ADR-022 zone pacing). The user asked to settle the model before the storage mod, which will need AE2-grade ticking. Measured first (commit 8d9a72f, a temporary `/krios_industry bench`, NeoForge dedicated dev server, three suites at 10,000 / 20,000 / 10,000 nodes, cost per node and tick over the baseline):
+
+| Model | µs / node / tick |
+|---|---|
+| Vanilla ticker, empty | 0.085 |
+| Vanilla ticker, machine-like work (check per tick, batch every 10) | 0.13–0.14 |
+| Scheduled tick every 10 ticks, same batch | 0.13–0.15 |
+| One manager iterating plain objects, same work | 0.03–0.056 |
+| Vanilla ticker + `setChanged()` every tick | 0.43 |
+
+Findings: ticking is cheap (10,000 always-ticking machines ≈ 1.3 ms of a 50 ms tick); a scheduled tick costs about 1.3 µs per wake, so at an active cadence it saves nothing over a ticker and only wins on long sleeps; per-tick `setChanged()` is the real trap (3× all the rest); a single managed loop is 2–3× cheaper than vanilla tickers.
+
+**Decision (user, option D)**:
+
+- **A per-level `TickManager`** drives every machine. A machine is a **device** in one of three states: **awake** (ticked every tick; its work keeps its own cadence counters, while flows, module changes and GUI data react at once), **probing** (asleep, woken after N ticks — zone machines watching a world that changes without telling them), **asleep** (woken only by an alert: insertion or extraction, neighbor change, energy received, module swap, button, network change).
+- Devices register in `setLevel` and leave in `setRemoved` (chunk unload included); a device ticks only while its chunk ticks, like vanilla. One level-tick hook per loader (NeoForge level tick event, Fabric end-world-tick); the manager itself is common code under ADR-013-style isolation, extracted to krios_core with the network engine (ADR-018).
+- It **replaces** the LIT-gated vanilla tickers (reactor, grinder, forge, photon array) and the scheduled-tick chains (ADR-017 manual item faces, ADR-022 zone wakes). `LIT` becomes purely visual.
+- **ADR-012 is amended**, not dropped: idle still costs nothing (an asleep device is never visited), batches stay arithmetic, zero allocation in the tick path. What goes is "an active machine does not tick". New rule: **`setChanged()` only when persistent state actually changes, never as a per-tick habit**.
+- Sleep state is not persisted: a device wakes once on load and falls asleep again if idle.
+- Rejected: B (a vanilla ticker gated by an `AWAKE` blockstate — cheaper to build, but slower and to be redone for storage), C (always-on vanilla tickers), and keeping the scheduled chains (A).

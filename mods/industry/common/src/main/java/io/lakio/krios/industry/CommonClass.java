@@ -18,7 +18,6 @@ public class CommonClass {
         ModBlocks.init();
         ModItems.init();
         ModBlockEntities.init();
-        io.lakio.krios.industry.dev.DevBench.init();
         ModMenus.init();
         ModRecipeTypes.init();
         ModCreativeTabs.init();
