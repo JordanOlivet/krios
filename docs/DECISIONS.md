@@ -280,3 +280,15 @@ The Quantum Lure, the third zone machine, plants nothing, scans no cells and pac
 **Amended with the Breeding Pod (2026-10-09)**: the output buffer's size is declared per machine like the inputs, zero allowed — the Breeding Pod produces animals, not items. The core also offers push-only wakes (a non-empty buffer drains between work wakes) and an immediate wake on a module swap (user play-test calls on the Lure).
 
 **Amended with the Harvest Pod (2026-10-13)**: the creature lines get their own layer, as the planting machines did. **`CreatureZoneBlockEntity`** extends the core and carries the three-block creature zone box, the animal scan grouped by species, the synced census (rendered by one shared Census annex panel on the terminals) and the time acceleration (Speed on animals). The Breeding Pod and the Harvest Pod extend it; the Reaper Array is expected to. Extracted at the second client (rule of two); the Breeding Pod's behavior, NBT keys and slot layout do not change.
+
+## ADR-026 — The Reaper Array merges into the Phase Death Field
+
+**Date**: 2026-10-13 · **Status**: accepted
+
+The roadmap (ADR-020/021) carried two killing machines: the Reaper Array for livestock in a pen and the Phase Death Field for every mob in a zone. Once the creature layer existed (ADR-025, Harvest Pod amendment), the user called it: they would be one machine doing exactly the same thing on two creature families, and both need the same heavy part (a fake player for XP and player-only drops).
+
+- **The Reaper Array is dropped.** Its role moves into the **Phase Death Field**, which kills in its zone and filters its targets (livestock, monsters, or both).
+- **Spare the breeders** (user): an optional rule keeps N adults per species alive, player-set with -/+ like the Breeding Pod's cap, so a pen keeps breeding; babies are always spared. A Breeding Pod (fills up to its cap) next to a Phase Death Field (harvests above N) is the automated ranch.
+- **Nothing is protected by default** (user): tamed animals, named mobs, villagers, golems and bosses fall to the filter like the rest — the player answers for where the field stands. Players are never targets by construction (the scan covers mobs). A later filtering module may offer finer choices.
+- **Architecture**: the Phase Death Field is the third client of the creature layer, whose scan widens from animals to mobs (scan class per machine; census unchanged).
+- The simulated form does not change: both machines already pointed at the Oblivion Engine. The `reaper_array` id is never registered; ADR-021's naming table keeps the row as history.
