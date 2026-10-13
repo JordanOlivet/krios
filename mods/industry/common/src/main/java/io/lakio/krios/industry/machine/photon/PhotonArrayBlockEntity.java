@@ -46,7 +46,12 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 public class PhotonArrayBlockEntity extends BlockEntity
         implements MenuProvider, NetworkNode, EnergyPort,
         io.lakio.krios.industry.machine.ConfigurableFaces,
-        io.lakio.krios.industry.machine.EnergyStats {
+        io.lakio.krios.industry.machine.EnergyStats,
+        io.lakio.krios.industry.tick.TickingDevice, io.lakio.krios.industry.tick.DeviceAlertable {
+
+    /** Seat on the ADR-027 device scheduler. */
+    private final io.lakio.krios.industry.machine.LitDevice device =
+            new io.lakio.krios.industry.machine.LitDevice();
 
     /** Banks its nights (user call): produces less than a reactor, stores more. */
     public static final int CAPACITY = 100_000;
@@ -147,12 +152,14 @@ public class PhotonArrayBlockEntity extends BlockEntity
         super.setLevel(level);
         if (!level.isClientSide) {
             NetworkManager.addNode(this);
+            device.register(level, this);
         }
     }
 
     @Override
     public void setRemoved() {
         super.setRemoved();
+        device.remove();
         if (level != null && !level.isClientSide) {
             NetworkManager.removeNode(this);
         }
@@ -258,7 +265,7 @@ public class PhotonArrayBlockEntity extends BlockEntity
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, PhotonArrayBlockEntity be) {
-        // Only reachable while LIT (the block registers no ticker otherwise).
+        // Only reachable while LIT (deviceTick gates it, ADR-027).
         int rate = be.productionRate(level, pos);
         if (rate <= 0) {
             be.goDark(level, pos, state);
@@ -278,19 +285,7 @@ public class PhotonArrayBlockEntity extends BlockEntity
     private void goDark(Level level, BlockPos pos, BlockState state) {
         currentRate = 0;
         level.setBlock(pos, state.setValue(BlockStateProperties.LIT, false), 3);
-        level.scheduleTick(pos, state.getBlock(), POLL_INTERVAL_TICKS);
         setChanged();
-    }
-
-    /** Slow poll while dark (ADR-017): relight, or keep the chain alive. */
-    public void pollWake() {
-        if (level == null || level.isClientSide) {
-            return;
-        }
-        tryResume();
-        if (!getBlockState().getValue(BlockStateProperties.LIT)) {
-            level.scheduleTick(worldPosition, getBlockState().getBlock(), POLL_INTERVAL_TICKS);
-        }
     }
 
     /** Relight when the sun shines and the buffer has room again. */
@@ -299,6 +294,7 @@ public class PhotonArrayBlockEntity extends BlockEntity
                 && !getBlockState().getValue(BlockStateProperties.LIT)
                 && !energy.isFull() && productionRate(level, worldPosition) > 0) {
             level.setBlock(worldPosition, getBlockState().setValue(BlockStateProperties.LIT, true), 3);
+            device.alert();
         }
     }
 
@@ -428,6 +424,34 @@ public class PhotonArrayBlockEntity extends BlockEntity
     @Override
     public Packet<ClientGamePacketListener> getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    // --- Device scheduler (ADR-027): awake while LIT, probing while dark ---
+
+    @Override
+    public BlockPos devicePos() {
+        return worldPosition;
+    }
+
+    @Override
+    public void alertDevice() {
+        device.alert();
+    }
+
+    /**
+     * Dark, the panel probes "can I produce?" every POLL_INTERVAL_TICKS —
+     * game-time math would be stranded by /time set or bed skips (ADR-017
+     * rationale kept); lit, it produces every tick.
+     */
+    @Override
+    public void deviceTick(net.minecraft.server.level.ServerLevel level, long now) {
+        BlockState state = getBlockState();
+        if (state.getValue(BlockStateProperties.LIT)) {
+            serverTick(level, worldPosition, state, this);
+        } else {
+            tryResume();
+        }
+        device.probe(getBlockState().getValue(BlockStateProperties.LIT), POLL_INTERVAL_TICKS);
     }
 
     // --- Persistence ---

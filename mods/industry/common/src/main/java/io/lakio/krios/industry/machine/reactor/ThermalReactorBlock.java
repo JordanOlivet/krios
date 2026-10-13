@@ -118,19 +118,6 @@ public class ThermalReactorBlock extends BaseEntityBlock
         return new ThermalReactorBlockEntity(pos, state);
     }
 
-    /**
-     * ADR-012: an idle reactor has NO ticker at all. The LIT blockstate is
-     * the on/off switch — inserting fuel flips it on, running out flips it off.
-     */
-    @Override
-    @Nullable
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        if (level.isClientSide || !state.getValue(BlockStateProperties.LIT)) {
-            return null;
-        }
-        return createTickerHelper(type, ModBlockEntities.THERMAL_REACTOR.get(), ThermalReactorBlockEntity::serverTick);
-    }
-
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (!level.isClientSide && level.getBlockEntity(pos) instanceof ThermalReactorBlockEntity reactor) {
@@ -157,12 +144,4 @@ public class ThermalReactorBlock extends BaseEntityBlock
         }
     }
 
-    /** Scheduled wake-up (ADR-017): poll the manual item-in faces for fuel. */
-    @Override
-    protected void tick(BlockState state, net.minecraft.server.level.ServerLevel level,
-            BlockPos pos, RandomSource random) {
-        if (level.getBlockEntity(pos) instanceof ThermalReactorBlockEntity reactor) {
-            reactor.scheduledWake();
-        }
-    }
 }

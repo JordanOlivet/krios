@@ -120,15 +120,6 @@ public class PlasmaForgeBlock extends BaseEntityBlock
 
     // LIT = has work queued, same contract as the grinder (ADR-012 note).
     @Override
-    @Nullable
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        if (level.isClientSide || !state.getValue(BlockStateProperties.LIT)) {
-            return null;
-        }
-        return createTickerHelper(type, ModBlockEntities.PLASMA_FORGE.get(), PlasmaForgeBlockEntity::serverTick);
-    }
-
-    @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (!level.isClientSide && level.getBlockEntity(pos) instanceof PlasmaForgeBlockEntity forge) {
             player.openMenu(forge);
@@ -154,12 +145,4 @@ public class PlasmaForgeBlock extends BaseEntityBlock
         }
     }
 
-    /** Scheduled wake-up (ADR-017): service the manual item faces. */
-    @Override
-    protected void tick(BlockState state, net.minecraft.server.level.ServerLevel level,
-            BlockPos pos, RandomSource random) {
-        if (level.getBlockEntity(pos) instanceof PlasmaForgeBlockEntity forge) {
-            forge.scheduledWake();
-        }
-    }
 }

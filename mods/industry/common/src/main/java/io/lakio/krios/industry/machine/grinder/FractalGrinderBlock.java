@@ -122,15 +122,6 @@ public class FractalGrinderBlock extends BaseEntityBlock
     // grinder stays lit and polls its neighbors — accepted O(1) cost until a
     // real energy network brings scheduled wake-ups (ADR-012 note).
     @Override
-    @Nullable
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        if (level.isClientSide || !state.getValue(BlockStateProperties.LIT)) {
-            return null;
-        }
-        return createTickerHelper(type, ModBlockEntities.FRACTAL_GRINDER.get(), FractalGrinderBlockEntity::serverTick);
-    }
-
-    @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (!level.isClientSide && level.getBlockEntity(pos) instanceof FractalGrinderBlockEntity grinder) {
             player.openMenu(grinder);
@@ -156,12 +147,4 @@ public class FractalGrinderBlock extends BaseEntityBlock
         }
     }
 
-    /** Scheduled wake-up (ADR-017): service the manual item faces. */
-    @Override
-    protected void tick(BlockState state, net.minecraft.server.level.ServerLevel level,
-            BlockPos pos, RandomSource random) {
-        if (level.getBlockEntity(pos) instanceof FractalGrinderBlockEntity grinder) {
-            grinder.scheduledWake();
-        }
-    }
 }

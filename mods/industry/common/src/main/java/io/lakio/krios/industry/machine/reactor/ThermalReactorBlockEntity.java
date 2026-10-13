@@ -43,7 +43,12 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 public class ThermalReactorBlockEntity extends BlockEntity
         implements Container, MenuProvider, NetworkNode, EnergyPort,
         io.lakio.krios.industry.machine.ConfigurableFaces,
-        io.lakio.krios.industry.machine.EnergyStats {
+        io.lakio.krios.industry.machine.EnergyStats,
+        io.lakio.krios.industry.tick.TickingDevice, io.lakio.krios.industry.tick.DeviceAlertable {
+
+    /** Seat on the ADR-027 device scheduler. */
+    private final io.lakio.krios.industry.machine.LitDevice device =
+            new io.lakio.krios.industry.machine.LitDevice();
 
     /** ~2 coals of reserve; a full reactor idles unlit (ADR-012). */
     public static final int CAPACITY = 50_000;
@@ -153,7 +158,7 @@ public class ThermalReactorBlockEntity extends BlockEntity
         setChanged();
         syncFacesToClients();
         // A manual item face may just have appeared: enter the wake chain.
-        io.lakio.krios.industry.machine.ItemFlow.scheduleWake(level, worldPosition, faceConfig);
+        io.lakio.krios.industry.machine.ItemFlow.alertMachine(level, worldPosition);
         return true;
     }
 
@@ -176,12 +181,14 @@ public class ThermalReactorBlockEntity extends BlockEntity
         super.setLevel(level);
         if (!level.isClientSide) {
             NetworkManager.addNode(this);
+            device.register(level, this);
         }
     }
 
     @Override
     public void setRemoved() {
         super.setRemoved();
+        device.remove();
         if (level != null && !level.isClientSide) {
             NetworkManager.removeNode(this);
         }
@@ -278,7 +285,7 @@ public class ThermalReactorBlockEntity extends BlockEntity
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, ThermalReactorBlockEntity be) {
-        // Only reachable while LIT (the block registers no ticker otherwise).
+        // Only reachable while LIT (deviceTick gates it, ADR-027).
         // Tier doubling: rate AND burn speed scale together, so a fuel's
         // total energy never changes — higher tiers just deliver it faster.
         // Energy modules are the one exception by design: +25%/pt on the
@@ -374,7 +381,7 @@ public class ThermalReactorBlockEntity extends BlockEntity
         if (level != null && !level.isClientSide) {
             tryResume();
             tryIgnite();
-            io.lakio.krios.industry.machine.ItemFlow.scheduleWake(level, worldPosition, faceConfig);
+            io.lakio.krios.industry.machine.ItemFlow.alertMachine(level, worldPosition);
         }
     }
 
@@ -389,7 +396,6 @@ public class ThermalReactorBlockEntity extends BlockEntity
         io.lakio.krios.industry.machine.ItemFlow.pullIntoSlot(level, worldPosition, this, 0,
                 faceConfig, KoiosBalance.ITEM_PULL_BATCH_BASE * MachineTiers.speedFactor(
                         MachineTiers.effectiveTier(NetworkManager.networkOf(this), machineTier)));
-        io.lakio.krios.industry.machine.ItemFlow.scheduleWake(level, worldPosition, faceConfig);
     }
 
     // --- Energy diagnostics (Calibrator, KOIOS alerts) ---
@@ -458,6 +464,7 @@ public class ThermalReactorBlockEntity extends BlockEntity
         // already paid for that energy (thermostat, 2026-10-02).
         if (hasResumeRoom() && (burnTime > 0 || tryConsumeFuel())) {
             level.setBlock(worldPosition, getBlockState().setValue(BlockStateProperties.LIT, true), 3);
+            device.alert();
         }
     }
 
@@ -579,6 +586,30 @@ public class ThermalReactorBlockEntity extends BlockEntity
     @Override
     public Packet<ClientGamePacketListener> getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    // --- Device scheduler (ADR-027): awake while LIT ---
+
+    @Override
+    public BlockPos devicePos() {
+        return worldPosition;
+    }
+
+    @Override
+    public void alertDevice() {
+        device.alert();
+    }
+
+    @Override
+    public void deviceTick(net.minecraft.server.level.ServerLevel level, long now) {
+        if (device.pullDue(now, faceConfig)) {
+            scheduledWake();
+        }
+        BlockState state = getBlockState();
+        if (state.getValue(BlockStateProperties.LIT)) {
+            serverTick(level, worldPosition, state, this);
+        }
+        device.settle(getBlockState().getValue(BlockStateProperties.LIT), faceConfig, now);
     }
 
     // --- Persistence ---

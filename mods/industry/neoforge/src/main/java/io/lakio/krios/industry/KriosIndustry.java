@@ -12,6 +12,8 @@ import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
+import net.neoforged.neoforge.event.tick.LevelTickEvent;
 
 @Mod(Constants.MOD_ID)
 public class KriosIndustry {
@@ -24,6 +26,14 @@ public class KriosIndustry {
         eventBus.addListener(KriosIndustry::registerCapabilities);
         // Commands ride the game bus, not the mod bus.
         NeoForge.EVENT_BUS.addListener(KriosIndustry::registerCommands);
+        // ADR-027: the device scheduler rides the level tick.
+        NeoForge.EVENT_BUS.addListener((LevelTickEvent.Post event) -> {
+            if (event.getLevel() instanceof net.minecraft.server.level.ServerLevel level) {
+                io.lakio.krios.industry.tick.TickManager.tickLevel(level);
+            }
+        });
+        NeoForge.EVENT_BUS.addListener((ServerStoppingEvent event) ->
+                io.lakio.krios.industry.tick.TickManager.clear());
     }
 
     private static void registerCommands(RegisterCommandsEvent event) {

@@ -144,18 +144,14 @@ public final class ItemFlow {
     }
 
     /**
-     * Keeps the wake chain alive (ADR-017): schedules the next wake while
-     * a manual item face exists. Entered from player actions (face edits,
-     * neighbor changes) and from the wake itself — never from chunk load;
-     * pending block ticks persist in chunk saves and cover reloads.
+     * Something changed around a machine (face edit, neighbor, block swap):
+     * wake it on the ADR-027 scheduler; its device then probes the manual
+     * item faces at the ADR-017 cadence by itself.
      */
-    public static void scheduleWake(Level level, BlockPos pos, FaceConfig config) {
-        if (level == null || level.isClientSide || !hasManualItemFace(config)) {
-            return;
-        }
-        Block block = level.getBlockState(pos).getBlock();
-        if (!level.getBlockTicks().hasScheduledTick(pos, block)) {
-            level.scheduleTick(pos, block, WAKE_INTERVAL_TICKS);
+    public static void alertMachine(Level level, BlockPos pos) {
+        if (level != null && !level.isClientSide
+                && level.getBlockEntity(pos) instanceof io.lakio.krios.industry.tick.DeviceAlertable machine) {
+            machine.alertDevice();
         }
     }
 

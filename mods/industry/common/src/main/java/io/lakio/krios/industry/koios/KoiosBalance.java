@@ -114,6 +114,8 @@ public final class KoiosBalance {
      * we move whole stacks).
      */
     public static final int ZONE_PUSH_DELAY_TICKS = 10;
+    /** Live terminal data cadence while a player watches (census, ADR-027). */
+    public static final int VIEW_REFRESH_TICKS = 20;
     public static final int ZONE_ACTIONS_BASE = 4;
     /** Forced growth ticks per wake are capped (no burst after a long gap). */
     public static final int ZONE_MAX_GROWTH_TICKS_PER_WAKE = 64;

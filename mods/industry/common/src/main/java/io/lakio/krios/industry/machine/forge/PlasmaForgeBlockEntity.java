@@ -53,7 +53,12 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 public class PlasmaForgeBlockEntity extends BlockEntity
         implements WorldlyContainer, MenuProvider, NetworkNode, EnergySink,
         io.lakio.krios.industry.machine.ConfigurableFaces,
-        io.lakio.krios.industry.machine.EnergyStats {
+        io.lakio.krios.industry.machine.EnergyStats,
+        io.lakio.krios.industry.tick.TickingDevice, io.lakio.krios.industry.tick.DeviceAlertable {
+
+    /** Seat on the ADR-027 device scheduler. */
+    private final io.lakio.krios.industry.machine.LitDevice device =
+            new io.lakio.krios.industry.machine.LitDevice();
 
     /**
      * Parallel process columns this machine LINE can host — the tier 2
@@ -206,7 +211,7 @@ public class PlasmaForgeBlockEntity extends BlockEntity
         setChanged();
         syncFacesToClients();
         // A manual item face may just have appeared: enter the wake chain.
-        ItemFlow.scheduleWake(level, worldPosition, faceConfig);
+        ItemFlow.alertMachine(level, worldPosition);
         return true;
     }
 
@@ -217,12 +222,14 @@ public class PlasmaForgeBlockEntity extends BlockEntity
         super.setLevel(level);
         if (!level.isClientSide) {
             NetworkManager.addNode(this);
+            device.register(level, this);
         }
     }
 
     @Override
     public void setRemoved() {
         super.setRemoved();
+        device.remove();
         if (level != null && !level.isClientSide) {
             NetworkManager.removeNode(this);
         }
@@ -511,6 +518,7 @@ public class PlasmaForgeBlockEntity extends BlockEntity
         for (int column = 0; column < PROCESS_SLOTS; column++) {
             if (!items.get(INPUT_FIRST + column).isEmpty()) {
                 level.setBlock(worldPosition, getBlockState().setValue(BlockStateProperties.LIT, true), 3);
+            device.alert();
                 return;
             }
         }
@@ -539,7 +547,7 @@ public class PlasmaForgeBlockEntity extends BlockEntity
                 ItemFlow.pushOutput(level, worldPosition, this, OUTPUT_FIRST + column, faceConfig);
             }
             tryWake();
-            ItemFlow.scheduleWake(level, worldPosition, faceConfig);
+            ItemFlow.alertMachine(level, worldPosition);
         }
     }
 
@@ -555,7 +563,6 @@ public class PlasmaForgeBlockEntity extends BlockEntity
             ItemFlow.pushOutput(level, worldPosition, this, OUTPUT_FIRST + column, faceConfig);
         }
         ItemFlow.pullIntoMachine(level, worldPosition, this, faceConfig, pullBatch());
-        ItemFlow.scheduleWake(level, worldPosition, faceConfig);
     }
 
     /** Pull batch from passive containers: base x effective-tier factor. */
@@ -689,6 +696,30 @@ public class PlasmaForgeBlockEntity extends BlockEntity
     @Override
     public Packet<ClientGamePacketListener> getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    // --- Device scheduler (ADR-027): awake while LIT ---
+
+    @Override
+    public BlockPos devicePos() {
+        return worldPosition;
+    }
+
+    @Override
+    public void alertDevice() {
+        device.alert();
+    }
+
+    @Override
+    public void deviceTick(net.minecraft.server.level.ServerLevel level, long now) {
+        if (device.pullDue(now, faceConfig)) {
+            scheduledWake();
+        }
+        BlockState state = getBlockState();
+        if (state.getValue(BlockStateProperties.LIT)) {
+            serverTick(level, worldPosition, state, this);
+        }
+        device.settle(getBlockState().getValue(BlockStateProperties.LIT), faceConfig, now);
     }
 
     // --- Persistence ---

@@ -21,6 +21,9 @@ import io.lakio.krios.industry.network.Flow;
 import io.lakio.krios.industry.network.Network;
 import io.lakio.krios.industry.network.NetworkManager;
 import io.lakio.krios.industry.network.NetworkNode;
+import io.lakio.krios.industry.tick.DeviceHandle;
+import io.lakio.krios.industry.tick.TickManager;
+import io.lakio.krios.industry.tick.TickingDevice;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -42,7 +45,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -53,9 +55,10 @@ import org.jetbrains.annotations.Nullable;
  * <ul>
  * <li>the zone: behind the screen, edge per machine (by effective tier
  * with -/+ one ring, or fixed), synced to clients for the hologram;</li>
- * <li>the ADR-022 wake chain: scheduled ticks only; the machine supplies
- * its work step, its next delay and its idle state; a full buffer is the
- * one true stop;</li>
+ * <li>the wake chain (ADR-022 pacing, driven by the ADR-027 device
+ * scheduler): the machine supplies its work step, its next delay and its
+ * idle state; a full buffer is the one true stop; alerts (inputs, modules,
+ * buttons, neighbors) reach it at the next tick;</li>
  * <li>a generic input area (each machine declares its slot count, zero
  * allowed, and what they accept), the 9-slot output buffer, the module
  * bay (each machine declares the axes it takes);</li>
@@ -67,7 +70,8 @@ import org.jetbrains.annotations.Nullable;
  * down, in {@link PlantingZoneBlockEntity}.
  */
 public abstract class ZoneMachineBlockEntity extends BlockEntity
-        implements WorldlyContainer, MenuProvider, NetworkNode, EnergySink, ConfigurableFaces, EnergyStats {
+        implements WorldlyContainer, MenuProvider, NetworkNode, EnergySink, ConfigurableFaces, EnergyStats,
+        TickingDevice, io.lakio.krios.industry.tick.DeviceAlertable {
 
     // Layout: inputs (per machine, from 0), output buffer (per machine,
     // 9 by default, zero allowed), modules.
@@ -180,6 +184,12 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
     private boolean paused;
     /** Suppresses kicks fired by our own setItem calls during a wake. */
     private boolean inWake;
+    /** Seat in the level's device scheduler (ADR-027); server side only. */
+    @Nullable
+    private DeviceHandle device;
+    /** Players with the terminal open: while watched, the view refreshes live. */
+    private int viewers;
+    private long nextViewTime;
 
     private int stateCode = STATE_WAITING;
     /** Average draw over the last wake interval, E/t. */
@@ -410,18 +420,20 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
         kick();
     }
 
-    // --- Wake chain (ADR-022) ---
+    // --- Wake chain (ADR-022 pacing on the ADR-027 device scheduler) ---
 
-    /** Makes sure a wake is pending; never shortens one already scheduled. */
+    /** Makes sure a wake comes soon; never postpones one already due earlier. */
     protected void kick() {
-        if (level == null || level.isClientSide || inWake) {
+        if (device == null || inWake) {
             return;
         }
         paused = false;
-        Block block = getBlockState().getBlock();
-        if (!level.getBlockTicks().hasScheduledTick(worldPosition, block)) {
-            level.scheduleTick(worldPosition, block, KoiosBalance.ZONE_ACTIVE_DELAY_TICKS);
-        }
+        device.alertWithin(KoiosBalance.ZONE_ACTIVE_DELAY_TICKS);
+    }
+
+    @Override
+    public void alertDevice() {
+        kick();
     }
 
     public void onNeighborChanged() {
@@ -430,46 +442,89 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
     }
 
     /**
-     * Wakes the machine at the next tick, replacing a later pending wake
-     * (vanilla keeps one scheduled tick per block: clear, then schedule).
+     * Wakes the machine at the next tick for real work (modules changed).
      * Player-driven only — never called from inside a wake.
      */
     protected void wakeSoon() {
-        if (level instanceof ServerLevel server && !inWake) {
+        if (device != null && !inWake) {
             nextWorkTime = 0;
             paused = false;
-            server.getBlockTicks().clearArea(new BoundingBox(worldPosition));
-            server.scheduleTick(worldPosition, getBlockState().getBlock(), 1);
+            device.alert();
         }
     }
 
-    public void scheduledWake(ServerLevel level) {
+    @Override
+    public BlockPos devicePos() {
+        return worldPosition;
+    }
+
+    /**
+     * Live terminal data while watched (user call 2026-10-13: the census
+     * must not freeze between work wakes). Runs every VIEW_REFRESH_TICKS
+     * while at least one player has the terminal open; nobody watching
+     * costs nothing.
+     */
+    protected void viewTick(ServerLevel level) {
+    }
+
+    @Override
+    public void startOpen(Player player) {
+        if (!player.isSpectator() && viewers++ == 0 && device != null) {
+            nextViewTime = 0;
+            device.alert();
+        }
+    }
+
+    @Override
+    public void stopOpen(Player player) {
+        if (!player.isSpectator()) {
+            viewers = Math.max(0, viewers - 1);
+        }
+    }
+
+    @Override
+    public void deviceTick(ServerLevel level, long now) {
+        if (viewers > 0 && now >= nextViewTime) {
+            nextViewTime = now + KoiosBalance.VIEW_REFRESH_TICKS;
+            viewTick(level);
+        }
         inWake = true;
         try {
-            long now = level.getGameTime();
             if (paused) {
                 if (!pushBuffer()) {
-                    // Still jammed: only the manual item faces keep a
-                    // (slow) chain alive, to push the buffer out.
-                    ItemFlow.scheduleWake(level, worldPosition, faceConfig);
+                    pauseIdle();
                     return;
                 }
                 paused = false;
             } else if (nextWorkTime > 0 && now < nextWorkTime) {
-                pushWake(level, now);
+                pushWake(now);
                 return;
             }
             int delay = wake(level);
             if (delay > 0) {
                 nextWorkTime = now + delay;
-                scheduleNext(level, now);
+                scheduleNext(now);
             } else {
                 paused = true;
                 nextWorkTime = 0;
-                ItemFlow.scheduleWake(level, worldPosition, faceConfig);
+                pauseIdle();
             }
         } finally {
             inWake = false;
+        }
+    }
+
+    /**
+     * Stopped on a full buffer: only the manual item faces (ADR-017) keep a
+     * slow probe to push the buffer out; otherwise sleep until an alert.
+     */
+    private void pauseIdle() {
+        if (ItemFlow.hasManualItemFace(faceConfig)) {
+            rest(ItemFlow.WAKE_INTERVAL_TICKS);
+        } else if (viewers > 0) {
+            rest(Integer.MAX_VALUE);
+        } else {
+            device.sleep();
         }
     }
 
@@ -479,22 +534,29 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
      * none), fall back to the work cadence — a full chest notifies nobody
      * when it empties, the work wakes retry anyway.
      */
-    private void pushWake(ServerLevel level, long now) {
+    private void pushWake(long now) {
         if (pushBuffer() && bufferHasItems()) {
-            scheduleNext(level, now);
+            scheduleNext(now);
         } else {
-            level.scheduleTick(worldPosition, getBlockState().getBlock(),
-                    (int) Math.max(1, nextWorkTime - now));
+            rest((int) Math.max(1, nextWorkTime - now));
         }
     }
 
-    /** Next wake: the work wake, or sooner to push a non-empty buffer. */
-    private void scheduleNext(ServerLevel level, long now) {
+    /** Next visit: the work wake, or sooner to push a non-empty buffer. */
+    private void scheduleNext(long now) {
         long delay = Math.max(1, nextWorkTime - now);
         if (bufferHasItems()) {
             delay = Math.min(delay, KoiosBalance.ZONE_PUSH_DELAY_TICKS);
         }
-        level.scheduleTick(worldPosition, getBlockState().getBlock(), (int) delay);
+        rest((int) delay);
+    }
+
+    /** Sleep for {@code ticks}, but no longer than the next live-view refresh while watched. */
+    private void rest(int ticks) {
+        if (viewers > 0 && level != null) {
+            ticks = (int) Math.min(ticks, Math.max(1, nextViewTime - level.getGameTime()));
+        }
+        device.sleepFor(ticks);
     }
 
     private boolean bufferHasItems() {
@@ -800,9 +862,14 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
     @Override
     public void setLevel(Level level) {
         super.setLevel(level);
-        if (!level.isClientSide) {
+        if (level instanceof ServerLevel server) {
             NetworkManager.addNode(this);
             onZoneChanged();
+            // Registered awake: one wake on load, then it paces or sleeps.
+            if (device != null) {
+                device.remove();
+            }
+            device = TickManager.of(server).register(this);
         }
     }
 
@@ -811,6 +878,10 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
         super.setRemoved();
         if (level != null && !level.isClientSide) {
             NetworkManager.removeNode(this);
+        }
+        if (device != null) {
+            device.remove();
+            device = null;
         }
     }
 

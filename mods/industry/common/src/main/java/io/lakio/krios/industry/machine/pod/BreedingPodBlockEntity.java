@@ -155,14 +155,20 @@ public class BreedingPodBlockEntity extends CreatureZoneBlockEntity<Animal> {
             work.starved = accelerate(level, work, species);
         }
         idle = noFood ? STATE_NO_FOOD : capped == species.size() ? STATE_CAPPED : STATE_NO_PAIR;
-        // Main-frame summary (this wake's births show at the next one).
+        beforeCensus(species);
+        census(species);
+    }
+
+    /** Main-frame summary: species at the cap (this wake's births show at the next one). */
+    @Override
+    protected void beforeCensus(Map<EntityType<?>, List<Animal>> species) {
+        int cap = cap();
         cappedSpecies = 0;
         for (List<Animal> animals : species.values()) {
             if (animals.size() >= cap) {
                 cappedSpecies++;
             }
         }
-        census(species);
     }
 
     /**

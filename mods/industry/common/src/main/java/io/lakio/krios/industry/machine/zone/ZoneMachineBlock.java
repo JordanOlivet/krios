@@ -115,19 +115,6 @@ public abstract class ZoneMachineBlock extends BaseEntityBlock implements Networ
         return InteractionResult.sidedSuccess(level.isClientSide);
     }
 
-    /**
-     * Enter the wake chain on placement — including the upgrade kit's
-     * block swap, which drops pending ticks. LIT flips (same block) are
-     * ignored: the chain is already running.
-     */
-    @Override
-    protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
-        super.onPlace(state, level, pos, oldState, movedByPiston);
-        if (!level.isClientSide && !oldState.is(this)) {
-            level.scheduleTick(pos, this, 1);
-        }
-    }
-
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof ZoneMachineBlockEntity machine) {
@@ -146,11 +133,4 @@ public abstract class ZoneMachineBlock extends BaseEntityBlock implements Networ
         }
     }
 
-    /** The machine's only clock (ADR-022). */
-    @Override
-    protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-        if (level.getBlockEntity(pos) instanceof ZoneMachineBlockEntity machine) {
-            machine.scheduledWake(level);
-        }
-    }
 }

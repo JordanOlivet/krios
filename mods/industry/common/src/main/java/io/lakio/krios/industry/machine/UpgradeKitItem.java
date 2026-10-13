@@ -95,12 +95,11 @@ public class UpgradeKitItem extends Item {
         if (fresh != null) {
             fresh.loadWithComponents(saved, level.registryAccess());
             fresh.setChanged();
-            // The swap dropped any pending scheduled tick (vanilla keys them
-            // by block), so the ADR-017 wake chain must be re-entered here —
-            // the carried-over manual item faces otherwise go unserviced
-            // until a player touches the face config again.
+            // The fresh block entity registered itself on the ADR-027
+            // scheduler; wake it so the carried-over state (fuel, inputs,
+            // manual item faces) is serviced at once.
             if (fresh instanceof FlowPorts ports) {
-                ItemFlow.scheduleWake(level, pos, ports.faceConfig());
+                ItemFlow.alertMachine(level, pos);
             }
         }
         level.sendBlockUpdated(pos, upgraded, upgraded, 3);

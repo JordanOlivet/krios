@@ -93,6 +93,14 @@ public class ZoneMachineMenu extends AbstractContainerMenu implements MachineMen
         }
 
         addDataSlots(data);
+        // Watched terminals refresh live (server side: the block entity).
+        container.startOpen(playerInventory.player);
+    }
+
+    @Override
+    public void removed(Player player) {
+        super.removed(player);
+        container.stopOpen(player);
     }
 
     /** Raw synced value (machine data starts at BASE_DATA_COUNT). */

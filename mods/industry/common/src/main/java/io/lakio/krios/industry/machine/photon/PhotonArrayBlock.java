@@ -81,32 +81,6 @@ public class PhotonArrayBlock extends BaseEntityBlock implements NetworkConducto
         return new PhotonArrayBlockEntity(pos, state);
     }
 
-    @Override
-    @Nullable
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        if (level.isClientSide || !state.getValue(BlockStateProperties.LIT)) {
-            return null;
-        }
-        return createTickerHelper(type, ModBlockEntities.PHOTON_ARRAY.get(), PhotonArrayBlockEntity::serverTick);
-    }
-
-    /** Enter the poll chain on placement (next tick, once the BE exists). */
-    @Override
-    protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
-        super.onPlace(state, level, pos, oldState, movedByPiston);
-        if (!level.isClientSide && !oldState.is(this)) {
-            level.scheduleTick(pos, this, 1);
-        }
-    }
-
-    /** Slow poll wake-up (ADR-017): the dark panel asks "can I produce?". */
-    @Override
-    protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-        if (level.getBlockEntity(pos) instanceof PhotonArrayBlockEntity panel) {
-            panel.pollWake();
-        }
-    }
-
     /** A drained neighbor or cleared roof may free us before the next poll. */
     @Override
     protected void neighborChanged(BlockState state, Level level, BlockPos pos,

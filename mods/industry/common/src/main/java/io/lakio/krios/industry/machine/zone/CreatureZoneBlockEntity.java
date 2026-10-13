@@ -130,10 +130,27 @@ public abstract class CreatureZoneBlockEntity<E extends Mob> extends ZoneMachine
 
     // --- Census ---
 
+    /** Machine state the census rows depend on, refreshed before a live census. */
+    protected void beforeCensus(Map<EntityType<?>, List<E>> species) {
+    }
+
+    @Override
+    protected void viewTick(ServerLevel level) {
+        Map<EntityType<?>, List<E>> species = scan(level);
+        beforeCensus(species);
+        census(species);
+    }
+
     /** Top species by count for the terminal; the rest only counted. */
     protected final void census(Map<EntityType<?>, List<E>> species) {
-        List<Map.Entry<EntityType<?>, List<E>>> rows = new ArrayList<>(species.entrySet());
-        rows.sort((x, y) -> Integer.compare(y.getValue().size(), x.getValue().size()));
+        // Creatures killed during this wake are not counted.
+        List<Map.Entry<EntityType<?>, List<E>>> rows = new ArrayList<>();
+        for (Map.Entry<EntityType<?>, List<E>> entry : species.entrySet()) {
+            if (alive(entry.getValue()) > 0) {
+                rows.add(entry);
+            }
+        }
+        rows.sort((x, y) -> Integer.compare(alive(y.getValue()), alive(x.getValue())));
         totalAnimals = 0;
         for (int i = 0; i < CENSUS_ROWS; i++) {
             censusIds[i] = 0;
@@ -142,7 +159,7 @@ public abstract class CreatureZoneBlockEntity<E extends Mob> extends ZoneMachine
         }
         for (int i = 0; i < rows.size(); i++) {
             Map.Entry<EntityType<?>, List<E>> row = rows.get(i);
-            int count = row.getValue().size();
+            int count = alive(row.getValue());
             totalAnimals += count;
             if (i < CENSUS_ROWS) {
                 censusIds[i] = BuiltInRegistries.ENTITY_TYPE.getId(row.getKey()) + 1;
@@ -151,6 +168,16 @@ public abstract class CreatureZoneBlockEntity<E extends Mob> extends ZoneMachine
             }
         }
         speciesCount = rows.size();
+    }
+
+    private static int alive(List<? extends Mob> creatures) {
+        int count = 0;
+        for (Mob creature : creatures) {
+            if (creature.isAlive()) {
+                count++;
+            }
+        }
+        return count;
     }
 
     // --- Synced data ---

@@ -156,19 +156,32 @@ public class PhaseDeathFieldBlockEntity extends CreatureZoneBlockEntity<Mob> {
     @Override
     protected void work(ServerLevel level, Work work) {
         Map<EntityType<?>, List<Mob>> species = scan(level);
-        Map<EntityType<?>, Integer> counts = new HashMap<>();
         List<Mob> all = new ArrayList<>();
-        for (Map.Entry<EntityType<?>, List<Mob>> entry : species.entrySet()) {
-            List<Mob> targets = targets(entry.getValue());
-            counts.put(entry.getKey(), targets.size());
-            all.addAll(targets);
+        for (List<Mob> creatures : species.values()) {
+            all.addAll(targets(creatures));
         }
-        targeted = counts;
         if (!all.isEmpty()) {
             reap(level, work, all);
         }
         idle = STATE_NO_TARGETS;
+        beforeCensus(species);
         census(species);
+    }
+
+    /** Census detail: living targets per species under the current filter. */
+    @Override
+    protected void beforeCensus(Map<EntityType<?>, List<Mob>> species) {
+        Map<EntityType<?>, Integer> counts = new HashMap<>();
+        for (Map.Entry<EntityType<?>, List<Mob>> entry : species.entrySet()) {
+            int alive = 0;
+            for (Mob mob : targets(entry.getValue())) {
+                if (mob.isAlive()) {
+                    alive++;
+                }
+            }
+            counts.put(entry.getKey(), alive);
+        }
+        targeted = counts;
     }
 
     private void reap(ServerLevel level, Work work, List<Mob> targets) {
