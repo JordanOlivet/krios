@@ -424,6 +424,20 @@ The killing line, with the Reaper Array merged in (**ADR-026**): one machine for
 - Placeholders: 10 E per damage point dealt; KOIOS XP 200 permille, diversity key `kill:<species>`. Recipe: iron sword, actuators, chronite, neurite ingot, iron, redstone block; Mk II through the upgrade kit.
 - **Terminal**: no inputs, so the left column hosts the filter button, the spare toggle and its N selector; the shared zone map in the center, the 3×3 buffer on the right; the Census annex shows targeted/total per species (spared in grey). States: reaping / no targets / buffer full.
 
+### Bio Synthesizer and the Engram (design session 2026-10-13)
+
+The spawner line, fourth client of the creature layer. With a Phase Death Field over the same zone, it is a complete mob farm.
+
+- **Creature zone height raised to 5** (user, whole layer: pods and field too) — no reason to restrict what may spawn (a ghast fits). **Zone holograms follow the zone's real height** (fix: they always drew one block).
+- **Biome mode** (no Engram): a weighted draw from the MONSTER spawn list of the biome at the machine (user: animals have the Breeding Pod). **Light is ignored**; vanilla placement stays (spawn placement type, free space within the zone). Spawned as `MobSpawnType.SPAWNER` (vanilla equipment and variants).
+- **Engram mode** (Engram in its slot): only the imprinted species, whatever the biome — blazes, wither skeletons, guardians, shulkers...
+- **The Engram** (ex "neural imprint"): a blank Engram right-clicked on a living mob is imprinted at once with its species (user, option B). **Never consumed** — it is data, the creature's signature. **Duplication** by crafting: blank + imprinted = two imprinted (user). Imprinting refuses the species in the `krios_industry:engram_blacklist` entity tag, **empty by default** (user: the player or the pack maker decides what is restricted, not us).
+- **Pacing**: one cycle every 200 ticks; **the tier doubles the mobs per cycle** (1/2/4/8); **mob cap in the zone** 8/16/32/64 (all mobs counted, lag guard) — at the cap the machine waits. Starting values, to tune in play (user: probably too generous).
+- **Energy**: 50 E per maximum health point of the spawned mob (a zombie costs 1,000 E) — the matter is synthesized. Placeholder, likely to go down.
+- **Modules**: Speed = cycle pace; Yield = +25 % mobs per point (quarter carry); Efficiency = cost. **KOIOS XP**: farm permille, diversity key `spawn:<species>`.
+- **Terminal**: the Engram slot in the left column with the species (or "biome mode") under it; the zone map; a cap readout (`n/cap`) where the buffer would be; the Census annex. States: synthesizing / cap reached / no room / nothing spawns here / peaceful.
+- Placeholders: recipe egg, actuators, chronite, neurite ingot, iron, redstone block; blank Engram from glass, neurite, redstone, chronite.
+
 ## Open questions (implementation-time)
 
 - **Responsiveness vs. the tickless policy (consigned 2026-10-09, user)**: several play-test papercuts trace back to ADR-012/ADR-022 — outputs only leaving after an action, modules applying at the next action (both patched for the zone machines the same day: push-only wakes while the buffer drains, an immediate wake + in-flight rescale on a module swap). The user questions whether ticking is really that costly and expects krios_storage to make it worse. To revisit later as a whole: measure the actual cost of tickers vs. scheduled wakes, and settle a model that feels smooth and reactive (e.g. ticking while there is something to do, tickless only when truly idle). Not now.
