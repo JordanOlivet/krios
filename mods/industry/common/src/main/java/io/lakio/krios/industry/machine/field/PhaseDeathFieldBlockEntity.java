@@ -21,6 +21,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.NeutralMob;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Enemy;
@@ -199,6 +200,7 @@ public class PhaseDeathFieldBlockEntity extends CreatureZoneBlockEntity<Mob> {
             Vec3 motion = mob.getDeltaMovement();
             mob.hurt(source, damage);
             mob.setDeltaMovement(motion);
+            forgetReaper(mob, reaper);
             hits++;
             work.actions++;
             if (!mob.isAlive()) {
@@ -209,6 +211,27 @@ public class PhaseDeathFieldBlockEntity extends CreatureZoneBlockEntity<Mob> {
         reaper.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
         if (hits > 0) {
             setChanged();
+        }
+    }
+
+    /**
+     * The hit made the mob target and resent the fake player, which stands
+     * at the machine: mobs would crowd the block (seen in play). Undo only
+     * what points at the reaper — a real player's aggro stays — and keep
+     * lastHurtByPlayer, the kill credit for loot and XP.
+     */
+    private static void forgetReaper(Mob mob, ServerPlayer reaper) {
+        if (!mob.isAlive()) {
+            return;
+        }
+        if (mob.getTarget() == reaper) {
+            mob.setTarget(null);
+        }
+        if (mob.getLastHurtByMob() == reaper) {
+            mob.setLastHurtByMob(null);
+        }
+        if (mob instanceof NeutralMob neutral && reaper.getUUID().equals(neutral.getPersistentAngerTarget())) {
+            neutral.stopBeingAngry();
         }
     }
 

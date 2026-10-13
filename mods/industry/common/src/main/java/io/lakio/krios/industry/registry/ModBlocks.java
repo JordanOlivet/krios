@@ -117,6 +117,12 @@ public final class ModBlocks {
     public static final Supplier<Block> PHASE_DEATH_FIELD_TIER2 = registerWithItem("phase_death_field_tier2",
             () -> new io.lakio.krios.industry.machine.field.PhaseDeathFieldBlock(machineProperties(9), 2));
 
+    public static final Supplier<Block> BIO_SYNTHESIZER = registerWithItem("bio_synthesizer",
+            () -> new io.lakio.krios.industry.machine.synth.BioSynthesizerBlock(machineProperties(9), 1));
+
+    public static final Supplier<Block> BIO_SYNTHESIZER_TIER2 = registerWithItem("bio_synthesizer_tier2",
+            () -> new io.lakio.krios.industry.machine.synth.BioSynthesizerBlock(machineProperties(9), 2));
+
     public static final Supplier<Block> NEURAL_CASING = registerWithItem("neural_casing",
             () -> new NeuralCasingBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.METAL)

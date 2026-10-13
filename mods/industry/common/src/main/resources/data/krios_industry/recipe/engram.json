@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " G ",
+    "RNR",
+    " S "
+  ],
+  "key": {
+    "G": {
+      "tag": "c:glass_blocks"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "N": {
+      "tag": "c:ingots/neurite"
+    },
+    "S": {
+      "item": "krios_industry:chronite_shard"
+    }
+  },
+  "result": {
+    "id": "krios_industry:engram",
+    "count": 2
+  }
+}

@@ -64,6 +64,11 @@ public final class ModBlockEntities {
                     io.lakio.krios.industry.machine.field.PhaseDeathFieldBlockEntity::new,
                     ModBlocks.PHASE_DEATH_FIELD.get(), ModBlocks.PHASE_DEATH_FIELD_TIER2.get()));
 
+    public static final Supplier<BlockEntityType<io.lakio.krios.industry.machine.synth.BioSynthesizerBlockEntity>> BIO_SYNTHESIZER =
+            register("bio_synthesizer", () -> Services.REGISTRAR.createBlockEntityType(
+                    io.lakio.krios.industry.machine.synth.BioSynthesizerBlockEntity::new,
+                    ModBlocks.BIO_SYNTHESIZER.get(), ModBlocks.BIO_SYNTHESIZER_TIER2.get()));
+
     public static final Supplier<BlockEntityType<KoiosCoreBlockEntity>> KOIOS_CORE = register("koios_core",
             () -> Services.REGISTRAR.createBlockEntityType(KoiosCoreBlockEntity::new, ModBlocks.KOIOS_CORE.get()));
 

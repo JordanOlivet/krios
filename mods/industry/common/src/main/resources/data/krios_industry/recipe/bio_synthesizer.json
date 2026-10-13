@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SES",
+    "ANA",
+    "IRI"
+  ],
+  "key": {
+    "S": {
+      "item": "krios_industry:chronite_shard"
+    },
+    "E": {
+      "item": "minecraft:egg"
+    },
+    "A": {
+      "item": "krios_industry:actuator"
+    },
+    "N": {
+      "tag": "c:ingots/neurite"
+    },
+    "I": {
+      "tag": "c:ingots/iron"
+    },
+    "R": {
+      "item": "minecraft:redstone_block"
+    }
+  },
+  "result": {
+    "id": "krios_industry:bio_synthesizer",
+    "count": 1
+  }
+}

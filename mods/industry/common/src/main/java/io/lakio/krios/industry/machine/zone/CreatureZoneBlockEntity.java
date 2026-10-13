@@ -29,8 +29,12 @@ import net.minecraft.world.phys.AABB;
  */
 public abstract class CreatureZoneBlockEntity<E extends Mob> extends ZoneMachineBlockEntity {
 
-    /** Zone height from the machine's Y: jumps and slabs. */
-    private static final int ZONE_HEIGHT = 3;
+    /**
+     * Zone height from the machine's Y (raised from 3 with the Bio
+     * Synthesizer, user call: nothing that may spawn is cut off — a ghast
+     * fits).
+     */
+    private static final int ZONE_HEIGHT = 5;
     /** Census rows synced to the terminal (the annex's capacity). */
     public static final int CENSUS_ROWS = 8;
 
@@ -73,6 +77,11 @@ public abstract class CreatureZoneBlockEntity<E extends Mob> extends ZoneMachine
     }
 
     // --- Zone ---
+
+    @Override
+    public int zoneHeight() {
+        return ZONE_HEIGHT;
+    }
 
     protected final AABB zoneBox() {
         int edge = zoneEdgeForDisplay();

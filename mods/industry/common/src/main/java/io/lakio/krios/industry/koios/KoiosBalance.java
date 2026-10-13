@@ -71,6 +71,12 @@ public final class KoiosBalance {
     public static final int FIELD_ENERGY_PER_DAMAGE = 10;
     /** Phase Death Field hit cadence before Speed modules. */
     public static final int FIELD_HIT_INTERVAL_TICKS = 20;
+    /** Base data XP per Bio Synthesizer spawn (farm class permille). */
+    public static final int SPAWN_BASE_XP = GRIND_BASE_XP * FARM_XP_PERMILLE / 1000;
+    /** Bio Synthesizer energy per maximum health point of the spawned mob (placeholder). */
+    public static final int SYNTH_ENERGY_PER_HEALTH = 50;
+    /** Bio Synthesizer cycle before Speed modules. */
+    public static final int SYNTH_CYCLE_TICKS = 200;
 
     /** Lure class: a catch teaches under a third of a grind (placeholder). */
     public static final int LURE_XP_PERMILLE = 300;

@@ -46,6 +46,8 @@ public final class KriosIndustryClient {
                 io.lakio.krios.industry.client.screen.HarvestPodScreen::new);
         event.register(ModMenus.PHASE_DEATH_FIELD.get(),
                 io.lakio.krios.industry.client.screen.PhaseDeathFieldScreen::new);
+        event.register(ModMenus.BIO_SYNTHESIZER.get(),
+                io.lakio.krios.industry.client.screen.BioSynthesizerScreen::new);
         event.register(ModMenus.KOIOS_CORE.get(), KoiosCoreScreen::new);
         event.register(ModMenus.CALIBRATOR.get(), CalibratorScreen::new);
     }

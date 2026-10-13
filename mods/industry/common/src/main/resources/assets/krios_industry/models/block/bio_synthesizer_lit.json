@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/orientable_with_bottom",
+  "textures": {
+    "top": "krios_industry:block/bio_synthesizer_top",
+    "bottom": "krios_industry:block/bio_synthesizer_side",
+    "side": "krios_industry:block/bio_synthesizer_side",
+    "front": "krios_industry:block/bio_synthesizer_front_lit"
+  }
+}

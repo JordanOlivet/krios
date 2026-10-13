@@ -4,11 +4,13 @@ import java.util.function.Supplier;
 
 import io.lakio.krios.industry.Constants;
 import io.lakio.krios.industry.machine.grinder.GrindingRecipe;
+import io.lakio.krios.industry.machine.synth.EngramCopyRecipe;
 import io.lakio.krios.industry.platform.Services;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
 
 public final class ModRecipeTypes {
 
@@ -16,6 +18,9 @@ public final class ModRecipeTypes {
 
     public static final Supplier<RecipeSerializer<GrindingRecipe>> GRINDING_SERIALIZER =
             registerSerializer("grinding", GrindingRecipe.Serializer::new);
+
+    public static final Supplier<RecipeSerializer<EngramCopyRecipe>> ENGRAM_COPY_SERIALIZER =
+            registerSerializer("engram_copy", () -> new SimpleCraftingRecipeSerializer<>(EngramCopyRecipe::new));
 
     private ModRecipeTypes() {
     }

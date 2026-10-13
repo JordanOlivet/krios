@@ -368,6 +368,11 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
         return zoneSetting <= 0 || !zoneResizable() ? max : Math.min(zoneSetting, max);
     }
 
+    /** Zone height in blocks from the machine's Y (the hologram draws it). */
+    public int zoneHeight() {
+        return 1;
+    }
+
     /** Zone edge as last synced (client side: the hologram's source). */
     public int zoneEdgeForDisplay() {
         return syncedEdge;

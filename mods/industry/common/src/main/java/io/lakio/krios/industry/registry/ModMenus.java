@@ -52,6 +52,10 @@ public final class ModMenus {
             register("phase_death_field", () -> Services.REGISTRAR.createMenuType(
                     io.lakio.krios.industry.machine.field.PhaseDeathFieldMenu::new));
 
+    public static final Supplier<MenuType<io.lakio.krios.industry.machine.synth.BioSynthesizerMenu>> BIO_SYNTHESIZER =
+            register("bio_synthesizer", () -> Services.REGISTRAR.createMenuType(
+                    io.lakio.krios.industry.machine.synth.BioSynthesizerMenu::new));
+
     public static final Supplier<MenuType<KoiosCoreMenu>> KOIOS_CORE = register("koios_core",
             () -> Services.REGISTRAR.createMenuType(KoiosCoreMenu::new));
 

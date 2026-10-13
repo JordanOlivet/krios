@@ -39,6 +39,8 @@ public class KriosIndustryClient implements ClientModInitializer {
                 io.lakio.krios.industry.client.screen.HarvestPodScreen::new);
         MenuScreens.register(ModMenus.PHASE_DEATH_FIELD.get(),
                 io.lakio.krios.industry.client.screen.PhaseDeathFieldScreen::new);
+        MenuScreens.register(ModMenus.BIO_SYNTHESIZER.get(),
+                io.lakio.krios.industry.client.screen.BioSynthesizerScreen::new);
         MenuScreens.register(ModMenus.KOIOS_CORE.get(), KoiosCoreScreen::new);
         MenuScreens.register(ModMenus.CALIBRATOR.get(), CalibratorScreen::new);
         BlockEntityRenderers.register(ModBlockEntities.KOIOS_CORE.get(), KoiosCoreRenderer::new);

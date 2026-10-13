@@ -401,6 +401,8 @@ WOOL = (0xF0, 0xEC, 0xE2)
 WOOL_DIM = (0x9A, 0x96, 0x8C)
 PHASE = (0xB3, 0x66, 0xFF)
 PHASE_DIM = (0x5A, 0x2E, 0x88)
+BIO = (0x6C, 0xF2, 0x8C)
+BIO_DIM = (0x2E, 0x7A, 0x45)
 
 
 def chrono_farmer_side():
@@ -667,6 +669,57 @@ def phase_death_field_top():
     img.rect(7, 5, 2, 6, PHASE_DIM)
     img.rect(5, 7, 6, 2, PHASE_DIM)
     img.rect(7, 7, 2, 2, PHASE)
+    return img
+
+
+def bio_synthesizer_side():
+    img = Img(16, 16)
+    img.noise_rect(0, 0, 16, 16, METAL, 5, 171)
+    bevel(img)
+    for x in (2, 13):
+        img.rect(x, 2, 1, 12, COPPER_D)
+    # Growth vat: a glass tube with a green culture.
+    img.rect(5, 3, 6, 10, JOINT)
+    img.outline(5, 3, 6, 10, METAL_EDGE)
+    img.rect(6, 8, 4, 4, BIO_DIM)
+    return img
+
+
+def bio_synthesizer_front(lit):
+    img = bio_synthesizer_side()
+    # Helix readout (4,4)-(12,12): two strands crossing.
+    img.rect(4, 4, 8, 8, JOINT)
+    img.outline(4, 4, 8, 8, METAL_EDGE)
+    strand = BIO if lit else BIO_DIM
+    for i, y in enumerate(range(5, 11)):
+        img.set(5 + (i % 3) * 2, y, strand)
+        img.set(10 - (i % 3) * 2, y, CYAN if lit else CYAN_DIM)
+    return img
+
+
+def bio_synthesizer_top():
+    img = Img(16, 16)
+    img.noise_rect(0, 0, 16, 16, METAL, 4, 177)
+    img.outline(0, 0, 16, 16, METAL_EDGE)
+    # Vat lid: a round port with a green core.
+    img.rect(4, 4, 8, 8, JOINT)
+    img.outline(4, 4, 8, 8, METAL_EDGE)
+    img.rect(6, 5, 4, 6, BIO_DIM)
+    img.rect(5, 6, 6, 4, BIO_DIM)
+    img.rect(7, 7, 2, 2, BIO)
+    return img
+
+
+def engram():
+    """Engram: a data crystal in a copper cradle, bio-green core
+    (software glow on a hardware mount)."""
+    img = Img(16, 16)
+    img.rect(5, 2, 6, 10, CYAN_DIM)
+    img.rect(6, 3, 4, 8, CYAN)
+    img.rect(7, 5, 2, 4, BIO)
+    img.set(7, 3, CYAN_HI)
+    img.rect(4, 11, 8, 2, COPPER)
+    img.rect(5, 13, 6, 1, COPPER_D)
     return img
 
 
@@ -1177,6 +1230,11 @@ def main():
         "block/phase_death_field_front.png": phase_death_field_front(False),
         "block/phase_death_field_front_lit.png": phase_death_field_front(True),
         "block/phase_death_field_top.png": phase_death_field_top(),
+        "block/bio_synthesizer_side.png": bio_synthesizer_side(),
+        "block/bio_synthesizer_front.png": bio_synthesizer_front(False),
+        "block/bio_synthesizer_front_lit.png": bio_synthesizer_front(True),
+        "block/bio_synthesizer_top.png": bio_synthesizer_top(),
+        "item/engram.png": engram(),
         "block/neural_conduit.png": neural_conduit(),
         "block/photon_array_top.png": photon_array_top(),
         "block/photon_array_side.png": photon_array_side(),

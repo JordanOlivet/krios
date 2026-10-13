@@ -89,6 +89,9 @@ public final class ModItems {
     public static final Supplier<Item> UPGRADE_KIT_TIER2 = register("upgrade_kit_tier2",
             () -> new io.lakio.krios.industry.machine.UpgradeKitItem(2, new Item.Properties().stacksTo(16)));
 
+    public static final Supplier<Item> ENGRAM = register("engram",
+            () -> new io.lakio.krios.industry.machine.synth.EngramItem(new Item.Properties().stacksTo(16)));
+
     private ModItems() {
     }
 

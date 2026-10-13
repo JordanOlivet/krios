@@ -84,7 +84,7 @@ public final class ZoneHologramRenderer {
             poseStack.pushPose();
             poseStack.translate(min.getX() - camera.x, min.getY() - camera.y, min.getZ() - camera.z);
             drawZone(poseStack.last().pose(), vc,
-                    max.getX() - min.getX() + 1, max.getZ() - min.getZ() + 1, pulse);
+                    max.getX() - min.getX() + 1, machine.zoneHeight(), max.getZ() - min.getZ() + 1, pulse);
             poseStack.popPose();
         }
         buffers.endBatch();
@@ -107,10 +107,10 @@ public final class ZoneHologramRenderer {
         }
     }
 
-    /** Local space: the zone spans [0,w] x [0,1] x [0,d] (crop layer). */
-    private static void drawZone(Matrix4f m, VertexConsumer vc, float w, float d, float alpha) {
+    /** Local space: the zone spans [0,w] x [0,h] x [0,d] (h = the machine's zone height). */
+    private static void drawZone(Matrix4f m, VertexConsumer vc, float w, float h, float d, float alpha) {
         float floor = 0.02F;
-        float top = 1.0F;
+        float top = h;
         // Faint floor so the footprint reads even between crops.
         flat(m, vc, 0, floor, 0, w, d, alpha * 0.18F);
         for (float y : new float[] {floor, top}) {
