@@ -43,7 +43,7 @@ import net.minecraft.world.level.block.state.BlockState;
  * babies through the quarter carry. Zone, scan, census and acceleration
  * come from the creature layer ({@link CreatureZoneBlockEntity}).
  */
-public class BreedingPodBlockEntity extends CreatureZoneBlockEntity {
+public class BreedingPodBlockEntity extends CreatureZoneBlockEntity<Animal> {
 
     public static final int FOOD_SLOTS = 3;
 
@@ -75,7 +75,7 @@ public class BreedingPodBlockEntity extends CreatureZoneBlockEntity {
     private int idle = STATE_NO_ANIMALS;
 
     public BreedingPodBlockEntity(BlockPos pos, BlockState state) {
-        super(ModBlockEntities.BREEDING_POD.get(), pos, state, FOOD_SLOTS, 0);
+        super(ModBlockEntities.BREEDING_POD.get(), pos, state, FOOD_SLOTS, 0, Animal.class);
     }
 
     /** Food the slots take: the tag, minus bucket foods (no buffer for the bucket). */
@@ -128,7 +128,7 @@ public class BreedingPodBlockEntity extends CreatureZoneBlockEntity {
 
     @Override
     protected void work(ServerLevel level, Work work) {
-        Map<EntityType<?>, List<Animal>> species = scanAnimals(level);
+        Map<EntityType<?>, List<Animal>> species = scan(level);
         if (species.isEmpty()) {
             idle = STATE_NO_ANIMALS;
             cappedSpecies = 0;
@@ -279,7 +279,7 @@ public class BreedingPodBlockEntity extends CreatureZoneBlockEntity {
     }
 
     @Override
-    protected void accelerateAnimal(Animal animal, int ticks) {
+    protected void accelerateCreature(Animal animal, int ticks) {
         int age = animal.getAge();
         animal.setAge(age < 0 ? Math.min(0, age + ticks) : Math.max(0, age - ticks));
     }

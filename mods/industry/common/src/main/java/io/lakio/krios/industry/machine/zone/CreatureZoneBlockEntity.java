@@ -12,19 +12,22 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 
 /**
  * Creature layer of the zone machines (ADR-025, amended with the Harvest
- * Pod): what every machine working a pen of animals shares — the
- * three-block zone box, the animal scan grouped by species, the census
- * synced to the terminal's Census annex, and Speed as time acceleration
- * on the animals. The Breeding Pod and the Harvest Pod extend it.
+ * Pod): what every machine working on creatures shares — the three-block
+ * zone box, the scan grouped by species, the census synced to the
+ * terminal's Census annex, and Speed as time acceleration on them. The
+ * scan class is per machine (ADR-026): animals for the pods, every mob
+ * for the Phase Death Field.
+ *
+ * @param <E> the creatures this machine works on
  */
-public abstract class CreatureZoneBlockEntity extends ZoneMachineBlockEntity {
+public abstract class CreatureZoneBlockEntity<E extends Mob> extends ZoneMachineBlockEntity {
 
     /** Zone height from the machine's Y: jumps and slabs. */
     private static final int ZONE_HEIGHT = 3;
@@ -45,22 +48,27 @@ public abstract class CreatureZoneBlockEntity extends ZoneMachineBlockEntity {
     private final int[] censusDetails = new int[CENSUS_ROWS];
     private int speciesCount;
     private int totalAnimals;
+    private final Class<E> scanClass;
 
     protected CreatureZoneBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state,
-            int inputSlots, int bufferSlots) {
+            int inputSlots, int bufferSlots, Class<E> scanClass) {
         super(type, pos, state, inputSlots, bufferSlots);
+        this.scanClass = scanClass;
     }
 
     // --- Subclass contract ---
 
-    /** Whether Speed modules have anything to hurry on this animal. */
-    protected abstract boolean accelerable(Animal animal);
+    /** Whether Speed modules have anything to hurry on this creature. */
+    protected boolean accelerable(E creature) {
+        return false;
+    }
 
-    /** Moves this animal's clocks forward by {@code ticks}. */
-    protected abstract void accelerateAnimal(Animal animal, int ticks);
+    /** Moves this creature's clocks forward by {@code ticks}. */
+    protected void accelerateCreature(E creature, int ticks) {
+    }
 
     /** Per-row census detail for the terminal (short-safe); 0 by default. */
-    protected int censusDetail(EntityType<?> type, List<Animal> animals) {
+    protected int censusDetail(EntityType<?> type, List<E> creatures) {
         return 0;
     }
 
@@ -74,11 +82,11 @@ public abstract class CreatureZoneBlockEntity extends ZoneMachineBlockEntity {
                 max.getX() + 1, min.getY() + ZONE_HEIGHT, max.getZ() + 1);
     }
 
-    /** Living animals in the zone, grouped by species (encounter order). */
-    protected final Map<EntityType<?>, List<Animal>> scanAnimals(ServerLevel level) {
-        Map<EntityType<?>, List<Animal>> species = new LinkedHashMap<>();
-        for (Animal animal : level.getEntitiesOfClass(Animal.class, zoneBox(), Entity::isAlive)) {
-            species.computeIfAbsent(animal.getType(), type -> new ArrayList<>()).add(animal);
+    /** Living creatures in the zone, grouped by species (encounter order). */
+    protected final Map<EntityType<?>, List<E>> scan(ServerLevel level) {
+        Map<EntityType<?>, List<E>> species = new LinkedHashMap<>();
+        for (E creature : level.getEntitiesOfClass(scanClass, zoneBox(), Entity::isAlive)) {
+            species.computeIfAbsent(creature.getType(), type -> new ArrayList<>()).add(creature);
         }
         return species;
     }
@@ -86,26 +94,26 @@ public abstract class CreatureZoneBlockEntity extends ZoneMachineBlockEntity {
     // --- Speed: animal time ---
 
     /**
-     * Speed modules: the zone's animals live faster, at x(2+pts)/2 — each
-     * machine names the clocks it hurries. Returns true when energy ran
-     * out.
+     * Speed modules: the zone's creatures live faster, at x(2+pts)/2 —
+     * each machine names the clocks it hurries. Returns true when energy
+     * ran out.
      */
-    protected final boolean accelerate(ServerLevel level, Work work, Map<EntityType<?>, List<Animal>> species) {
+    protected final boolean accelerate(ServerLevel level, Work work, Map<EntityType<?>, List<E>> species) {
         int extra = work.elapsed * work.speedPoints / 2;
         if (extra <= 0) {
             return false;
         }
         int animalCost = cost(level, Math.max(1, KoiosBalance.ANIMAL_ACCEL_ENERGY_PER_SECOND * extra / 20),
                 work.efficiencyPermille);
-        for (List<Animal> animals : species.values()) {
-            for (Animal animal : animals) {
-                if (!animal.isAlive() || !accelerable(animal)) {
+        for (List<E> creatures : species.values()) {
+            for (E creature : creatures) {
+                if (!creature.isAlive() || !accelerable(creature)) {
                     continue;
                 }
                 if (!energy.consume(animalCost)) {
                     return true;
                 }
-                accelerateAnimal(animal, extra);
+                accelerateCreature(creature, extra);
             }
         }
         return false;
@@ -114,8 +122,8 @@ public abstract class CreatureZoneBlockEntity extends ZoneMachineBlockEntity {
     // --- Census ---
 
     /** Top species by count for the terminal; the rest only counted. */
-    protected final void census(Map<EntityType<?>, List<Animal>> species) {
-        List<Map.Entry<EntityType<?>, List<Animal>>> rows = new ArrayList<>(species.entrySet());
+    protected final void census(Map<EntityType<?>, List<E>> species) {
+        List<Map.Entry<EntityType<?>, List<E>>> rows = new ArrayList<>(species.entrySet());
         rows.sort((x, y) -> Integer.compare(y.getValue().size(), x.getValue().size()));
         totalAnimals = 0;
         for (int i = 0; i < CENSUS_ROWS; i++) {
@@ -124,7 +132,7 @@ public abstract class CreatureZoneBlockEntity extends ZoneMachineBlockEntity {
             censusDetails[i] = 0;
         }
         for (int i = 0; i < rows.size(); i++) {
-            Map.Entry<EntityType<?>, List<Animal>> row = rows.get(i);
+            Map.Entry<EntityType<?>, List<E>> row = rows.get(i);
             int count = row.getValue().size();
             totalAnimals += count;
             if (i < CENSUS_ROWS) {

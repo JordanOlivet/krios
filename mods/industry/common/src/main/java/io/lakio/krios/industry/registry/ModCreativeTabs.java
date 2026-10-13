@@ -38,6 +38,8 @@ public final class ModCreativeTabs {
                         output.accept(ModBlocks.BREEDING_POD_TIER2.get());
                         output.accept(ModBlocks.HARVEST_POD.get());
                         output.accept(ModBlocks.HARVEST_POD_TIER2.get());
+                        output.accept(ModBlocks.PHASE_DEATH_FIELD.get());
+                        output.accept(ModBlocks.PHASE_DEATH_FIELD_TIER2.get());
                         output.accept(ModBlocks.NEURAL_CASING.get());
                         output.accept(ModBlocks.NEURAL_CONDUIT.get());
                         output.accept(ModBlocks.KOIOS_CORE.get());

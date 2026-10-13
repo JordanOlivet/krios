@@ -58,7 +58,7 @@ import net.minecraft.world.level.block.state.BlockState;
  * the producers' clocks (egg, scute); Yield adds +25 % per point on wool,
  * eggs and scutes through the quarter carry — never on milk or stew.
  */
-public class HarvestPodBlockEntity extends CreatureZoneBlockEntity {
+public class HarvestPodBlockEntity extends CreatureZoneBlockEntity<Animal> {
 
     public static final int INPUT_SLOTS = 3;
 
@@ -79,7 +79,7 @@ public class HarvestPodBlockEntity extends CreatureZoneBlockEntity {
     private int idle = STATE_NO_ANIMALS;
 
     public HarvestPodBlockEntity(BlockPos pos, BlockState state) {
-        super(ModBlockEntities.HARVEST_POD.get(), pos, state, INPUT_SLOTS, BUFFER_SLOTS);
+        super(ModBlockEntities.HARVEST_POD.get(), pos, state, INPUT_SLOTS, BUFFER_SLOTS, Animal.class);
     }
 
     /** What the input slots take: the containers milking fills. */
@@ -118,7 +118,7 @@ public class HarvestPodBlockEntity extends CreatureZoneBlockEntity {
 
     @Override
     protected void work(ServerLevel level, Work work) {
-        Map<EntityType<?>, List<Animal>> species = scanAnimals(level);
+        Map<EntityType<?>, List<Animal>> species = scan(level);
         pickUp(level, work);
         boolean missingContainer = false;
         for (List<Animal> animals : species.values()) {
@@ -231,15 +231,6 @@ public class HarvestPodBlockEntity extends CreatureZoneBlockEntity {
         setChanged();
     }
 
-    private boolean hasFreeBufferSlot() {
-        for (ItemStack stack : bufferView(false)) {
-            if (stack.isEmpty()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     /**
      * One milking: a bowl on a mooshroom first, else a bucket. Returns
      * false when the animal could be milked but no container fits it.
@@ -312,7 +303,7 @@ public class HarvestPodBlockEntity extends CreatureZoneBlockEntity {
     }
 
     @Override
-    protected void accelerateAnimal(Animal animal, int ticks) {
+    protected void accelerateCreature(Animal animal, int ticks) {
         // Down to 1, never past: vanilla's own tick lays the drop.
         if (animal instanceof Chicken chicken) {
             chicken.eggTime = Math.max(1, chicken.eggTime - ticks);

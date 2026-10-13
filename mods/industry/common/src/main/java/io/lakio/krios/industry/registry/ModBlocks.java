@@ -111,6 +111,12 @@ public final class ModBlocks {
     public static final Supplier<Block> HARVEST_POD_TIER2 = registerWithItem("harvest_pod_tier2",
             () -> new io.lakio.krios.industry.machine.pod.HarvestPodBlock(machineProperties(9), 2));
 
+    public static final Supplier<Block> PHASE_DEATH_FIELD = registerWithItem("phase_death_field",
+            () -> new io.lakio.krios.industry.machine.field.PhaseDeathFieldBlock(machineProperties(9), 1));
+
+    public static final Supplier<Block> PHASE_DEATH_FIELD_TIER2 = registerWithItem("phase_death_field_tier2",
+            () -> new io.lakio.krios.industry.machine.field.PhaseDeathFieldBlock(machineProperties(9), 2));
+
     public static final Supplier<Block> NEURAL_CASING = registerWithItem("neural_casing",
             () -> new NeuralCasingBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.METAL)

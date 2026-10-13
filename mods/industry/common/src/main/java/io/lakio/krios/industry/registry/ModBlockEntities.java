@@ -59,6 +59,11 @@ public final class ModBlockEntities {
                     io.lakio.krios.industry.machine.pod.HarvestPodBlockEntity::new,
                     ModBlocks.HARVEST_POD.get(), ModBlocks.HARVEST_POD_TIER2.get()));
 
+    public static final Supplier<BlockEntityType<io.lakio.krios.industry.machine.field.PhaseDeathFieldBlockEntity>> PHASE_DEATH_FIELD =
+            register("phase_death_field", () -> Services.REGISTRAR.createBlockEntityType(
+                    io.lakio.krios.industry.machine.field.PhaseDeathFieldBlockEntity::new,
+                    ModBlocks.PHASE_DEATH_FIELD.get(), ModBlocks.PHASE_DEATH_FIELD_TIER2.get()));
+
     public static final Supplier<BlockEntityType<KoiosCoreBlockEntity>> KOIOS_CORE = register("koios_core",
             () -> Services.REGISTRAR.createBlockEntityType(KoiosCoreBlockEntity::new, ModBlocks.KOIOS_CORE.get()));
 

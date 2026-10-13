@@ -63,6 +63,14 @@ public final class KoiosBalance {
     public static final int SHEAR_ENERGY = 50;
     public static final int MILK_ENERGY = 50;
     public static final int PICKUP_ENERGY_PER_ITEM = 10;
+    /** Base data XP per Phase Death Field kill (farm class permille). */
+    public static final int KILL_BASE_XP = GRIND_BASE_XP * FARM_XP_PERMILLE / 1000;
+    /** Phase Death Field damage per hit at tier 1, doubled per tier. */
+    public static final int FIELD_BASE_DAMAGE = 4;
+    /** Phase Death Field energy per damage point dealt (placeholder). */
+    public static final int FIELD_ENERGY_PER_DAMAGE = 10;
+    /** Phase Death Field hit cadence before Speed modules. */
+    public static final int FIELD_HIT_INTERVAL_TICKS = 20;
 
     /** Lure class: a catch teaches under a third of a grind (placeholder). */
     public static final int LURE_XP_PERMILLE = 300;

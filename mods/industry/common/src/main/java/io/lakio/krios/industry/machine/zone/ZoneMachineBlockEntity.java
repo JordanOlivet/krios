@@ -575,6 +575,16 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
         return true;
     }
 
+    /** At least one empty buffer slot (drops of unknown size go in whole). */
+    protected final boolean hasFreeBufferSlot() {
+        for (int slot = bufferFirst(); slot < bufferFirst() + bufferSlots; slot++) {
+            if (items.get(slot).isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /** The buffer's stacks, copied when simulating. */
     protected final ItemStack[] bufferView(boolean copy) {
         ItemStack[] buffer = new ItemStack[bufferSlots];

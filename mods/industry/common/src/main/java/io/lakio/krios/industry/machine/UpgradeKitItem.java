@@ -45,7 +45,8 @@ public class UpgradeKitItem extends Item {
             ModBlocks.CYCLIC_FORESTER, ModBlocks.CYCLIC_FORESTER_TIER2,
             ModBlocks.QUANTUM_LURE, ModBlocks.QUANTUM_LURE_TIER2,
             ModBlocks.BREEDING_POD, ModBlocks.BREEDING_POD_TIER2,
-            ModBlocks.HARVEST_POD, ModBlocks.HARVEST_POD_TIER2);
+            ModBlocks.HARVEST_POD, ModBlocks.HARVEST_POD_TIER2,
+            ModBlocks.PHASE_DEATH_FIELD, ModBlocks.PHASE_DEATH_FIELD_TIER2);
 
     public UpgradeKitItem(int targetTier, Properties properties) {
         super(properties);

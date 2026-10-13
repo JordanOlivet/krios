@@ -37,6 +37,7 @@ public class CodexPanel {
             new Entry("quantum_lure", 1, false),
             new Entry("breeding_pod", 1, false),
             new Entry("harvest_pod", 1, false),
+            new Entry("phase_death_field", 1, false),
             new Entry("modules", 2, true),
             new Entry("network", 1, true),
             new Entry("conduit", 1, false),

@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/orientable_with_bottom",
+  "textures": {
+    "top": "krios_industry:block/phase_death_field_top",
+    "bottom": "krios_industry:block/phase_death_field_side",
+    "side": "krios_industry:block/phase_death_field_side",
+    "front": "krios_industry:block/phase_death_field_front"
+  }
+}

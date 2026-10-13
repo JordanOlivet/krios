@@ -399,6 +399,8 @@ POD = (0xF2, 0x73, 0x99)
 POD_DIM = (0x8A, 0x3A, 0x55)
 WOOL = (0xF0, 0xEC, 0xE2)
 WOOL_DIM = (0x9A, 0x96, 0x8C)
+PHASE = (0xB3, 0x66, 0xFF)
+PHASE_DIM = (0x5A, 0x2E, 0x88)
 
 
 def chrono_farmer_side():
@@ -628,6 +630,43 @@ def harvest_pod_top():
         img.rect(5, y, 6, 1, WOOL_DIM)
     img.set(7, 7, WOOL)
     img.set(8, 7, WOOL)
+    return img
+
+
+def phase_death_field_side():
+    img = Img(16, 16)
+    img.noise_rect(0, 0, 16, 16, METAL, 5, 151)
+    bevel(img)
+    for x in (2, 13):
+        img.rect(x, 2, 1, 12, COPPER_D)
+    # Emitter slot: a dark vertical gap with a violet core.
+    img.rect(6, 3, 4, 10, JOINT)
+    img.outline(6, 3, 4, 10, METAL_EDGE)
+    img.rect(7, 5, 2, 6, PHASE_DIM)
+    return img
+
+
+def phase_death_field_front(lit):
+    img = phase_death_field_side()
+    # Field readout (4,4)-(12,12): concentric phase rings.
+    img.rect(4, 4, 8, 8, JOINT)
+    img.outline(4, 4, 8, 8, METAL_EDGE)
+    ring = PHASE if lit else PHASE_DIM
+    img.outline(5, 5, 6, 6, ring)
+    img.rect(7, 7, 2, 2, CYAN if lit else CYAN_DIM)
+    return img
+
+
+def phase_death_field_top():
+    img = Img(16, 16)
+    img.noise_rect(0, 0, 16, 16, METAL, 4, 157)
+    img.outline(0, 0, 16, 16, METAL_EDGE)
+    # Emitter lens: a violet cross in a dark well.
+    img.rect(4, 4, 8, 8, JOINT)
+    img.outline(4, 4, 8, 8, METAL_EDGE)
+    img.rect(7, 5, 2, 6, PHASE_DIM)
+    img.rect(5, 7, 6, 2, PHASE_DIM)
+    img.rect(7, 7, 2, 2, PHASE)
     return img
 
 
@@ -1134,6 +1173,10 @@ def main():
         "block/harvest_pod_front.png": harvest_pod_front(False),
         "block/harvest_pod_front_lit.png": harvest_pod_front(True),
         "block/harvest_pod_top.png": harvest_pod_top(),
+        "block/phase_death_field_side.png": phase_death_field_side(),
+        "block/phase_death_field_front.png": phase_death_field_front(False),
+        "block/phase_death_field_front_lit.png": phase_death_field_front(True),
+        "block/phase_death_field_top.png": phase_death_field_top(),
         "block/neural_conduit.png": neural_conduit(),
         "block/photon_array_top.png": photon_array_top(),
         "block/photon_array_side.png": photon_array_side(),
