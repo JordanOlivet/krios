@@ -33,6 +33,7 @@ public final class KoiosCommand {
         dispatcher.register(Commands.literal(Constants.MOD_ID)
                 .requires(source -> source.hasPermission(Commands.LEVEL_GAMEMASTERS))
                 .then(configTree())
+                .then(io.lakio.krios.industry.dev.DevBench.commandTree())
                 .then(koiosTree()));
         dispatcher.register(koiosTree()
                 .requires(source -> source.hasPermission(Commands.LEVEL_GAMEMASTERS)));
