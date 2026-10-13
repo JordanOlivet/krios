@@ -114,6 +114,14 @@ public class KoiosCoreScreen extends KriosTerminalScreen<KoiosCoreMenu> {
     }
 
     @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (codex.scroll(width, height, mouseX, mouseY, scrollY)) {
+            return true;
+        }
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+    }
+
+    @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
         renderCodexFrame(guiGraphics);
     }

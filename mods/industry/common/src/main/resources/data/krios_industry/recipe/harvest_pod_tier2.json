@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "krios_industry:harvest_pod"
+    },
+    {
+      "item": "krios_industry:upgrade_kit_tier2"
+    }
+  ],
+  "result": {
+    "id": "krios_industry:harvest_pod_tier2",
+    "count": 1
+  }
+}

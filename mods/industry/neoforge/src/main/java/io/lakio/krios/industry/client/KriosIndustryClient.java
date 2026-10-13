@@ -42,6 +42,8 @@ public final class KriosIndustryClient {
                 io.lakio.krios.industry.client.screen.QuantumLureScreen::new);
         event.register(ModMenus.BREEDING_POD.get(),
                 io.lakio.krios.industry.client.screen.BreedingPodScreen::new);
+        event.register(ModMenus.HARVEST_POD.get(),
+                io.lakio.krios.industry.client.screen.HarvestPodScreen::new);
         event.register(ModMenus.KOIOS_CORE.get(), KoiosCoreScreen::new);
         event.register(ModMenus.CALIBRATOR.get(), CalibratorScreen::new);
     }

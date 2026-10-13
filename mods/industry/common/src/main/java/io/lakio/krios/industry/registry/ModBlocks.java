@@ -105,6 +105,12 @@ public final class ModBlocks {
     public static final Supplier<Block> BREEDING_POD_TIER2 = registerWithItem("breeding_pod_tier2",
             () -> new io.lakio.krios.industry.machine.pod.BreedingPodBlock(machineProperties(9), 2));
 
+    public static final Supplier<Block> HARVEST_POD = registerWithItem("harvest_pod",
+            () -> new io.lakio.krios.industry.machine.pod.HarvestPodBlock(machineProperties(9), 1));
+
+    public static final Supplier<Block> HARVEST_POD_TIER2 = registerWithItem("harvest_pod_tier2",
+            () -> new io.lakio.krios.industry.machine.pod.HarvestPodBlock(machineProperties(9), 2));
+
     public static final Supplier<Block> NEURAL_CASING = registerWithItem("neural_casing",
             () -> new NeuralCasingBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.METAL)

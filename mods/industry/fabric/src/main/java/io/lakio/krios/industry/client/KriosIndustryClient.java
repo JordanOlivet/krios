@@ -35,6 +35,8 @@ public class KriosIndustryClient implements ClientModInitializer {
                 io.lakio.krios.industry.client.screen.QuantumLureScreen::new);
         MenuScreens.register(ModMenus.BREEDING_POD.get(),
                 io.lakio.krios.industry.client.screen.BreedingPodScreen::new);
+        MenuScreens.register(ModMenus.HARVEST_POD.get(),
+                io.lakio.krios.industry.client.screen.HarvestPodScreen::new);
         MenuScreens.register(ModMenus.KOIOS_CORE.get(), KoiosCoreScreen::new);
         MenuScreens.register(ModMenus.CALIBRATOR.get(), CalibratorScreen::new);
         BlockEntityRenderers.register(ModBlockEntities.KOIOS_CORE.get(), KoiosCoreRenderer::new);

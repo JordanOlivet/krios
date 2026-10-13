@@ -397,6 +397,8 @@ GROW = (0x5F, 0xE0, 0x9A)
 GROW_DIM = (0x2A, 0x7A, 0x52)
 POD = (0xF2, 0x73, 0x99)
 POD_DIM = (0x8A, 0x3A, 0x55)
+WOOL = (0xF0, 0xEC, 0xE2)
+WOOL_DIM = (0x9A, 0x96, 0x8C)
 
 
 def chrono_farmer_side():
@@ -583,6 +585,49 @@ def breeding_pod_top():
     for x in range(5, 11, 2):
         img.rect(x, 5, 1, 6, AMBER_D)
     img.set(7, 7, ENERGY)
+    return img
+
+
+def harvest_pod_side():
+    img = Img(16, 16)
+    img.noise_rect(0, 0, 16, 16, METAL, 5, 131)
+    bevel(img)
+    for x in (2, 13):
+        img.rect(x, 2, 1, 12, COPPER_D)
+    # Glass pod window holding a tuft of wool.
+    img.rect(5, 4, 6, 8, JOINT)
+    img.outline(5, 4, 6, 8, METAL_EDGE)
+    for x, y in ((7, 7), (8, 7), (7, 8), (8, 8), (9, 8), (6, 9), (7, 9), (8, 9)):
+        img.set(x, y, WOOL_DIM)
+    return img
+
+
+def harvest_pod_front(lit):
+    img = harvest_pod_side()
+    # Yield readout (4,4)-(12,12): a wool tuft over a rising bar.
+    img.rect(4, 4, 8, 8, JOINT)
+    img.outline(4, 4, 8, 8, METAL_EDGE)
+    wool = WOOL if lit else WOOL_DIM
+    for x, y in ((7, 5), (8, 5), (6, 6), (7, 6), (8, 6), (9, 6), (6, 7), (7, 7), (8, 7), (9, 7),
+                 (7, 8), (8, 8)):
+        img.set(x, y, wool)
+    bar = ENERGY if lit else AMBER_D
+    for i, x in enumerate(range(5, 11)):
+        img.rect(x, 10 - i // 2, 1, 1 + i // 2, bar)
+    return img
+
+
+def harvest_pod_top():
+    img = Img(16, 16)
+    img.noise_rect(0, 0, 16, 16, METAL, 4, 137)
+    img.outline(0, 0, 16, 16, METAL_EDGE)
+    # Collection hatch: a dark grate with an egg-white fill.
+    img.rect(4, 4, 8, 8, JOINT)
+    img.outline(4, 4, 8, 8, METAL_EDGE)
+    for y in range(5, 11, 2):
+        img.rect(5, y, 6, 1, WOOL_DIM)
+    img.set(7, 7, WOOL)
+    img.set(8, 7, WOOL)
     return img
 
 
@@ -1085,6 +1130,10 @@ def main():
         "block/breeding_pod_front.png": breeding_pod_front(False),
         "block/breeding_pod_front_lit.png": breeding_pod_front(True),
         "block/breeding_pod_top.png": breeding_pod_top(),
+        "block/harvest_pod_side.png": harvest_pod_side(),
+        "block/harvest_pod_front.png": harvest_pod_front(False),
+        "block/harvest_pod_front_lit.png": harvest_pod_front(True),
+        "block/harvest_pod_top.png": harvest_pod_top(),
         "block/neural_conduit.png": neural_conduit(),
         "block/photon_array_top.png": photon_array_top(),
         "block/photon_array_side.png": photon_array_side(),

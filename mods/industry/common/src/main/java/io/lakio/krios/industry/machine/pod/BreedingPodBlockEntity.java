@@ -1,15 +1,13 @@
 package io.lakio.krios.industry.machine.pod;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import io.lakio.krios.industry.Constants;
 import io.lakio.krios.industry.koios.KoiosBalance;
 import io.lakio.krios.industry.machine.MachineTiers;
-import io.lakio.krios.industry.machine.ZoneGeometry;
-import io.lakio.krios.industry.machine.zone.ZoneMachineBlockEntity;
+import io.lakio.krios.industry.machine.zone.CreatureZoneBlockEntity;
 import io.lakio.krios.industry.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -20,7 +18,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.AgeableMob;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.animal.Animal;
@@ -31,7 +28,6 @@ import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 
 /**
  * Breeding Pod (design 2026-10-09): breeds the animals standing in the
@@ -44,15 +40,12 @@ import net.minecraft.world.phys.AABB;
  *
  * <p>Speed modules accelerate the zone's animals' time (baby growth,
  * parent cooldowns) at the usual x(2+pts)/2 pace; Yield modules add bonus
- * babies through the quarter carry.
+ * babies through the quarter carry. Zone, scan, census and acceleration
+ * come from the creature layer ({@link CreatureZoneBlockEntity}).
  */
-public class BreedingPodBlockEntity extends ZoneMachineBlockEntity {
+public class BreedingPodBlockEntity extends CreatureZoneBlockEntity {
 
     public static final int FOOD_SLOTS = 3;
-    /** Zone height from the machine's Y: jumps and slabs. */
-    private static final int ZONE_HEIGHT = 3;
-    /** Census rows synced to the terminal. */
-    public static final int CENSUS_ROWS = 5;
 
     public static final TagKey<Item> BREEDING_FOOD = TagKey.create(Registries.ITEM, Constants.id("breeding_food"));
 
@@ -67,23 +60,18 @@ public class BreedingPodBlockEntity extends ZoneMachineBlockEntity {
     public static final int BUTTON_CAP_DOWN_8 = 106;
     public static final int BUTTON_CAP_UP_8 = 107;
 
-    // Machine data: cap, cap ceiling, species past the census, animals in
-    // the zone, then the census rows (entity type raw id + 1, count).
-    public static final int DATA_CAP = BASE_DATA_COUNT;
-    public static final int DATA_CAP_MAX = BASE_DATA_COUNT + 1;
-    public static final int DATA_OTHERS = BASE_DATA_COUNT + 2;
-    public static final int DATA_TOTAL = BASE_DATA_COUNT + 3;
-    public static final int DATA_CENSUS = BASE_DATA_COUNT + 4;
-    public static final int DATA_COUNT = DATA_CENSUS + 2 * CENSUS_ROWS;
+    // Machine data after the creature block: cap, cap ceiling, species
+    // at the cap (the main frame's summary).
+    public static final int DATA_CAP = CREATURE_DATA_COUNT;
+    public static final int DATA_CAP_MAX = CREATURE_DATA_COUNT + 1;
+    public static final int DATA_CAPPED = CREATURE_DATA_COUNT + 2;
+    public static final int DATA_COUNT = CREATURE_DATA_COUNT + 3;
 
     /** Player-set cap; 0 = the tier ceiling (follows upgrades). */
     private int capSetting;
 
     // Last wake's reading (synced for the terminal).
-    private final int[] censusIds = new int[CENSUS_ROWS];
-    private final int[] censusCounts = new int[CENSUS_ROWS];
-    private int otherSpecies;
-    private int totalAnimals;
+    private int cappedSpecies;
     private int idle = STATE_NO_ANIMALS;
 
     public BreedingPodBlockEntity(BlockPos pos, BlockState state) {
@@ -138,22 +126,12 @@ public class BreedingPodBlockEntity extends ZoneMachineBlockEntity {
 
     // --- Work ---
 
-    private AABB zoneBox() {
-        int edge = zoneEdgeForDisplay();
-        BlockPos min = ZoneGeometry.min(worldPosition, zoneDirection(), edge);
-        BlockPos max = ZoneGeometry.max(worldPosition, zoneDirection(), edge);
-        return new AABB(min.getX(), min.getY(), min.getZ(),
-                max.getX() + 1, min.getY() + ZONE_HEIGHT, max.getZ() + 1);
-    }
-
     @Override
     protected void work(ServerLevel level, Work work) {
-        Map<EntityType<?>, List<Animal>> species = new LinkedHashMap<>();
-        for (Animal animal : level.getEntitiesOfClass(Animal.class, zoneBox(), Entity::isAlive)) {
-            species.computeIfAbsent(animal.getType(), type -> new ArrayList<>()).add(animal);
-        }
+        Map<EntityType<?>, List<Animal>> species = scanAnimals(level);
         if (species.isEmpty()) {
             idle = STATE_NO_ANIMALS;
+            cappedSpecies = 0;
             census(species);
             return;
         }
@@ -177,6 +155,13 @@ public class BreedingPodBlockEntity extends ZoneMachineBlockEntity {
             work.starved = accelerate(level, work, species);
         }
         idle = noFood ? STATE_NO_FOOD : capped == species.size() ? STATE_CAPPED : STATE_NO_PAIR;
+        // Main-frame summary (this wake's births show at the next one).
+        cappedSpecies = 0;
+        for (List<Animal> animals : species.values()) {
+            if (animals.size() >= cap) {
+                cappedSpecies++;
+            }
+        }
         census(species);
     }
 
@@ -286,51 +271,17 @@ public class BreedingPodBlockEntity extends ZoneMachineBlockEntity {
         }
     }
 
-    /**
-     * Speed modules: the zone's animals live faster — babies grow up and
-     * parents' cooldowns run out at x(2+pts)/2. Returns true when energy
-     * ran out.
-     */
-    private boolean accelerate(ServerLevel level, Work work, Map<EntityType<?>, List<Animal>> species) {
-        int extra = work.elapsed * work.speedPoints / 2;
-        if (extra <= 0) {
-            return false;
-        }
-        int animalCost = cost(level, Math.max(1, KoiosBalance.ANIMAL_ACCEL_ENERGY_PER_SECOND * extra / 20),
-                work.efficiencyPermille);
-        for (List<Animal> animals : species.values()) {
-            for (Animal animal : animals) {
-                int age = animal.getAge();
-                if (age == 0 || !animal.isAlive()) {
-                    continue;
-                }
-                if (!energy.consume(animalCost)) {
-                    return true;
-                }
-                animal.setAge(age < 0 ? Math.min(0, age + extra) : Math.max(0, age - extra));
-            }
-        }
-        return false;
+    // --- Speed: baby growth and parent cooldowns ---
+
+    @Override
+    protected boolean accelerable(Animal animal) {
+        return animal.getAge() != 0;
     }
 
-    /** Top species by count for the terminal, the rest summed up. */
-    private void census(Map<EntityType<?>, List<Animal>> species) {
-        List<Map.Entry<EntityType<?>, List<Animal>>> rows = new ArrayList<>(species.entrySet());
-        rows.sort((x, y) -> Integer.compare(y.getValue().size(), x.getValue().size()));
-        totalAnimals = 0;
-        for (int i = 0; i < CENSUS_ROWS; i++) {
-            censusIds[i] = 0;
-            censusCounts[i] = 0;
-        }
-        for (int i = 0; i < rows.size(); i++) {
-            int count = rows.get(i).getValue().size();
-            totalAnimals += count;
-            if (i < CENSUS_ROWS) {
-                censusIds[i] = BuiltInRegistries.ENTITY_TYPE.getId(rows.get(i).getKey()) + 1;
-                censusCounts[i] = count;
-            }
-        }
-        otherSpecies = Math.max(0, rows.size() - CENSUS_ROWS);
+    @Override
+    protected void accelerateAnimal(Animal animal, int ticks) {
+        int age = animal.getAge();
+        animal.setAge(age < 0 ? Math.min(0, age + ticks) : Math.max(0, age - ticks));
     }
 
     @Override
@@ -353,17 +304,10 @@ public class BreedingPodBlockEntity extends ZoneMachineBlockEntity {
         if (index == DATA_CAP_MAX) {
             return capMax();
         }
-        if (index == DATA_OTHERS) {
-            return otherSpecies;
+        if (index == DATA_CAPPED) {
+            return cappedSpecies;
         }
-        if (index == DATA_TOTAL) {
-            return totalAnimals;
-        }
-        int row = (index - DATA_CENSUS) / 2;
-        if (row >= 0 && row < CENSUS_ROWS) {
-            return (index - DATA_CENSUS) % 2 == 0 ? censusIds[row] : censusCounts[row];
-        }
-        return 0;
+        return super.machineData(index);
     }
 
     // --- Persistence ---

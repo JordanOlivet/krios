@@ -57,6 +57,12 @@ public final class KoiosBalance {
     public static final int BREED_ENERGY = 100;
     /** Speed modules: energy per animal per accelerated second (placeholder). */
     public static final int ANIMAL_ACCEL_ENERGY_PER_SECOND = 2;
+    /** Base data XP per Harvest Pod operation (farm class permille). */
+    public static final int CREATURE_HARVEST_BASE_XP = GRIND_BASE_XP * FARM_XP_PERMILLE / 1000;
+    // Harvest Pod energy (placeholders, numbers pass).
+    public static final int SHEAR_ENERGY = 50;
+    public static final int MILK_ENERGY = 50;
+    public static final int PICKUP_ENERGY_PER_ITEM = 10;
 
     /** Lure class: a catch teaches under a third of a grind (placeholder). */
     public static final int LURE_XP_PERMILLE = 300;

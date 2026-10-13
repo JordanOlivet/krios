@@ -36,6 +36,7 @@ public class CodexPanel {
             new Entry("cyclic_forester", 1, false),
             new Entry("quantum_lure", 1, false),
             new Entry("breeding_pod", 1, false),
+            new Entry("harvest_pod", 1, false),
             new Entry("modules", 2, true),
             new Entry("network", 1, true),
             new Entry("conduit", 1, false),
@@ -54,11 +55,16 @@ public class CodexPanel {
     private static final int SIDEBAR_X = 6;
     private static final int SIDEBAR_W = 104;
     private static final int ROW_H = 16;
+    /** Sidebar viewport: from the first row to the panel's bottom margin. */
+    private static final int LIST_TOP = HEADER_H + 6;
+    private static final int LIST_H = H - LIST_TOP - 6;
     private static final int PAGE_X = 118;
     private static final int PAGE_W = W - PAGE_X - 10;
 
     private boolean open;
     private int selected;
+    /** Sidebar scroll, in pixels (wheel steps by one row). */
+    private int scroll;
 
     public boolean isOpen() {
         return open;
@@ -108,15 +114,27 @@ public class CodexPanel {
         gui.drawCenteredString(font, Component.literal("X"), x + W - 10, y + 5, 0xFFE8EAF0);
         KriosTerminalScreen.drawFeedBox(gui, x + W - 34, y + 3, feedStatus, mouseX, mouseY);
 
-        // Sidebar: the section list.
-        gui.fill(x + SIDEBAR_X + SIDEBAR_W + 3, y + HEADER_H + 4,
-                x + SIDEBAR_X + SIDEBAR_W + 4, y + H - 6, 0xFF262B35);
+        // Sidebar: the section list, scrolled and clipped to its viewport
+        // once the entries outgrow it; the divider doubles as the scrollbar.
+        int dividerX = x + SIDEBAR_X + SIDEBAR_W + 3;
+        gui.fill(dividerX, y + HEADER_H + 4, dividerX + 1, y + H - 6, 0xFF262B35);
+        if (maxScroll() > 0) {
+            int trackH = H - 6 - (HEADER_H + 4);
+            int thumbH = Math.max(12, trackH * LIST_H / listHeight());
+            int thumbY = y + HEADER_H + 4 + (trackH - thumbH) * scroll / maxScroll();
+            gui.fill(dividerX - 1, thumbY, dividerX + 2, thumbY + thumbH, 0xFF0A6E87);
+        }
+        gui.enableScissor(x + SIDEBAR_X, y + LIST_TOP, x + SIDEBAR_X + SIDEBAR_W, y + LIST_TOP + LIST_H);
+        boolean inList = inList(x, y, mouseX, mouseY);
         Component tooltip = null;
         for (int i = 0; i < ENTRIES.size(); i++) {
             Entry entry = ENTRIES.get(i);
-            int rowY = y + HEADER_H + 6 + i * ROW_H;
+            int rowY = y + LIST_TOP + i * ROW_H - scroll;
+            if (rowY + ROW_H <= y + LIST_TOP || rowY >= y + LIST_TOP + LIST_H) {
+                continue;
+            }
             boolean locked = koiosLevel < entry.minLevel();
-            boolean hover = mouseX >= x + SIDEBAR_X && mouseX < x + SIDEBAR_X + SIDEBAR_W
+            boolean hover = inList && mouseX >= x + SIDEBAR_X && mouseX < x + SIDEBAR_X + SIDEBAR_W
                     && mouseY >= rowY && mouseY < rowY + ROW_H;
             if (i == selected && !locked) {
                 gui.fill(x + SIDEBAR_X, rowY, x + SIDEBAR_X + SIDEBAR_W, rowY + ROW_H - 2, 0xFF0A2A34);
@@ -144,6 +162,7 @@ public class CodexPanel {
                 }
             }
         }
+        gui.disableScissor();
 
         // The page.
         Entry entry = ENTRIES.get(selected);
@@ -293,9 +312,12 @@ public class CodexPanel {
             open = false;
             return true;
         }
+        if (!inList(x, y, mouseX, mouseY)) {
+            return true;
+        }
         for (int i = 0; i < ENTRIES.size(); i++) {
             Entry entry = ENTRIES.get(i);
-            int rowY = y + HEADER_H + 6 + i * ROW_H;
+            int rowY = y + LIST_TOP + i * ROW_H - scroll;
             if (mouseX >= x + SIDEBAR_X && mouseX < x + SIDEBAR_X + SIDEBAR_W
                     && mouseY >= rowY && mouseY < rowY + ROW_H
                     && koiosLevel >= entry.minLevel()) {
@@ -304,5 +326,29 @@ public class CodexPanel {
             }
         }
         return true;
+    }
+
+    /** Mouse wheel over the sidebar scrolls it one row per notch. */
+    public boolean scroll(int screenW, int screenH, double mouseX, double mouseY, double delta) {
+        if (!open) {
+            return false;
+        }
+        if (inList(panelX(screenW), panelY(screenH), mouseX, mouseY) && delta != 0) {
+            scroll = Math.max(0, Math.min(maxScroll(), scroll - (int) Math.signum(delta) * ROW_H));
+        }
+        return true;
+    }
+
+    private static boolean inList(int x, int y, double mouseX, double mouseY) {
+        return mouseX >= x + SIDEBAR_X && mouseX < x + SIDEBAR_X + SIDEBAR_W
+                && mouseY >= y + LIST_TOP && mouseY < y + LIST_TOP + LIST_H;
+    }
+
+    private static int listHeight() {
+        return ENTRIES.size() * ROW_H;
+    }
+
+    private static int maxScroll() {
+        return Math.max(0, listHeight() - LIST_H);
     }
 }

@@ -44,6 +44,10 @@ public final class ModMenus {
             register("breeding_pod", () -> Services.REGISTRAR.createMenuType(
                     io.lakio.krios.industry.machine.pod.BreedingPodMenu::new));
 
+    public static final Supplier<MenuType<io.lakio.krios.industry.machine.pod.HarvestPodMenu>> HARVEST_POD =
+            register("harvest_pod", () -> Services.REGISTRAR.createMenuType(
+                    io.lakio.krios.industry.machine.pod.HarvestPodMenu::new));
+
     public static final Supplier<MenuType<KoiosCoreMenu>> KOIOS_CORE = register("koios_core",
             () -> Services.REGISTRAR.createMenuType(KoiosCoreMenu::new));
 

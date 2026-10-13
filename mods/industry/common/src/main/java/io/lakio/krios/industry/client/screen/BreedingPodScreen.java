@@ -16,16 +16,16 @@ import net.minecraft.world.entity.player.Inventory;
 
 /**
  * Breeding Pod terminal (design 2026-10-09): food column, the shared zone
- * map and controls, and where the buffer would be, a census of the zone —
- * top species with count/cap (amber at the cap), "+n others" past five —
- * above the population cap selector (shift: ±8).
+ * map and controls, and where the buffer would be, a summary of the zone
+ * (species, how many at the cap) above the population cap selector
+ * (shift: ±8). The census itself lives in the shared Census annex
+ * (2026-10-13): count/cap per species, amber at the cap.
  */
 public class BreedingPodScreen extends ZoneMachineScreen<BreedingPodMenu> {
 
-    private static final int CENSUS_X = 172;
-    private static final int CENSUS_W = 74;
-    private static final int CENSUS_Y = 24;
-    private static final int ROW_H = 10;
+    private static final int SUMMARY_X = 172;
+    private static final int SUMMARY_Y = 26;
+    private static final int ROW_H = 12;
     private static final int CAP_MINUS_X = 186;
     private static final int CAP_PLUS_X = 232;
 
@@ -60,45 +60,53 @@ public class BreedingPodScreen extends ZoneMachineScreen<BreedingPodMenu> {
                         Component.translatable("gui.krios_industry.stats.animals")));
     }
 
-    // --- Work area ---
+    @Override
+    protected AnnexPanel[] createExtraAnnexes() {
+        return new AnnexPanel[] {new CensusPanel(new CensusPanel.Source() {
+            @Override
+            public CensusPanel.Row row(int index) {
+                EntityType<?> type = menu.species(index);
+                if (type == null) {
+                    return null;
+                }
+                int count = menu.speciesCount(index);
+                int cap = menu.cap();
+                return new CensusPanel.Row(type.getDescription(), count + "/" + cap,
+                        count >= cap ? 0xFF000000 | COLOR_ENERGY : 0xFFE8EAF0, List.of(),
+                        List.of(Component.translatable("gui.krios_industry.pod.census_row",
+                                type.getDescription(), count, cap)));
+            }
 
-    /** Rows to draw: species, the last one becoming "+n" when more exist. */
-    private int speciesRows() {
-        return menu.otherSpecies() > 0 ? BreedingPodBlockEntity.CENSUS_ROWS - 1 : BreedingPodBlockEntity.CENSUS_ROWS;
+            @Override
+            public int speciesTotal() {
+                return menu.speciesTotal();
+            }
+        })};
     }
+
+    // --- Work area ---
 
     @Override
     protected void renderWork(GuiGraphics gui) {
         renderZoneControls(gui);
-        int x = leftPos + CENSUS_X;
-        int cap = menu.cap();
-        boolean any = false;
-        for (int row = 0; row < speciesRows(); row++) {
-            EntityType<?> type = menu.species(row);
-            if (type == null) {
-                continue;
-            }
-            any = true;
-            int y = topPos + CENSUS_Y + row * ROW_H;
-            int count = menu.speciesCount(row);
-            String value = count + "/" + cap;
-            int valueW = font.width(value);
-            String name = font.plainSubstrByWidth(type.getDescription().getString(), CENSUS_W - valueW - 4);
-            gui.drawString(font, name, x, y, COLOR_TEXT_DIM, false);
-            gui.drawString(font, value, x + CENSUS_W - valueW, y,
-                    count >= cap ? 0xFF000000 | COLOR_ENERGY : 0xFFE8EAF0, false);
-        }
-        if (menu.otherSpecies() > 0) {
-            int y = topPos + CENSUS_Y + speciesRows() * ROW_H;
-            gui.drawString(font, Component.translatable("gui.krios_industry.pod.others",
-                    menu.otherSpecies() + 1), x, y, COLOR_TEXT_DIM, false);
-        }
-        if (!any) {
+        int x = leftPos + SUMMARY_X;
+        int y = topPos + SUMMARY_Y;
+        int species = menu.speciesTotal();
+        if (species == 0) {
             gui.drawString(font, Component.translatable("gui.krios_industry.pod.empty"),
-                    x, topPos + CENSUS_Y, COLOR_TEXT_DIM, false);
+                    x, y, COLOR_TEXT_DIM, false);
+        } else {
+            gui.drawString(font, Component.translatable("gui.krios_industry.pod.summary_species", species),
+                    x, y, 0xFFE8EAF0, false);
+            int capped = menu.cappedSpecies();
+            gui.drawString(font, Component.translatable("gui.krios_industry.pod.summary_capped", capped),
+                    x, y + ROW_H, capped > 0 ? 0xFF000000 | COLOR_ENERGY : COLOR_TEXT_DIM, false);
         }
-        // Cap selector, under the census.
-        int y = topPos + ZoneMachineMenu.CONTROLS_Y;
+        gui.drawString(font, Component.translatable("gui.krios_industry.pod.cap_label"),
+                x, topPos + ZoneMachineMenu.CONTROLS_Y - ROW_H, COLOR_TEXT_DIM, false);
+        // Cap selector.
+        int cap = menu.cap();
+        y = topPos + ZoneMachineMenu.CONTROLS_Y;
         boolean canLower = cap > 1;
         boolean canRaise = cap < menu.capMax();
         int minusX = leftPos + CAP_MINUS_X;
@@ -126,27 +134,13 @@ public class BreedingPodScreen extends ZoneMachineScreen<BreedingPodMenu> {
         return hit(mouseX, mouseY, CAP_MINUS_X + BTN, ZoneMachineMenu.CONTROLS_Y, CAP_PLUS_X - CAP_MINUS_X - BTN, BTN);
     }
 
-    private int censusRowAt(double mouseX, double mouseY) {
-        for (int row = 0; row < speciesRows(); row++) {
-            if (menu.species(row) != null
-                    && hit(mouseX, mouseY, CENSUS_X, CENSUS_Y + row * ROW_H - 1, CENSUS_W, ROW_H)) {
-                return row;
-            }
-        }
-        return -1;
-    }
-
     @Override
     public void render(GuiGraphics gui, int mouseX, int mouseY, float partialTick) {
         super.render(gui, mouseX, mouseY, partialTick);
         if (renderZoneTooltip(gui, mouseX, mouseY)) {
             return;
         }
-        int row = censusRowAt(mouseX, mouseY);
-        if (row >= 0) {
-            gui.renderTooltip(font, Component.translatable("gui.krios_industry.pod.census_row",
-                    menu.species(row).getDescription(), menu.speciesCount(row), menu.cap()), mouseX, mouseY);
-        } else if (capMinusHit(mouseX, mouseY) || capPlusHit(mouseX, mouseY) || capValueHit(mouseX, mouseY)) {
+        if (capMinusHit(mouseX, mouseY) || capPlusHit(mouseX, mouseY) || capValueHit(mouseX, mouseY)) {
             gui.renderComponentTooltip(font, List.of(
                     Component.translatable("gui.krios_industry.pod.cap", menu.cap(), menu.capMax()),
                     Component.translatable("gui.krios_industry.pod.cap_hint").withStyle(ChatFormatting.GRAY)),

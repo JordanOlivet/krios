@@ -55,10 +55,20 @@ public abstract class ZoneMachineScreen<T extends ZoneMachineMenu> extends Machi
         return points;
     }
 
+    /** Machine-specific annexes, stacked between the stats and the faces. */
+    protected AnnexPanel[] createExtraAnnexes() {
+        return new AnnexPanel[0];
+    }
+
     @Override
     protected AnnexPanel[] annexPanels() {
         if (annexes == null) {
-            annexes = new AnnexPanel[] {moduleBay, createStatsPanel(), facePanel};
+            AnnexPanel[] extra = createExtraAnnexes();
+            annexes = new AnnexPanel[3 + extra.length];
+            annexes[0] = moduleBay;
+            annexes[1] = createStatsPanel();
+            System.arraycopy(extra, 0, annexes, 2, extra.length);
+            annexes[annexes.length - 1] = facePanel;
         }
         return annexes;
     }

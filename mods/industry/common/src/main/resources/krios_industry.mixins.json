@@ -5,7 +5,9 @@
   "refmap": "${mod_id}.refmap.json",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "FarmBlockMixin"
+    "ArmadilloAccessor",
+    "FarmBlockMixin",
+    "MushroomCowAccessor"
   ],
   "client": [],
   "server": [],
