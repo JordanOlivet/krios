@@ -3,6 +3,9 @@
 build/
 out/
 
+# Hand-built release jars (mods/<mod>/output)
+output/
+
 # Minecraft dev runs
 run/
 runs/
