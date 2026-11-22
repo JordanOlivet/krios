@@ -8,8 +8,9 @@
         "${mod_author}"
     ],
     "contact": {
-        "homepage": "https://fabricmc.net/",
-        "sources": "https://github.com/FabricMC/fabric-example-mod"
+        "homepage": "https://github.com/JordanOlivet/krios",
+        "sources": "https://github.com/JordanOlivet/krios",
+        "issues": "https://github.com/JordanOlivet/krios/issues"
     },
     "license": "${license}",
     "icon": "${mod_id}.png",
@@ -31,9 +32,6 @@
         "fabric-api": "*",
         "minecraft": "${minecraft_version}",
         "java": ">=${java_version}"
-    },
-    "suggests": {
-        "another-mod": "*"
     }
 }
   
