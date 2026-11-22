@@ -1,9 +1,8 @@
 # Krios: Core — design
 
-*Settled at the ecosystem design session of 2026-10-01 (ADR-018/019); this
-document grows into the full design at extraction time. Until then the
-implementation lives inside `mods/industry` under the ADR-013 isolation
-rules.*
+*Settled at the ecosystem design session of 2026-10-01 (ADR-018/019).
+Extracted to `mods/core` on 2026-11-22, before the first public release
+(ADR-028, which records what moved and how the builds are linked).*
 
 ## What it is
 
@@ -53,7 +52,7 @@ KOIOS tiers gate the whole ecosystem: each mod hangs its content on core
 tiers (storage's cable transport = core tier 2 unlock). "Tiers ship as
 complete slices" applies per mod, aligned on the shared skeleton.
 
-## Extraction plan (trigger: krios_storage starts — ADR-013/018)
+## Extraction plan (done 2026-11-22, ahead of the trigger below — ADR-028)
 
 1. Finish Industry's tier-2 queue (solar, Mk II modules, energy module,
    Codex rename + Progression entry, numbers pass).
@@ -66,7 +65,11 @@ complete slices" applies per mod, aligned on the shared skeleton.
 4. Then krios_storage v0 on the consigned brief (industry design doc,
    revision 2026-10-01).
 
-## Open questions (extraction-time)
+## Open questions
+
+Answered at extraction (ADR-028): the Codex takes code contributions
+(`CodexEntries`), the Calibrator stays one tool, the display name is
+"Krios: Core". Still open:
 
 - Exact API shapes (interfaces vs service lookups) — decided against real
   consumer code, per the ADR-013 philosophy.

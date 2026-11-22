@@ -15,7 +15,6 @@ See [docs/VISION.md](docs/VISION.md) for the full vision and [docs/DECISIONS.md]
 | Path | Purpose |
 |---|---|
 | `docs/` | Vision, decisions, per-mod design documents |
-| `libs/core/` | Shared library (energy abstraction, registration helpers, batch processing) |
-| `mods/` | One directory per mod, each a standalone Gradle multiloader build |
+| `mods/` | One directory per mod, each a standalone Gradle multiloader build: `core` (Krios: Core, required by every other mod) and `industry` (Krios: Industry) |
 | `templates/multiloader/` | Pristine MultiLoader Template (1.21.1) used to bootstrap new mods |
 | `tools/` | Scripts, test scenarios (see the separate `mc-test-harness` repo) |
