@@ -1,0 +1,34 @@
+name: Industry Release
+
+# Push a tag industry/v<mods/industry/gradle.properties version>[-<pre-release>]
+# (ADR-009, e.g. industry/v0.1.0) to build both loader jars at that version and
+# publish them to Modrinth, CurseForge and a GitHub Release (ADR-010). A tag
+# without a pre-release label publishes as a release, -alpha.N as alpha,
+# -beta.N / -rc.N as beta. Needs the repository variables INDUSTRY_MODRINTH_ID
+# and INDUSTRY_CURSEFORGE_ID and the secrets MODRINTH_TOKEN and
+# CURSEFORGE_TOKEN (an empty id skips that platform).
+
+on:
+  push:
+    tags: ['industry/v*']
+
+jobs:
+  publish:
+    permissions:
+      contents: write
+    uses: JordanOlivet/ci-workflows/.github/workflows/publish-mod.yml@v1
+    with:
+      tag: ${{ github.ref_name }}
+      tag-prefix: industry/
+      mod-name: 'Krios: Industry'
+      working-directory: mods/industry
+      changelog-paths: mods/industry libs/core
+      game-versions: 1.21.1
+      modrinth-id: ${{ vars.INDUSTRY_MODRINTH_ID }}
+      curseforge-id: ${{ vars.INDUSTRY_CURSEFORGE_ID }}
+      targets: >-
+        [{"loader":"neoforge","label":"NeoForge","files":"neoforge/build/libs/krios_industry-neoforge-*.jar"},
+         {"loader":"fabric","label":"Fabric","files":"fabric/build/libs/krios_industry-fabric-*.jar"}]
+    secrets:
+      modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+      curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
