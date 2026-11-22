@@ -33,6 +33,13 @@
         "krios_core": ">=${krios_core_version}",
         "minecraft": "${minecraft_version}",
         "java": ">=${java_version}"
+    },
+    "custom": {
+        "mc-publish": {
+            "dependencies": [
+                "krios_core@>=${krios_core_version}(required){modrinth:krios-core}{curseforge:krios-core}"
+            ]
+        }
     }
 }
   

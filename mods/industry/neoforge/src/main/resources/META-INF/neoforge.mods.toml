@@ -40,3 +40,10 @@ side = "BOTH"
 # stop your mod loading on the server for example.
 #[features.${mod_id}]
 #openGLVersion="[3.2,)"
+
+# Read by the release workflow (mc-publish), ignored by the game: the store
+# projects of the dependencies whose project slug differs from their mod id.
+[mc-publish]
+dependencies = [
+    "krios_core@[${krios_core_version},)(required){modrinth:krios-core}{curseforge:krios-core}"
+]
