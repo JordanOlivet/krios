@@ -1,0 +1,21 @@
+name: Core CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'mods/core/**'
+      - 'mods/core/**'
+      - '.github/workflows/core.yml'
+  pull_request:
+    paths:
+      - 'mods/core/**'
+      - 'mods/core/**'
+      - '.github/workflows/core.yml'
+
+jobs:
+  build:
+    uses: JordanOlivet/ci-workflows/.github/workflows/build-gradle-mod.yml@main
+    with:
+      working-directory: mods/core
+      artifact-name: krios_core-jars

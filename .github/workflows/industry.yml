@@ -5,12 +5,12 @@ on:
     branches: [main]
     paths:
       - 'mods/industry/**'
-      - 'libs/core/**'
+      - 'mods/core/**'
       - '.github/workflows/industry.yml'
   pull_request:
     paths:
       - 'mods/industry/**'
-      - 'libs/core/**'
+      - 'mods/core/**'
       - '.github/workflows/industry.yml'
 
 jobs:
