@@ -1,5 +1,9 @@
 package io.lakio.krios.industry.client.screen;
 
+import io.lakio.krios.industry.IndustryBalance;
+import io.lakio.krios.core.client.screen.HologramFacePanel;
+import io.lakio.krios.core.client.screen.StatsPanel;
+import io.lakio.krios.core.client.screen.AnnexPanel;
 import io.lakio.krios.industry.machine.grinder.FractalGrinderBlockEntity;
 import io.lakio.krios.industry.machine.grinder.FractalGrinderMenu;
 import io.lakio.krios.industry.machine.module.ModuleItem;
@@ -28,7 +32,7 @@ public class FractalGrinderScreen extends MachineTerminalScreen<FractalGrinderMe
                     Component.translatable("gui.krios_industry.stats.speed")),
             new StatsPanel.Row(StatsPanel.Icon.ENERGY_MULT,
                     () -> Component.literal("×" + String.format("%.2f",
-                            io.lakio.krios.industry.koios.KoiosBalance.efficiencyPermille(
+                            io.lakio.krios.industry.IndustryBalance.efficiencyPermille(
                                     modulePoints(ModuleType.EFFICIENCY)) / 1000.0)),
                     Component.translatable("gui.krios_industry.stats.energy")),
             new StatsPanel.Row(StatsPanel.Icon.YIELD,

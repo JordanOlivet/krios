@@ -21,6 +21,13 @@ dependencies {
     }
     modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
+    // Krios: Core, as its dev (named) jar: the composite build hands over a
+    // project, not a remapped mod, so Loom's mod configurations do not apply.
+    implementation("io.lakio.krios.core:krios_core-fabric:${krios_core_version}") {
+        capabilities {
+            requireCapability 'io.lakio.krios.core:krios_core-fabric-dev'
+        }
+    }
     // Team Reborn Energy: the Fabric energy interop standard, shipped jar-in-jar.
     modImplementation "teamreborn:energy:${tre_version}"
     include "teamreborn:energy:${tre_version}"

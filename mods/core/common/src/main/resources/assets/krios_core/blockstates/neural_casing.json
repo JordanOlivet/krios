@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "formed=false": { "model": "krios_core:block/neural_casing" },
+    "formed=true": { "model": "krios_core:block/neural_casing_formed" }
+  }
+}

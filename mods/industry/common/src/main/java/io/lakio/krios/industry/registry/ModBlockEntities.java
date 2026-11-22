@@ -1,13 +1,12 @@
 package io.lakio.krios.industry.registry;
 
+import io.lakio.krios.core.platform.Services;
 import java.util.function.Supplier;
 
 import io.lakio.krios.industry.Constants;
-import io.lakio.krios.industry.koios.KoiosCoreBlockEntity;
 import io.lakio.krios.industry.machine.grinder.FractalGrinderBlockEntity;
 import io.lakio.krios.industry.machine.forge.PlasmaForgeBlockEntity;
 import io.lakio.krios.industry.machine.reactor.ThermalReactorBlockEntity;
-import io.lakio.krios.industry.platform.Services;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -68,9 +67,6 @@ public final class ModBlockEntities {
             register("bio_synthesizer", () -> Services.REGISTRAR.createBlockEntityType(
                     io.lakio.krios.industry.machine.synth.BioSynthesizerBlockEntity::new,
                     ModBlocks.BIO_SYNTHESIZER.get(), ModBlocks.BIO_SYNTHESIZER_TIER2.get()));
-
-    public static final Supplier<BlockEntityType<KoiosCoreBlockEntity>> KOIOS_CORE = register("koios_core",
-            () -> Services.REGISTRAR.createBlockEntityType(KoiosCoreBlockEntity::new, ModBlocks.KOIOS_CORE.get()));
 
     private ModBlockEntities() {
     }

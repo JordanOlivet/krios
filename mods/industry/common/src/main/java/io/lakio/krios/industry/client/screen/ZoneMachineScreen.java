@@ -1,5 +1,8 @@
 package io.lakio.krios.industry.client.screen;
 
+import io.lakio.krios.core.client.screen.HologramFacePanel;
+import io.lakio.krios.core.client.screen.StatsPanel;
+import io.lakio.krios.core.client.screen.AnnexPanel;
 import java.util.List;
 
 import io.lakio.krios.industry.client.ZoneHologramState;

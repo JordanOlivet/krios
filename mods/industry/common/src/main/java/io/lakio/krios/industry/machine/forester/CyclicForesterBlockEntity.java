@@ -1,5 +1,6 @@
 package io.lakio.krios.industry.machine.forester;
 
+import io.lakio.krios.industry.IndustryBalance;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -7,7 +8,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import io.lakio.krios.industry.koios.KoiosBalance;
 import io.lakio.krios.industry.machine.MachineTiers;
 import io.lakio.krios.industry.machine.ZoneGeometry;
 import io.lakio.krios.industry.machine.zone.PlantingZoneBlockEntity;
@@ -106,7 +106,7 @@ public class CyclicForesterBlockEntity extends PlantingZoneBlockEntity {
 
     @Override
     protected int operationXp() {
-        return KoiosBalance.FELL_BASE_XP;
+        return IndustryBalance.FELL_BASE_XP;
     }
 
     // --- Cells ---
@@ -139,7 +139,7 @@ public class CyclicForesterBlockEntity extends PlantingZoneBlockEntity {
             markNoPlants();
             return CellResult.SKIP;
         }
-        if (!energy.consume(cost(level, KoiosBalance.PLANT_ENERGY, work.efficiencyPermille))) {
+        if (!energy.consume(cost(level, IndustryBalance.PLANT_ENERGY, work.efficiencyPermille))) {
             return CellResult.STARVED;
         }
         plant(level, pos, slot, SoundEvents.GRASS_PLACE);
@@ -232,7 +232,7 @@ public class CyclicForesterBlockEntity extends PlantingZoneBlockEntity {
     @Override
     protected int activeDelay() {
         return fellQueue.isEmpty() ? super.activeDelay()
-                : Math.max(1, KoiosBalance.FELL_LAYER_DELAY_TICKS
+                : Math.max(1, IndustryBalance.FELL_LAYER_DELAY_TICKS
                         / MachineTiers.speedFactor(effectiveTier()));
     }
 
@@ -268,7 +268,7 @@ public class CyclicForesterBlockEntity extends PlantingZoneBlockEntity {
                 work.blocked = true;
                 break;
             }
-            int blockCost = cost(level, log ? KoiosBalance.LOG_CUT_ENERGY : KoiosBalance.LEAF_CUT_ENERGY,
+            int blockCost = cost(level, log ? IndustryBalance.LOG_CUT_ENERGY : IndustryBalance.LEAF_CUT_ENERGY,
                     work.efficiencyPermille);
             if (!energy.consume(blockCost)) {
                 work.starved = true;

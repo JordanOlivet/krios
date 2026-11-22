@@ -1,9 +1,10 @@
 package io.lakio.krios.industry.client.screen;
 
+import io.lakio.krios.core.client.screen.AnnexPanel;
 import java.util.function.Consumer;
 import java.util.function.IntSupplier;
 
-import io.lakio.krios.industry.client.ClientPrefs;
+import io.lakio.krios.core.client.ClientPrefs;
 import io.lakio.krios.industry.machine.MachineMenu;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;

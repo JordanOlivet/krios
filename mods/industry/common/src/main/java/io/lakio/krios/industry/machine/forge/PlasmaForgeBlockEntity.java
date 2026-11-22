@@ -1,20 +1,21 @@
 package io.lakio.krios.industry.machine.forge;
 
-import io.lakio.krios.industry.energy.EnergyBuffer;
-import io.lakio.krios.industry.koios.KoiosBalance;
-import io.lakio.krios.industry.koios.KoiosCoreBlockEntity;
+import io.lakio.krios.industry.IndustryBalance;
+import io.lakio.krios.core.energy.EnergyBuffer;
+import io.lakio.krios.core.koios.KoiosBalance;
+import io.lakio.krios.core.koios.KoiosCoreBlockEntity;
 import io.lakio.krios.industry.machine.reactor.ThermalReactorBlockEntity;
 import io.lakio.krios.industry.machine.ItemFlow;
 import io.lakio.krios.industry.machine.MachineTiers;
 import io.lakio.krios.industry.machine.TieredMachine;
 import io.lakio.krios.industry.machine.module.ModuleItem;
 import io.lakio.krios.industry.machine.module.ModuleType;
-import io.lakio.krios.industry.network.EnergySink;
-import io.lakio.krios.industry.network.FaceConfig;
-import io.lakio.krios.industry.network.Flow;
-import io.lakio.krios.industry.network.Network;
-import io.lakio.krios.industry.network.NetworkManager;
-import io.lakio.krios.industry.network.NetworkNode;
+import io.lakio.krios.core.network.EnergySink;
+import io.lakio.krios.core.network.FaceConfig;
+import io.lakio.krios.core.network.Flow;
+import io.lakio.krios.core.network.Network;
+import io.lakio.krios.core.network.NetworkManager;
+import io.lakio.krios.core.network.NetworkNode;
 import io.lakio.krios.industry.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -52,9 +53,9 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
  */
 public class PlasmaForgeBlockEntity extends BlockEntity
         implements WorldlyContainer, MenuProvider, NetworkNode, EnergySink,
-        io.lakio.krios.industry.machine.ConfigurableFaces,
-        io.lakio.krios.industry.machine.EnergyStats,
-        io.lakio.krios.industry.tick.TickingDevice, io.lakio.krios.industry.tick.DeviceAlertable {
+        io.lakio.krios.core.network.ConfigurableFaces,
+        io.lakio.krios.core.energy.EnergyStats,
+        io.lakio.krios.core.tick.TickingDevice, io.lakio.krios.core.tick.DeviceAlertable {
 
     /** Seat on the ADR-027 device scheduler. */
     private final io.lakio.krios.industry.machine.LitDevice device =
@@ -348,9 +349,9 @@ public class PlasmaForgeBlockEntity extends BlockEntity
             int cookingTime = Math.max(1, holder.value().getCookingTime());
             be.columnTime[column] = online
                     ? Math.max(1, cookingTime / (2 + speedPoints))
-                    : Math.max(cookingTime, KoiosBalance.DISCONNECTED_TIME_TICKS);
+                    : Math.max(cookingTime, IndustryBalance.DISCONNECTED_TIME_TICKS);
             int energyPerOp = KoiosBalance.scaledEnergyCost(level,
-                    ENERGY_PER_OP * KoiosBalance.efficiencyPermille(efficiencyPoints) / 1000);
+                    ENERGY_PER_OP * IndustryBalance.efficiencyPermille(efficiencyPoints) / 1000);
             int energyPerTick = Math.max(1, energyPerOp / be.columnTime[column]);
             draw += energyPerTick;
             if (be.energy.consume(energyPerTick)) {
@@ -460,7 +461,7 @@ public class PlasmaForgeBlockEntity extends BlockEntity
         }
         Network network = NetworkManager.networkOf(this);
         if (network != null && network.controller() instanceof KoiosCoreBlockEntity core) {
-            core.reportOperations(holder.id().toString(), 1, KoiosBalance.SMELT_BASE_XP);
+            core.reportOperations(holder.id().toString(), 1, IndustryBalance.SMELT_BASE_XP);
         }
     }
 
@@ -567,7 +568,7 @@ public class PlasmaForgeBlockEntity extends BlockEntity
 
     /** Pull batch from passive containers: base x effective-tier factor. */
     private int pullBatch() {
-        return KoiosBalance.ITEM_PULL_BATCH_BASE * MachineTiers.speedFactor(
+        return IndustryBalance.ITEM_PULL_BATCH_BASE * MachineTiers.speedFactor(
                 MachineTiers.effectiveTier(NetworkManager.networkOf(this), machineTier));
     }
 

@@ -1,8 +1,10 @@
 package io.lakio.krios.industry.client.screen;
 
+import io.lakio.krios.industry.IndustryBalance;
+import io.lakio.krios.core.client.screen.StatsPanel;
+import io.lakio.krios.core.client.screen.AnnexPanel;
 import java.util.List;
 
-import io.lakio.krios.industry.koios.KoiosBalance;
 import io.lakio.krios.industry.machine.field.PhaseDeathFieldBlockEntity;
 import io.lakio.krios.industry.machine.field.PhaseDeathFieldMenu;
 import io.lakio.krios.industry.machine.module.ModuleType;
@@ -49,7 +51,7 @@ public class PhaseDeathFieldScreen extends ZoneMachineScreen<PhaseDeathFieldMenu
                         Component.translatable("gui.krios_industry.stats.hit_pace")),
                 new StatsPanel.Row(StatsPanel.Icon.ENERGY_MULT,
                         () -> Component.literal("×" + String.format("%.2f",
-                                KoiosBalance.efficiencyPermille(modulePoints(ModuleType.EFFICIENCY)) / 1000.0)),
+                                IndustryBalance.efficiencyPermille(modulePoints(ModuleType.EFFICIENCY)) / 1000.0)),
                         Component.translatable("gui.krios_industry.stats.energy")),
                 new StatsPanel.Row(StatsPanel.Icon.YIELD,
                         () -> Component.literal(Integer.toString(modulePoints(ModuleType.YIELD))),

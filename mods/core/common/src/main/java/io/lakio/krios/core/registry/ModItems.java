@@ -1,0 +1,42 @@
+package io.lakio.krios.core.registry;
+
+import java.util.function.Supplier;
+
+import io.lakio.krios.core.Constants;
+import io.lakio.krios.core.koios.ComputeChipItem;
+import io.lakio.krios.core.platform.Services;
+import io.lakio.krios.core.tool.CalibratorItem;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.item.Item;
+
+public final class ModItems {
+
+    public static final Supplier<Item> CHRONITE_SHARD = register("chronite_shard",
+            () -> new Item(new Item.Properties()));
+
+    public static final Supplier<Item> RAW_NEURITE = register("raw_neurite",
+            () -> new Item(new Item.Properties()));
+
+    public static final Supplier<Item> NEURITE_DUST = register("neurite_dust",
+            () -> new Item(new Item.Properties()));
+
+    public static final Supplier<Item> NEURITE_INGOT = register("neurite_ingot",
+            () -> new Item(new Item.Properties()));
+
+    public static final Supplier<Item> CALIBRATOR = register("calibrator",
+            () -> new CalibratorItem(new Item.Properties().stacksTo(1)));
+
+    public static final Supplier<Item> COMPUTE_CHIP = register("compute_chip",
+            () -> new ComputeChipItem(new Item.Properties().stacksTo(16)));
+
+    private ModItems() {
+    }
+
+    public static void init() {
+        // Forces static registration; called once from CommonClass.init().
+    }
+
+    private static Supplier<Item> register(String name, Supplier<Item> factory) {
+        return Services.REGISTRAR.register(BuiltInRegistries.ITEM, Constants.id(name), factory);
+    }
+}

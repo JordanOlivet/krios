@@ -8,10 +8,10 @@
   ],
   "key": {
     "C": {
-      "item": "krios_industry:chronite_shard"
+      "item": "krios_core:chronite_shard"
     },
     "N": {
-      "item": "krios_industry:neurite_ingot"
+      "item": "krios_core:neurite_ingot"
     },
     "M": {
       "item": "krios_industry:yield_module"

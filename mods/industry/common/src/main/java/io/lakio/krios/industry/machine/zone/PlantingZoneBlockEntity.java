@@ -1,8 +1,8 @@
 package io.lakio.krios.industry.machine.zone;
 
+import io.lakio.krios.industry.IndustryBalance;
 import java.util.List;
 
-import io.lakio.krios.industry.koios.KoiosBalance;
 import io.lakio.krios.industry.machine.ZoneGeometry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -95,7 +95,7 @@ public abstract class PlantingZoneBlockEntity extends ZoneMachineBlockEntity {
 
     /** Delay after a wake that acted; multi-wake jobs may set their own pace. */
     protected int activeDelay() {
-        return KoiosBalance.ZONE_ACTIVE_DELAY_TICKS;
+        return IndustryBalance.ZONE_ACTIVE_DELAY_TICKS;
     }
 
     // --- Core contract ---
@@ -125,7 +125,7 @@ public abstract class PlantingZoneBlockEntity extends ZoneMachineBlockEntity {
 
     @Override
     protected int nextDelay(Work work) {
-        return work.actions > 0 ? activeDelay() : KoiosBalance.ZONE_IDLE_DELAY_TICKS;
+        return work.actions > 0 ? activeDelay() : IndustryBalance.ZONE_IDLE_DELAY_TICKS;
     }
 
     @Override
@@ -227,8 +227,8 @@ public abstract class PlantingZoneBlockEntity extends ZoneMachineBlockEntity {
         growthCarry += (long) cells * elapsed * speedPoints * GROWTH_ODDS_NUM;
         long due = growthCarry / GROWTH_ODDS_DEN;
         growthCarry -= due * GROWTH_ODDS_DEN;
-        int ticks = (int) Math.min(due, KoiosBalance.ZONE_MAX_GROWTH_TICKS_PER_WAKE);
-        int tickCost = cost(level, KoiosBalance.GROWTH_TICK_ENERGY, efficiency);
+        int ticks = (int) Math.min(due, IndustryBalance.ZONE_MAX_GROWTH_TICKS_PER_WAKE);
+        int tickCost = cost(level, IndustryBalance.GROWTH_TICK_ENERGY, efficiency);
         Direction direction = zoneDirection();
         for (int i = 0; i < ticks; i++) {
             BlockPos pos = ZoneGeometry.cell(worldPosition, direction, edge, level.random.nextInt(cells));

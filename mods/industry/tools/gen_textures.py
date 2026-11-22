@@ -18,6 +18,16 @@ import zlib
 from pathlib import Path
 
 ASSETS = Path(__file__).resolve().parents[1] / "common/src/main/resources/assets/krios_industry/textures"
+# Textures of the content that moved to Krios: Core (ADR-028) live in that mod.
+CORE_ASSETS = Path(__file__).resolve().parents[2] / "core/common/src/main/resources/assets/krios_core/textures"
+CORE_PREFIXES = ("block/chronite_ore", "block/deepslate_", "block/neurite_ore", "block/neural_",
+                 "block/koios_", "item/chronite_shard", "item/raw_neurite", "item/neurite_",
+                 "item/calibrator", "item/compute_chip")
+
+
+def assets_for(rel):
+    """The textures directory owning one output path (core or industry)."""
+    return CORE_ASSETS if rel.startswith(CORE_PREFIXES) else ASSETS
 
 # ---------------------------------------------------------------- palette
 
@@ -162,7 +172,7 @@ class Img:
                + chunk(b"IDAT", zlib.compress(raw, 9))
                + chunk(b"IEND", b""))
         path.write_bytes(png)
-        print(f"  {path.relative_to(ASSETS)}")
+        print(f"  {path.parent.name}/{path.name}")
 
 
 # ---------------------------------------------------------------- blocks
@@ -1279,9 +1289,9 @@ def main():
     if wanted != ["--all"]:
         out = {rel: img for rel, img in out.items()
                if any(w in rel for w in wanted)}
-    print(f"Writing {len(out)} textures to {ASSETS}")
+    print(f"Writing {len(out)} textures under {ASSETS} and {CORE_ASSETS}")
     for rel, img in out.items():
-        img.save(ASSETS / rel)
+        img.save(assets_for(rel) / rel)
     # Vanilla animation metadata for the flickering lit textures.
     for rel in ("block/thermal_reactor_front_lit.png", "block/fractal_grinder_maw_lit.png",
                 "block/plasma_forge_front_lit.png"):

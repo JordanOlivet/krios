@@ -1,13 +1,13 @@
 package io.lakio.krios.industry.machine.field;
 
+import io.lakio.krios.industry.platform.IndustryServices;
+import io.lakio.krios.industry.IndustryBalance;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.lakio.krios.industry.koios.KoiosBalance;
 import io.lakio.krios.industry.machine.zone.CreatureZoneBlockEntity;
-import io.lakio.krios.industry.platform.Services;
 import io.lakio.krios.industry.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -92,12 +92,12 @@ public class PhaseDeathFieldBlockEntity extends CreatureZoneBlockEntity<Mob> {
 
     @Override
     protected int operationXp() {
-        return KoiosBalance.KILL_BASE_XP;
+        return IndustryBalance.KILL_BASE_XP;
     }
 
     /** Damage per hit: 4, doubled per effective tier. */
     public static int damageForTier(int tier) {
-        return KoiosBalance.FIELD_BASE_DAMAGE << (Math.max(1, tier) - 1);
+        return IndustryBalance.FIELD_BASE_DAMAGE << (Math.max(1, tier) - 1);
     }
 
     // --- Buttons ---
@@ -185,12 +185,12 @@ public class PhaseDeathFieldBlockEntity extends CreatureZoneBlockEntity<Mob> {
     }
 
     private void reap(ServerLevel level, Work work, List<Mob> targets) {
-        ServerPlayer reaper = Services.FAKE_PLAYERS.get(level);
+        ServerPlayer reaper = IndustryServices.FAKE_PLAYERS.get(level);
         reaper.moveTo(worldPosition.getX() + 0.5, worldPosition.getY(), worldPosition.getZ() + 0.5, 0.0F, 0.0F);
         reaper.setItemInHand(InteractionHand.MAIN_HAND, weapon(level, work.yieldPoints));
         DamageSource source = level.damageSources().playerAttack(reaper);
         int damage = damageForTier(work.effectiveTier);
-        int hitCost = cost(level, KoiosBalance.FIELD_ENERGY_PER_DAMAGE * damage, work.efficiencyPermille);
+        int hitCost = cost(level, IndustryBalance.FIELD_ENERGY_PER_DAMAGE * damage, work.efficiencyPermille);
         int hits = 0;
         for (Mob mob : targets) {
             if (hits >= MAX_HITS_PER_WAKE) {
@@ -278,9 +278,9 @@ public class PhaseDeathFieldBlockEntity extends CreatureZoneBlockEntity<Mob> {
     @Override
     protected int nextDelay(Work work) {
         if (work.actions <= 0) {
-            return KoiosBalance.ZONE_IDLE_DELAY_TICKS;
+            return IndustryBalance.ZONE_IDLE_DELAY_TICKS;
         }
-        return Math.max(1, KoiosBalance.FIELD_HIT_INTERVAL_TICKS * 2 / (2 + work.speedPoints));
+        return Math.max(1, IndustryBalance.FIELD_HIT_INTERVAL_TICKS * 2 / (2 + work.speedPoints));
     }
 
     @Override

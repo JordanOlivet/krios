@@ -8,9 +8,9 @@
   ],
   "key": {
     "G": { "tag": "c:glass_blocks" },
-    "N": { "item": "krios_industry:neurite_ingot" },
+    "N": { "item": "krios_core:neurite_ingot" },
     "P": { "tag": "c:ingots/copper" },
-    "S": { "item": "krios_industry:chronite_shard" },
+    "S": { "item": "krios_core:chronite_shard" },
     "I": { "tag": "c:ingots/iron" }
   },
   "result": { "id": "krios_industry:photon_array", "count": 1 }

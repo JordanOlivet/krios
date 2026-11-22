@@ -1,18 +1,14 @@
 package io.lakio.krios.industry.registry;
 
+import io.lakio.krios.core.platform.Services;
 import java.util.function.Supplier;
 
 import io.lakio.krios.industry.Constants;
-import io.lakio.krios.industry.koios.KoiosData;
-import io.lakio.krios.industry.platform.Services;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 
 public final class ModDataComponents {
-
-    public static final Supplier<DataComponentType<KoiosData>> KOIOS_DATA = register("koios_data",
-            () -> DataComponentType.<KoiosData>builder().persistent(KoiosData.CODEC).build());
 
     /** An Engram's imprinted species (entity type id); synced for names and tooltips. */
     public static final Supplier<DataComponentType<ResourceLocation>> ENGRAM = register("engram",

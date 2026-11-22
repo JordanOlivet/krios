@@ -1,9 +1,9 @@
 package io.lakio.krios.industry.machine.farmer;
 
+import io.lakio.krios.industry.IndustryBalance;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.lakio.krios.industry.koios.KoiosBalance;
 import io.lakio.krios.industry.machine.HydrationZones;
 import io.lakio.krios.industry.machine.ZoneGeometry;
 import io.lakio.krios.industry.machine.zone.PlantingZoneBlockEntity;
@@ -89,7 +89,7 @@ public class ChronoFarmerBlockEntity extends PlantingZoneBlockEntity {
 
     @Override
     protected int operationXp() {
-        return KoiosBalance.HARVEST_BASE_XP;
+        return IndustryBalance.HARVEST_BASE_XP;
     }
 
     // --- Hydration (ADR-023) ---
@@ -136,7 +136,7 @@ public class ChronoFarmerBlockEntity extends PlantingZoneBlockEntity {
                 markNoPlants();
                 return CellResult.SKIP;
             }
-            if (!energy.consume(cost(level, KoiosBalance.PLANT_ENERGY, work.efficiencyPermille))) {
+            if (!energy.consume(cost(level, IndustryBalance.PLANT_ENERGY, work.efficiencyPermille))) {
                 return CellResult.STARVED;
             }
             plant(level, cropPos, slot, SoundEvents.CROP_PLANTED);
@@ -149,8 +149,8 @@ public class ChronoFarmerBlockEntity extends PlantingZoneBlockEntity {
             if (slot < 0) {
                 return CellResult.SKIP;
             }
-            int tillCost = cost(level, KoiosBalance.TILL_ENERGY, work.efficiencyPermille);
-            int plantCost = cost(level, KoiosBalance.PLANT_ENERGY, work.efficiencyPermille);
+            int tillCost = cost(level, IndustryBalance.TILL_ENERGY, work.efficiencyPermille);
+            int plantCost = cost(level, IndustryBalance.PLANT_ENERGY, work.efficiencyPermille);
             if (energy.getStored() < tillCost + plantCost) {
                 return CellResult.STARVED;
             }
@@ -174,7 +174,7 @@ public class ChronoFarmerBlockEntity extends PlantingZoneBlockEntity {
      */
     private void hydrate(ServerLevel level, BlockPos soilPos, BlockState soil, int efficiency) {
         if (soil.is(Blocks.FARMLAND) && soil.getValue(FarmBlock.MOISTURE) < FarmBlock.MAX_MOISTURE
-                && energy.consume(cost(level, KoiosBalance.HYDRATE_ENERGY, efficiency))) {
+                && energy.consume(cost(level, IndustryBalance.HYDRATE_ENERGY, efficiency))) {
             level.setBlock(soilPos, soil.setValue(FarmBlock.MOISTURE, FarmBlock.MAX_MOISTURE), 2);
         }
     }
@@ -198,7 +198,7 @@ public class ChronoFarmerBlockEntity extends PlantingZoneBlockEntity {
         if (!stow(drops, seedSlot, true)) {
             return CellResult.BLOCKED;
         }
-        if (!energy.consume(cost(level, KoiosBalance.HARVEST_ENERGY, work.efficiencyPermille))) {
+        if (!energy.consume(cost(level, IndustryBalance.HARVEST_ENERGY, work.efficiencyPermille))) {
             return CellResult.STARVED;
         }
         yieldQuarters = quarters % 4;

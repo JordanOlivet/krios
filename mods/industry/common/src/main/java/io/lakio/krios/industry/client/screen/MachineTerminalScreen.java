@@ -1,5 +1,8 @@
 package io.lakio.krios.industry.client.screen;
 
+import io.lakio.krios.core.client.screen.HologramFacePanel;
+import io.lakio.krios.core.client.screen.AnnexPanel;
+import io.lakio.krios.core.client.screen.KriosTerminalScreen;
 import io.lakio.krios.industry.machine.MachineMenu;
 import net.minecraft.Util;
 import net.minecraft.client.gui.GuiGraphics;

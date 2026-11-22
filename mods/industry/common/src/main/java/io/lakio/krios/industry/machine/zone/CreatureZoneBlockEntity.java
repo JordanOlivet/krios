@@ -1,11 +1,11 @@
 package io.lakio.krios.industry.machine.zone;
 
+import io.lakio.krios.industry.IndustryBalance;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.lakio.krios.industry.koios.KoiosBalance;
 import io.lakio.krios.industry.machine.ZoneGeometry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -112,7 +112,7 @@ public abstract class CreatureZoneBlockEntity<E extends Mob> extends ZoneMachine
         if (extra <= 0) {
             return false;
         }
-        int animalCost = cost(level, Math.max(1, KoiosBalance.ANIMAL_ACCEL_ENERGY_PER_SECOND * extra / 20),
+        int animalCost = cost(level, Math.max(1, IndustryBalance.ANIMAL_ACCEL_ENERGY_PER_SECOND * extra / 20),
                 work.efficiencyPermille);
         for (List<E> creatures : species.values()) {
             for (E creature : creatures) {

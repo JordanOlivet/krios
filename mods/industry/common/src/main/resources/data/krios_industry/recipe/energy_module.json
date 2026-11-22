@@ -8,13 +8,13 @@
   ],
   "key": {
     "S": {
-      "item": "krios_industry:chronite_shard"
+      "item": "krios_core:chronite_shard"
     },
     "C": {
       "tag": "c:ingots/copper"
     },
     "N": {
-      "item": "krios_industry:neurite_ingot"
+      "item": "krios_core:neurite_ingot"
     },
     "R": {
       "tag": "c:dusts/redstone"

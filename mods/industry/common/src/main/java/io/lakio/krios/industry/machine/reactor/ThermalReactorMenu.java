@@ -1,7 +1,7 @@
 package io.lakio.krios.industry.machine.reactor;
 
+import io.lakio.krios.core.platform.Services;
 import io.lakio.krios.industry.machine.MachineMenu;
-import io.lakio.krios.industry.platform.Services;
 import io.lakio.krios.industry.registry.ModMenus;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.Container;

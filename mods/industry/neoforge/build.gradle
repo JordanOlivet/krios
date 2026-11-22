@@ -42,3 +42,12 @@ neoForge {
 }
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+dependencies {
+    // Krios: Core, a mod on the classpath in dev and a declared dependency in the jar.
+    implementation("io.lakio.krios.core:krios_core-neoforge:${krios_core_version}") {
+        capabilities {
+            requireCapability 'io.lakio.krios.core:krios_core'
+        }
+    }
+}

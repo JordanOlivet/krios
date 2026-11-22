@@ -1,29 +1,30 @@
 package io.lakio.krios.industry.machine.zone;
 
+import io.lakio.krios.industry.IndustryBalance;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.lakio.krios.industry.energy.EnergyBuffer;
-import io.lakio.krios.industry.koios.KoiosBalance;
-import io.lakio.krios.industry.koios.KoiosCoreBlockEntity;
-import io.lakio.krios.industry.machine.ConfigurableFaces;
-import io.lakio.krios.industry.machine.EnergyStats;
+import io.lakio.krios.core.energy.EnergyBuffer;
+import io.lakio.krios.core.koios.KoiosBalance;
+import io.lakio.krios.core.koios.KoiosCoreBlockEntity;
+import io.lakio.krios.core.network.ConfigurableFaces;
+import io.lakio.krios.core.energy.EnergyStats;
 import io.lakio.krios.industry.machine.ItemFlow;
 import io.lakio.krios.industry.machine.MachineTiers;
 import io.lakio.krios.industry.machine.TieredMachine;
 import io.lakio.krios.industry.machine.module.ModuleItem;
 import io.lakio.krios.industry.machine.module.ModuleType;
 import io.lakio.krios.industry.machine.reactor.ThermalReactorBlockEntity;
-import io.lakio.krios.industry.network.EnergySink;
-import io.lakio.krios.industry.network.FaceConfig;
-import io.lakio.krios.industry.network.Flow;
-import io.lakio.krios.industry.network.Network;
-import io.lakio.krios.industry.network.NetworkManager;
-import io.lakio.krios.industry.network.NetworkNode;
-import io.lakio.krios.industry.tick.DeviceHandle;
-import io.lakio.krios.industry.tick.TickManager;
-import io.lakio.krios.industry.tick.TickingDevice;
+import io.lakio.krios.core.network.EnergySink;
+import io.lakio.krios.core.network.FaceConfig;
+import io.lakio.krios.core.network.Flow;
+import io.lakio.krios.core.network.Network;
+import io.lakio.krios.core.network.NetworkManager;
+import io.lakio.krios.core.network.NetworkNode;
+import io.lakio.krios.core.tick.DeviceHandle;
+import io.lakio.krios.core.tick.TickManager;
+import io.lakio.krios.core.tick.TickingDevice;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -71,7 +72,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public abstract class ZoneMachineBlockEntity extends BlockEntity
         implements WorldlyContainer, MenuProvider, NetworkNode, EnergySink, ConfigurableFaces, EnergyStats,
-        TickingDevice, io.lakio.krios.industry.tick.DeviceAlertable {
+        TickingDevice, io.lakio.krios.core.tick.DeviceAlertable {
 
     // Layout: inputs (per machine, from 0), output buffer (per machine,
     // 9 by default, zero allowed), modules.
@@ -319,7 +320,7 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
     protected int nextDelay(Work work) {
         // Starvation backs off like idleness: each wake still pulls (the
         // pull relights the producers), without polling every 10 ticks.
-        return work.actions > 0 ? KoiosBalance.ZONE_ACTIVE_DELAY_TICKS : KoiosBalance.ZONE_IDLE_DELAY_TICKS;
+        return work.actions > 0 ? IndustryBalance.ZONE_ACTIVE_DELAY_TICKS : IndustryBalance.ZONE_IDLE_DELAY_TICKS;
     }
 
     /** LIT ("working", visual) after this wake. */
@@ -428,7 +429,7 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
             return;
         }
         paused = false;
-        device.alertWithin(KoiosBalance.ZONE_ACTIVE_DELAY_TICKS);
+        device.alertWithin(IndustryBalance.ZONE_ACTIVE_DELAY_TICKS);
     }
 
     @Override
@@ -485,7 +486,7 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
     @Override
     public void deviceTick(ServerLevel level, long now) {
         if (viewers > 0 && now >= nextViewTime) {
-            nextViewTime = now + KoiosBalance.VIEW_REFRESH_TICKS;
+            nextViewTime = now + IndustryBalance.VIEW_REFRESH_TICKS;
             viewTick(level);
         }
         inWake = true;
@@ -546,7 +547,7 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
     private void scheduleNext(long now) {
         long delay = Math.max(1, nextWorkTime - now);
         if (bufferHasItems()) {
-            delay = Math.min(delay, KoiosBalance.ZONE_PUSH_DELAY_TICKS);
+            delay = Math.min(delay, IndustryBalance.ZONE_PUSH_DELAY_TICKS);
         }
         rest((int) delay);
     }
@@ -587,10 +588,10 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
         int effectiveTier = MachineTiers.effectiveTier(network, machineTier);
         Work work = new Work(online, elapsed,
                 online ? modulePoints(ModuleType.SPEED) : 0,
-                KoiosBalance.efficiencyPermille(online ? modulePoints(ModuleType.EFFICIENCY) : 0),
+                IndustryBalance.efficiencyPermille(online ? modulePoints(ModuleType.EFFICIENCY) : 0),
                 online ? modulePoints(ModuleType.YIELD) : 0,
                 effectiveTier,
-                KoiosBalance.ZONE_ACTIONS_BASE * MachineTiers.speedFactor(effectiveTier));
+                IndustryBalance.ZONE_ACTIONS_BASE * MachineTiers.speedFactor(effectiveTier));
         int storedBefore = energy.getStored();
 
         work(level, work);
@@ -723,7 +724,7 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
 
     /** Pull batch from passive containers: base x effective-tier factor. */
     private int pullBatch() {
-        return KoiosBalance.ITEM_PULL_BATCH_BASE * MachineTiers.speedFactor(effectiveTier());
+        return IndustryBalance.ITEM_PULL_BATCH_BASE * MachineTiers.speedFactor(effectiveTier());
     }
 
     private void setLit(Level level, boolean lit) {

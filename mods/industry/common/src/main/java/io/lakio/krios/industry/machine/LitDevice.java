@@ -1,9 +1,9 @@
 package io.lakio.krios.industry.machine;
 
-import io.lakio.krios.industry.network.FaceConfig;
-import io.lakio.krios.industry.tick.DeviceHandle;
-import io.lakio.krios.industry.tick.TickManager;
-import io.lakio.krios.industry.tick.TickingDevice;
+import io.lakio.krios.core.network.FaceConfig;
+import io.lakio.krios.core.tick.DeviceHandle;
+import io.lakio.krios.core.tick.TickManager;
+import io.lakio.krios.core.tick.TickingDevice;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;

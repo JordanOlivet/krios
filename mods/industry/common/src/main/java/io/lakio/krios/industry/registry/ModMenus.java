@@ -1,14 +1,12 @@
 package io.lakio.krios.industry.registry;
 
+import io.lakio.krios.core.platform.Services;
 import java.util.function.Supplier;
 
 import io.lakio.krios.industry.Constants;
-import io.lakio.krios.industry.koios.KoiosCoreMenu;
 import io.lakio.krios.industry.machine.grinder.FractalGrinderMenu;
 import io.lakio.krios.industry.machine.forge.PlasmaForgeMenu;
 import io.lakio.krios.industry.machine.reactor.ThermalReactorMenu;
-import io.lakio.krios.industry.platform.Services;
-import io.lakio.krios.industry.tool.CalibratorMenu;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
@@ -55,12 +53,6 @@ public final class ModMenus {
     public static final Supplier<MenuType<io.lakio.krios.industry.machine.synth.BioSynthesizerMenu>> BIO_SYNTHESIZER =
             register("bio_synthesizer", () -> Services.REGISTRAR.createMenuType(
                     io.lakio.krios.industry.machine.synth.BioSynthesizerMenu::new));
-
-    public static final Supplier<MenuType<KoiosCoreMenu>> KOIOS_CORE = register("koios_core",
-            () -> Services.REGISTRAR.createMenuType(KoiosCoreMenu::new));
-
-    public static final Supplier<MenuType<CalibratorMenu>> CALIBRATOR = register("calibrator",
-            () -> Services.REGISTRAR.createMenuType(CalibratorMenu::new));
 
     private ModMenus() {
     }

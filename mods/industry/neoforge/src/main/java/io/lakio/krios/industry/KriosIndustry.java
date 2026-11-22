@@ -1,19 +1,14 @@
 package io.lakio.krios.industry;
 
-import io.lakio.krios.industry.energy.EnergyBuffer;
-import io.lakio.krios.industry.koios.KoiosCommand;
+import io.lakio.krios.core.energy.EnergyBuffer;
 import io.lakio.krios.industry.machine.reactor.ThermalReactorBlockEntity;
-import io.lakio.krios.industry.platform.NeoForgeRegistrar;
+import io.lakio.krios.core.platform.NeoForgeRegistrar;
 import io.lakio.krios.industry.registry.ModBlockEntities;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.energy.IEnergyStorage;
-import net.neoforged.neoforge.event.RegisterCommandsEvent;
-import net.neoforged.neoforge.event.server.ServerStoppingEvent;
-import net.neoforged.neoforge.event.tick.LevelTickEvent;
 
 @Mod(Constants.MOD_ID)
 public class KriosIndustry {
@@ -22,22 +17,8 @@ public class KriosIndustry {
         // init() fills the deferred registers; attach() hands them to the bus
         // before registry events fire.
         CommonClass.init();
-        NeoForgeRegistrar.attach(eventBus);
+        NeoForgeRegistrar.attach(eventBus, Constants.MOD_ID);
         eventBus.addListener(KriosIndustry::registerCapabilities);
-        // Commands ride the game bus, not the mod bus.
-        NeoForge.EVENT_BUS.addListener(KriosIndustry::registerCommands);
-        // ADR-027: the device scheduler rides the level tick.
-        NeoForge.EVENT_BUS.addListener((LevelTickEvent.Post event) -> {
-            if (event.getLevel() instanceof net.minecraft.server.level.ServerLevel level) {
-                io.lakio.krios.industry.tick.TickManager.tickLevel(level);
-            }
-        });
-        NeoForge.EVENT_BUS.addListener((ServerStoppingEvent event) ->
-                io.lakio.krios.industry.tick.TickManager.clear());
-    }
-
-    private static void registerCommands(RegisterCommandsEvent event) {
-        KoiosCommand.register(event.getDispatcher());
     }
 
     private static void registerCapabilities(RegisterCapabilitiesEvent event) {

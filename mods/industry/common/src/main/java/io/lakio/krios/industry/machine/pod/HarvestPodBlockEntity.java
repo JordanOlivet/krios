@@ -1,10 +1,10 @@
 package io.lakio.krios.industry.machine.pod;
 
+import io.lakio.krios.industry.IndustryBalance;
 import java.util.List;
 import java.util.Map;
 
 import io.lakio.krios.industry.Constants;
-import io.lakio.krios.industry.koios.KoiosBalance;
 import io.lakio.krios.industry.machine.zone.CreatureZoneBlockEntity;
 import io.lakio.krios.industry.mixin.ArmadilloAccessor;
 import io.lakio.krios.industry.mixin.MushroomCowAccessor;
@@ -94,7 +94,7 @@ public class HarvestPodBlockEntity extends CreatureZoneBlockEntity<Animal> {
 
     @Override
     protected int operationXp() {
-        return KoiosBalance.CREATURE_HARVEST_BASE_XP;
+        return IndustryBalance.CREATURE_HARVEST_BASE_XP;
     }
 
     // --- What each animal gives ---
@@ -166,7 +166,7 @@ public class HarvestPodBlockEntity extends CreatureZoneBlockEntity<Animal> {
                 work.blocked = true;
                 return;
             }
-            if (!energy.consume(cost(level, KoiosBalance.PICKUP_ENERGY_PER_ITEM * count, work.efficiencyPermille))) {
+            if (!energy.consume(cost(level, IndustryBalance.PICKUP_ENERGY_PER_ITEM * count, work.efficiencyPermille))) {
                 work.starved = true;
                 return;
             }
@@ -194,7 +194,7 @@ public class HarvestPodBlockEntity extends CreatureZoneBlockEntity<Animal> {
             work.blocked = true;
             return;
         }
-        if (!energy.consume(cost(level, KoiosBalance.SHEAR_ENERGY, work.efficiencyPermille))) {
+        if (!energy.consume(cost(level, IndustryBalance.SHEAR_ENERGY, work.efficiencyPermille))) {
             work.starved = true;
             return;
         }
@@ -264,7 +264,7 @@ public class HarvestPodBlockEntity extends CreatureZoneBlockEntity<Animal> {
             work.blocked = true;
             return true;
         }
-        if (!energy.consume(cost(level, KoiosBalance.MILK_ENERGY, work.efficiencyPermille))) {
+        if (!energy.consume(cost(level, IndustryBalance.MILK_ENERGY, work.efficiencyPermille))) {
             work.starved = true;
             return true;
         }

@@ -1,5 +1,6 @@
 package io.lakio.krios.industry.energy;
 
+import io.lakio.krios.core.energy.EnergyBuffer;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.fabricmc.fabric.api.transfer.v1.transaction.base.SnapshotParticipant;
 import team.reborn.energy.api.EnergyStorage;

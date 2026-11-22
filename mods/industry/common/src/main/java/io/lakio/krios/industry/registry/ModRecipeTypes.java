@@ -1,11 +1,11 @@
 package io.lakio.krios.industry.registry;
 
+import io.lakio.krios.core.platform.Services;
 import java.util.function.Supplier;
 
 import io.lakio.krios.industry.Constants;
 import io.lakio.krios.industry.machine.grinder.GrindingRecipe;
 import io.lakio.krios.industry.machine.synth.EngramCopyRecipe;
-import io.lakio.krios.industry.platform.Services;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;

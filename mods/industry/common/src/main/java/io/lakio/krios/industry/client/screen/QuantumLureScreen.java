@@ -1,8 +1,9 @@
 package io.lakio.krios.industry.client.screen;
 
+import io.lakio.krios.industry.IndustryBalance;
+import io.lakio.krios.core.client.screen.StatsPanel;
 import java.util.List;
 
-import io.lakio.krios.industry.koios.KoiosBalance;
 import io.lakio.krios.industry.machine.lure.QuantumLureBlockEntity;
 import io.lakio.krios.industry.machine.lure.QuantumLureMenu;
 import io.lakio.krios.industry.machine.module.ModuleType;
@@ -50,14 +51,14 @@ public class QuantumLureScreen extends ZoneMachineScreen<QuantumLureMenu> {
                         Component.translatable("gui.krios_industry.stats.catch_pace")),
                 new StatsPanel.Row(StatsPanel.Icon.LURE,
                         () -> Component.literal("-" + modulePoints(ModuleType.LURE)
-                                * KoiosBalance.LURE_TICKS_PER_POINT / 20 + " s"),
+                                * IndustryBalance.LURE_TICKS_PER_POINT / 20 + " s"),
                         Component.translatable("gui.krios_industry.stats.lure")),
                 new StatsPanel.Row(StatsPanel.Icon.LUCK,
                         () -> Component.literal("+" + modulePoints(ModuleType.LUCK)),
                         Component.translatable("gui.krios_industry.stats.luck")),
                 new StatsPanel.Row(StatsPanel.Icon.ENERGY_MULT,
                         () -> Component.literal("×" + String.format("%.2f",
-                                KoiosBalance.efficiencyPermille(modulePoints(ModuleType.EFFICIENCY)) / 1000.0)),
+                                IndustryBalance.efficiencyPermille(modulePoints(ModuleType.EFFICIENCY)) / 1000.0)),
                         Component.translatable("gui.krios_industry.stats.energy")),
                 new StatsPanel.Row(StatsPanel.Icon.YIELD,
                         () -> Component.literal("+" + modulePoints(ModuleType.YIELD) * 25 + " %"),

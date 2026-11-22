@@ -10,7 +10,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.lakio.krios.industry.client.ZoneHologramState;
 import io.lakio.krios.industry.machine.ZoneGeometry;
 import io.lakio.krios.industry.machine.zone.ZoneMachineBlockEntity;
-import io.lakio.krios.industry.tool.CalibratorItem;
+import io.lakio.krios.core.tool.CalibratorItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;

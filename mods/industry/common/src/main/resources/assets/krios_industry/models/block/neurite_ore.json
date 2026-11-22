@@ -1,7 +1,0 @@
-{
-    "parent": "krios_industry:block/template_emissive_ore",
-    "textures": {
-        "base": "krios_industry:block/neurite_ore",
-        "glow": "krios_industry:block/neurite_ore_glow"
-    }
-}

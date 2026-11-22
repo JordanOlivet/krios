@@ -1,11 +1,11 @@
 package io.lakio.krios.industry.machine.pod;
 
+import io.lakio.krios.industry.IndustryBalance;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import io.lakio.krios.industry.Constants;
-import io.lakio.krios.industry.koios.KoiosBalance;
 import io.lakio.krios.industry.machine.MachineTiers;
 import io.lakio.krios.industry.machine.zone.CreatureZoneBlockEntity;
 import io.lakio.krios.industry.registry.ModBlockEntities;
@@ -90,7 +90,7 @@ public class BreedingPodBlockEntity extends CreatureZoneBlockEntity<Animal> {
 
     @Override
     protected int operationXp() {
-        return KoiosBalance.BREED_BASE_XP;
+        return IndustryBalance.BREED_BASE_XP;
     }
 
     // --- Cap ---
@@ -202,7 +202,7 @@ public class BreedingPodBlockEntity extends CreatureZoneBlockEntity<Animal> {
                 b.resetLove();
                 return true;
             }
-            if (!energy.consume(cost(level, KoiosBalance.BREED_ENERGY, work.efficiencyPermille))) {
+            if (!energy.consume(cost(level, IndustryBalance.BREED_ENERGY, work.efficiencyPermille))) {
                 a.resetLove();
                 b.resetLove();
                 work.starved = true;

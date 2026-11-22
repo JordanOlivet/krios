@@ -1,8 +1,6 @@
 package io.lakio.krios.industry.client;
 
 import io.lakio.krios.industry.Constants;
-import io.lakio.krios.industry.client.render.BlueprintRenderer;
-import io.lakio.krios.industry.client.render.FaceOverlayRenderer;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -18,8 +16,6 @@ public final class KriosIndustryClientGame {
     @SubscribeEvent
     public static void onRenderLevelStage(RenderLevelStageEvent event) {
         if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) {
-            BlueprintRenderer.render(event.getPoseStack(), event.getPartialTick().getGameTimeDeltaPartialTick(false));
-            FaceOverlayRenderer.render(event.getPoseStack(), event.getPartialTick().getGameTimeDeltaPartialTick(false));
             io.lakio.krios.industry.client.render.ZoneHologramRenderer.render(event.getPoseStack(),
                     event.getPartialTick().getGameTimeDeltaPartialTick(false));
         }

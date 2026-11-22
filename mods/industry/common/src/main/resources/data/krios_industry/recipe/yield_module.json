@@ -9,7 +9,7 @@
   "key": {
     "D": { "tag": "c:gems/diamond" },
     "R": { "tag": "c:dusts/redstone" },
-    "N": { "item": "krios_industry:neurite_ingot" },
+    "N": { "item": "krios_core:neurite_ingot" },
     "I": { "tag": "c:ingots/iron" }
   },
   "result": { "id": "krios_industry:yield_module", "count": 1 }

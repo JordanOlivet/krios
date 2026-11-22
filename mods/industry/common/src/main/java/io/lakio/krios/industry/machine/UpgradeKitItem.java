@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import io.lakio.krios.industry.network.FlowPorts;
+import io.lakio.krios.core.network.FlowPorts;
 import io.lakio.krios.industry.registry.ModBlocks;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;

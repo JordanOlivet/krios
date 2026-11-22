@@ -7,9 +7,9 @@
     "III"
   ],
   "key": {
-    "C": { "item": "krios_industry:chronite_shard" },
+    "C": { "item": "krios_core:chronite_shard" },
     "R": { "tag": "c:dusts/redstone" },
-    "N": { "item": "krios_industry:neurite_ingot" },
+    "N": { "item": "krios_core:neurite_ingot" },
     "I": { "tag": "c:ingots/iron" }
   },
   "result": { "id": "krios_industry:speed_module", "count": 1 }

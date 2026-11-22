@@ -23,6 +23,12 @@ versionRange = "[${neoforge_version},)" #mandatory
 ordering = "NONE" # The order that this dependency should load in relation to your mod, required to be either 'BEFORE' or 'AFTER' if the dependency is not mandatory
 side = "BOTH" # Side this dependency is applied on - 'BOTH', 'CLIENT' or 'SERVER'
 [[dependencies.${mod_id}]]
+modId = "krios_core"
+type="required"
+versionRange = "[${krios_core_version},)"
+ordering = "AFTER"
+side = "BOTH"
+[[dependencies.${mod_id}]]
 modId = "minecraft"
 type="required" #mandatory (Can be one of "required", "optional", "incompatible" or "discouraged")
 versionRange = "${minecraft_version_range}"

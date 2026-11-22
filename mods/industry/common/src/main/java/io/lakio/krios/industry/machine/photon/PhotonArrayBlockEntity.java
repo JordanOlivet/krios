@@ -1,15 +1,15 @@
 package io.lakio.krios.industry.machine.photon;
 
-import io.lakio.krios.industry.energy.EnergyBuffer;
-import io.lakio.krios.industry.koios.KoiosCoreBlockEntity;
-import io.lakio.krios.industry.network.EnergyPort;
-import io.lakio.krios.industry.network.EnergySink;
-import io.lakio.krios.industry.network.FaceConfig;
-import io.lakio.krios.industry.network.Flow;
-import io.lakio.krios.industry.network.FlowPorts;
-import io.lakio.krios.industry.network.Network;
-import io.lakio.krios.industry.network.NetworkManager;
-import io.lakio.krios.industry.network.NetworkNode;
+import io.lakio.krios.core.energy.EnergyBuffer;
+import io.lakio.krios.core.koios.KoiosCoreBlockEntity;
+import io.lakio.krios.core.network.EnergyPort;
+import io.lakio.krios.core.network.EnergySink;
+import io.lakio.krios.core.network.FaceConfig;
+import io.lakio.krios.core.network.Flow;
+import io.lakio.krios.core.network.FlowPorts;
+import io.lakio.krios.core.network.Network;
+import io.lakio.krios.core.network.NetworkManager;
+import io.lakio.krios.core.network.NetworkNode;
 import io.lakio.krios.industry.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -45,9 +45,9 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
  */
 public class PhotonArrayBlockEntity extends BlockEntity
         implements MenuProvider, NetworkNode, EnergyPort,
-        io.lakio.krios.industry.machine.ConfigurableFaces,
-        io.lakio.krios.industry.machine.EnergyStats,
-        io.lakio.krios.industry.tick.TickingDevice, io.lakio.krios.industry.tick.DeviceAlertable {
+        io.lakio.krios.core.network.ConfigurableFaces,
+        io.lakio.krios.core.energy.EnergyStats,
+        io.lakio.krios.core.tick.TickingDevice, io.lakio.krios.core.tick.DeviceAlertable {
 
     /** Seat on the ADR-027 device scheduler. */
     private final io.lakio.krios.industry.machine.LitDevice device =

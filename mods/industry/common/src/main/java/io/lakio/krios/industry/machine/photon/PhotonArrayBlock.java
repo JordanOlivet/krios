@@ -2,9 +2,9 @@ package io.lakio.krios.industry.machine.photon;
 
 import com.mojang.serialization.MapCodec;
 
-import io.lakio.krios.industry.network.NetworkConductor;
+import io.lakio.krios.core.network.NetworkConductor;
 import io.lakio.krios.industry.registry.ModBlockEntities;
-import io.lakio.krios.industry.tool.CalibratorItem;
+import io.lakio.krios.core.tool.CalibratorItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;

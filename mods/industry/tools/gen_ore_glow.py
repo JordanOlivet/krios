@@ -19,7 +19,7 @@ from pathlib import Path
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from gen_textures import ASSETS, Img  # noqa: E402
+from gen_textures import CORE_ASSETS as ASSETS, Img  # noqa: E402 (the ores are Krios: Core content)
 
 ORES = [
     "chronite_ore",

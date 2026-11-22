@@ -1,9 +1,9 @@
 package io.lakio.krios.industry.registry;
 
+import io.lakio.krios.core.platform.Services;
 import java.util.function.Supplier;
 
 import io.lakio.krios.industry.Constants;
-import io.lakio.krios.industry.platform.Services;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
@@ -15,12 +15,8 @@ public final class ModCreativeTabs {
             BuiltInRegistries.CREATIVE_MODE_TAB, Constants.id("main"),
             () -> Services.REGISTRAR.createTabBuilder()
                     .title(Component.translatable("itemGroup." + Constants.MOD_ID))
-                    .icon(() -> new ItemStack(ModItems.CHRONITE_SHARD.get()))
+                    .icon(() -> new ItemStack(ModBlocks.THERMAL_REACTOR.get()))
                     .displayItems((params, output) -> {
-                        output.accept(ModBlocks.CHRONITE_ORE.get());
-                        output.accept(ModBlocks.DEEPSLATE_CHRONITE_ORE.get());
-                        output.accept(ModBlocks.NEURITE_ORE.get());
-                        output.accept(ModBlocks.DEEPSLATE_NEURITE_ORE.get());
                         output.accept(ModBlocks.THERMAL_REACTOR.get());
                         output.accept(ModBlocks.THERMAL_REACTOR_TIER2.get());
                         output.accept(ModBlocks.PHOTON_ARRAY.get());
@@ -43,13 +39,6 @@ public final class ModCreativeTabs {
                         output.accept(ModBlocks.BIO_SYNTHESIZER.get());
                         output.accept(ModBlocks.BIO_SYNTHESIZER_TIER2.get());
                         output.accept(ModItems.ENGRAM.get());
-                        output.accept(ModBlocks.NEURAL_CASING.get());
-                        output.accept(ModBlocks.NEURAL_CONDUIT.get());
-                        output.accept(ModBlocks.KOIOS_CORE.get());
-                        output.accept(ModItems.CHRONITE_SHARD.get());
-                        output.accept(ModItems.RAW_NEURITE.get());
-                        output.accept(ModItems.NEURITE_DUST.get());
-                        output.accept(ModItems.NEURITE_INGOT.get());
                         output.accept(ModItems.ACTUATOR.get());
                         output.accept(ModItems.SPEED_MODULE.get());
                         output.accept(ModItems.EFFICIENCY_MODULE.get());
@@ -62,8 +51,6 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.LUCK_MODULE.get());
                         output.accept(ModItems.LURE_MODULE_MK2.get());
                         output.accept(ModItems.LUCK_MODULE_MK2.get());
-                        output.accept(ModItems.CALIBRATOR.get());
-                        output.accept(ModItems.COMPUTE_CHIP.get());
                         output.accept(ModItems.UPGRADE_KIT_TIER2.get());
                     })
                     .build());

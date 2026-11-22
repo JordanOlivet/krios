@@ -1,17 +1,8 @@
 package io.lakio.krios.industry;
 
 import io.lakio.krios.industry.energy.ExtractOnlyEnergyAdapter;
-import io.lakio.krios.industry.koios.KoiosCommand;
 import io.lakio.krios.industry.registry.ModBlockEntities;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
-import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.level.levelgen.GenerationStep;
 import team.reborn.energy.api.EnergyStorage;
 
 public class KriosIndustry implements ModInitializer {
@@ -30,21 +21,5 @@ public class KriosIndustry implements ModInitializer {
         EnergyStorage.SIDED.registerForBlockEntity(
                 (array, direction) -> new ExtractOnlyEnergyAdapter(array.getEnergy(), array::setChanged),
                 ModBlockEntities.PHOTON_ARRAY.get());
-        // Ore veins: features/placements are datapack JSONs in common; only
-        // the biome injection is loader code (NeoForge does it via a
-        // biome_modifier JSON instead).
-        addOre("chronite_ore");
-        addOre("neurite_ore");
-        CommandRegistrationCallback.EVENT.register(
-                (dispatcher, registryAccess, environment) -> KoiosCommand.register(dispatcher));
-        // ADR-027: the device scheduler rides the level tick.
-        ServerTickEvents.END_WORLD_TICK.register(io.lakio.krios.industry.tick.TickManager::tickLevel);
-        ServerLifecycleEvents.SERVER_STOPPING.register(server -> io.lakio.krios.industry.tick.TickManager.clear());
-    }
-
-    private static void addOre(String name) {
-        BiomeModifications.addFeature(BiomeSelectors.foundInOverworld(),
-                GenerationStep.Decoration.UNDERGROUND_ORES,
-                ResourceKey.create(Registries.PLACED_FEATURE, Constants.id(name)));
     }
 }

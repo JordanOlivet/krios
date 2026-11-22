@@ -1,8 +1,10 @@
 package io.lakio.krios.industry.client.screen;
 
+import io.lakio.krios.core.client.screen.AnnexPanel;
+import io.lakio.krios.core.client.screen.KriosTerminalScreen;
 import java.util.List;
 
-import io.lakio.krios.industry.client.ClientPrefs;
+import io.lakio.krios.core.client.ClientPrefs;
 import io.lakio.krios.industry.machine.zone.CreatureZoneBlockEntity;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;

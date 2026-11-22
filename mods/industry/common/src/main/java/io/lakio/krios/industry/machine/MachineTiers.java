@@ -1,7 +1,7 @@
 package io.lakio.krios.industry.machine;
 
-import io.lakio.krios.industry.koios.KoiosCoreBlockEntity;
-import io.lakio.krios.industry.network.Network;
+import io.lakio.krios.core.koios.KoiosCoreBlockEntity;
+import io.lakio.krios.core.network.Network;
 import org.jetbrains.annotations.Nullable;
 
 /**

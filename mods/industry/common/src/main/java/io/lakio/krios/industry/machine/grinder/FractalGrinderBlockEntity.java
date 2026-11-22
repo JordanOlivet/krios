@@ -1,18 +1,19 @@
 package io.lakio.krios.industry.machine.grinder;
 
-import io.lakio.krios.industry.energy.EnergyBuffer;
-import io.lakio.krios.industry.koios.KoiosBalance;
-import io.lakio.krios.industry.koios.KoiosCoreBlockEntity;
+import io.lakio.krios.industry.IndustryBalance;
+import io.lakio.krios.core.energy.EnergyBuffer;
+import io.lakio.krios.core.koios.KoiosBalance;
+import io.lakio.krios.core.koios.KoiosCoreBlockEntity;
 import io.lakio.krios.industry.machine.reactor.ThermalReactorBlockEntity;
 import io.lakio.krios.industry.machine.ItemFlow;
 import io.lakio.krios.industry.machine.MachineTiers;
 import io.lakio.krios.industry.machine.TieredMachine;
-import io.lakio.krios.industry.network.EnergySink;
-import io.lakio.krios.industry.network.FaceConfig;
-import io.lakio.krios.industry.network.Flow;
-import io.lakio.krios.industry.network.Network;
-import io.lakio.krios.industry.network.NetworkManager;
-import io.lakio.krios.industry.network.NetworkNode;
+import io.lakio.krios.core.network.EnergySink;
+import io.lakio.krios.core.network.FaceConfig;
+import io.lakio.krios.core.network.Flow;
+import io.lakio.krios.core.network.Network;
+import io.lakio.krios.core.network.NetworkManager;
+import io.lakio.krios.core.network.NetworkNode;
 import io.lakio.krios.industry.machine.module.ModuleItem;
 import io.lakio.krios.industry.machine.module.ModuleType;
 import io.lakio.krios.industry.registry.ModBlockEntities;
@@ -44,9 +45,9 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 public class FractalGrinderBlockEntity extends BlockEntity
         implements WorldlyContainer, MenuProvider, NetworkNode, EnergySink,
-        io.lakio.krios.industry.machine.ConfigurableFaces,
-        io.lakio.krios.industry.machine.EnergyStats,
-        io.lakio.krios.industry.tick.TickingDevice, io.lakio.krios.industry.tick.DeviceAlertable {
+        io.lakio.krios.core.network.ConfigurableFaces,
+        io.lakio.krios.core.energy.EnergyStats,
+        io.lakio.krios.core.tick.TickingDevice, io.lakio.krios.core.tick.DeviceAlertable {
 
     /** Seat on the ADR-027 device scheduler. */
     private final io.lakio.krios.industry.machine.LitDevice device =
@@ -341,9 +342,9 @@ public class FractalGrinderBlockEntity extends BlockEntity
             // Speed: time x2/(2+points), shared by all columns.
             be.columnTime[column] = online
                     ? Math.max(1, recipe.time() * 2 / (2 + speedPoints))
-                    : Math.max(recipe.time(), KoiosBalance.DISCONNECTED_TIME_TICKS);
+                    : Math.max(recipe.time(), IndustryBalance.DISCONNECTED_TIME_TICKS);
             int energyPerOp = KoiosBalance.scaledEnergyCost(level,
-                    recipe.energy() * KoiosBalance.efficiencyPermille(efficiencyPoints) / 1000);
+                    recipe.energy() * IndustryBalance.efficiencyPermille(efficiencyPoints) / 1000);
             int energyPerTick = Math.max(1, energyPerOp / be.columnTime[column]);
             draw += energyPerTick;
             if (be.energy.consume(energyPerTick)) {
@@ -471,7 +472,7 @@ public class FractalGrinderBlockEntity extends BlockEntity
         }
         Network network = NetworkManager.networkOf(this);
         if (network != null && network.controller() instanceof KoiosCoreBlockEntity core) {
-            core.reportOperations(holder.id().toString(), 1, KoiosBalance.GRIND_BASE_XP);
+            core.reportOperations(holder.id().toString(), 1, IndustryBalance.GRIND_BASE_XP);
         }
     }
 
@@ -578,7 +579,7 @@ public class FractalGrinderBlockEntity extends BlockEntity
 
     /** Pull batch from passive containers: base x effective-tier factor. */
     private int pullBatch() {
-        return KoiosBalance.ITEM_PULL_BATCH_BASE * MachineTiers.speedFactor(
+        return IndustryBalance.ITEM_PULL_BATCH_BASE * MachineTiers.speedFactor(
                 MachineTiers.effectiveTier(NetworkManager.networkOf(this), machineTier));
     }
 

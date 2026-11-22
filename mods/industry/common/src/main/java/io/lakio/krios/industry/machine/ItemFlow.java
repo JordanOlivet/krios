@@ -1,9 +1,9 @@
 package io.lakio.krios.industry.machine;
 
-import io.lakio.krios.industry.network.FaceConfig;
-import io.lakio.krios.industry.network.Flow;
-import io.lakio.krios.industry.network.NetworkNode;
-import io.lakio.krios.industry.platform.Services;
+import io.lakio.krios.industry.platform.IndustryServices;
+import io.lakio.krios.core.network.FaceConfig;
+import io.lakio.krios.core.network.Flow;
+import io.lakio.krios.core.network.NetworkNode;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.Container;
@@ -17,7 +17,7 @@ import net.minecraft.world.level.block.Block;
  * Machine item movement (revised 2026-10-01): two LOCAL channels only.
  * The hopper-like adjacency flow streams outputs into touching machines
  * (both face contracts respected), and MANUAL item faces exchange with
- * touching passive containers through {@link Services#ITEMS} — pulls ride
+ * touching passive containers through {@link IndustryServices#ITEMS} — pulls ride
  * scheduled wake-ups (ADR-017), never a ticker. Anything beyond contact —
  * cable-borne routing, remote inventories — is krios_storage territory:
  * a network-wide first pass was rejected in play (a freshly placed
@@ -61,7 +61,7 @@ public final class ItemFlow {
                     || level.getBlockEntity(targetPos) instanceof NetworkNode) {
                 continue;
             }
-            ItemStack rest = Services.ITEMS.insert(level, targetPos, dir.getOpposite(), out);
+            ItemStack rest = IndustryServices.ITEMS.insert(level, targetPos, dir.getOpposite(), out);
             if (rest.getCount() != out.getCount()) {
                 source.setItem(outputSlot, rest);
             }
@@ -150,7 +150,7 @@ public final class ItemFlow {
      */
     public static void alertMachine(Level level, BlockPos pos) {
         if (level != null && !level.isClientSide
-                && level.getBlockEntity(pos) instanceof io.lakio.krios.industry.tick.DeviceAlertable machine) {
+                && level.getBlockEntity(pos) instanceof io.lakio.krios.core.tick.DeviceAlertable machine) {
             machine.alertDevice();
         }
     }
@@ -172,7 +172,7 @@ public final class ItemFlow {
                 continue;
             }
             Direction face = dir;
-            ItemStack batch = Services.ITEMS.extract(level, sourcePos, dir.getOpposite(),
+            ItemStack batch = IndustryServices.ITEMS.extract(level, sourcePos, dir.getOpposite(),
                     stack -> wouldAcceptThroughFace(target, stack, face), max);
             if (batch.isEmpty()) {
                 continue;
@@ -208,7 +208,7 @@ public final class ItemFlow {
                     || level.getBlockEntity(sourcePos) instanceof NetworkNode) {
                 continue;
             }
-            ItemStack batch = Services.ITEMS.extract(level, sourcePos, dir.getOpposite(),
+            ItemStack batch = IndustryServices.ITEMS.extract(level, sourcePos, dir.getOpposite(),
                     stack -> target.canPlaceItem(slot, stack)
                             && (current.isEmpty()
                                     || ItemStack.isSameItemSameComponents(current, stack)),
@@ -247,7 +247,7 @@ public final class ItemFlow {
         if (leftover.isEmpty()) {
             return;
         }
-        ItemStack rest = Services.ITEMS.insert(level, sourcePos, dir.getOpposite(), leftover);
+        ItemStack rest = IndustryServices.ITEMS.insert(level, sourcePos, dir.getOpposite(), leftover);
         if (!rest.isEmpty()) {
             Containers.dropItemStack(level, machinePos.getX() + 0.5, machinePos.getY() + 1.0,
                     machinePos.getZ() + 0.5, rest);

@@ -1,11 +1,11 @@
 package io.lakio.krios.industry.machine.synth;
 
+import io.lakio.krios.industry.IndustryBalance;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import io.lakio.krios.industry.koios.KoiosBalance;
 import io.lakio.krios.industry.machine.MachineTiers;
 import io.lakio.krios.industry.machine.ZoneGeometry;
 import io.lakio.krios.industry.machine.zone.CreatureZoneBlockEntity;
@@ -71,7 +71,7 @@ public class BioSynthesizerBlockEntity extends CreatureZoneBlockEntity<Mob> {
 
     @Override
     protected int operationXp() {
-        return KoiosBalance.SPAWN_BASE_XP;
+        return IndustryBalance.SPAWN_BASE_XP;
     }
 
     private int cap() {
@@ -178,7 +178,7 @@ public class BioSynthesizerBlockEntity extends CreatureZoneBlockEntity<Mob> {
             return null;
         }
         mob.moveTo(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, level.random.nextFloat() * 360.0F, 0.0F);
-        int cost = cost(level, KoiosBalance.SYNTH_ENERGY_PER_HEALTH * Mth.ceil(mob.getMaxHealth()),
+        int cost = cost(level, IndustryBalance.SYNTH_ENERGY_PER_HEALTH * Mth.ceil(mob.getMaxHealth()),
                 work.efficiencyPermille);
         if (!energy.consume(cost)) {
             mob.discard();
@@ -200,9 +200,9 @@ public class BioSynthesizerBlockEntity extends CreatureZoneBlockEntity<Mob> {
     @Override
     protected int nextDelay(Work work) {
         if (work.actions <= 0) {
-            return KoiosBalance.ZONE_IDLE_DELAY_TICKS;
+            return IndustryBalance.ZONE_IDLE_DELAY_TICKS;
         }
-        return Math.max(1, KoiosBalance.SYNTH_CYCLE_TICKS * 2 / (2 + work.speedPoints));
+        return Math.max(1, IndustryBalance.SYNTH_CYCLE_TICKS * 2 / (2 + work.speedPoints));
     }
 
     @Override

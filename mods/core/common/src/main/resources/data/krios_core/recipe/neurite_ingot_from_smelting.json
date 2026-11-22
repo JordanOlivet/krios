@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:smelting",
+  "ingredient": { "item": "krios_core:neurite_dust" },
+  "result": { "id": "krios_core:neurite_ingot" },
+  "experience": 0.7,
+  "cookingtime": 200
+}

@@ -1,21 +1,21 @@
 package io.lakio.krios.industry.machine.reactor;
 
-import io.lakio.krios.industry.energy.EnergyBuffer;
+import io.lakio.krios.core.platform.Services;
+import io.lakio.krios.industry.IndustryBalance;
+import io.lakio.krios.core.energy.EnergyBuffer;
 import io.lakio.krios.industry.machine.MachineTiers;
 import io.lakio.krios.industry.machine.TieredMachine;
 import io.lakio.krios.industry.machine.module.ModuleItem;
 import io.lakio.krios.industry.machine.module.ModuleType;
-import io.lakio.krios.industry.koios.KoiosBalance;
-import io.lakio.krios.industry.koios.KoiosCoreBlockEntity;
-import io.lakio.krios.industry.network.EnergyPort;
-import io.lakio.krios.industry.network.EnergySink;
-import io.lakio.krios.industry.network.FaceConfig;
-import io.lakio.krios.industry.network.Flow;
-import io.lakio.krios.industry.network.FlowPorts;
-import io.lakio.krios.industry.network.Network;
-import io.lakio.krios.industry.network.NetworkManager;
-import io.lakio.krios.industry.network.NetworkNode;
-import io.lakio.krios.industry.platform.Services;
+import io.lakio.krios.core.koios.KoiosCoreBlockEntity;
+import io.lakio.krios.core.network.EnergyPort;
+import io.lakio.krios.core.network.EnergySink;
+import io.lakio.krios.core.network.FaceConfig;
+import io.lakio.krios.core.network.Flow;
+import io.lakio.krios.core.network.FlowPorts;
+import io.lakio.krios.core.network.Network;
+import io.lakio.krios.core.network.NetworkManager;
+import io.lakio.krios.core.network.NetworkNode;
 import net.minecraft.core.Direction;
 import io.lakio.krios.industry.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
@@ -42,9 +42,9 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 public class ThermalReactorBlockEntity extends BlockEntity
         implements Container, MenuProvider, NetworkNode, EnergyPort,
-        io.lakio.krios.industry.machine.ConfigurableFaces,
-        io.lakio.krios.industry.machine.EnergyStats,
-        io.lakio.krios.industry.tick.TickingDevice, io.lakio.krios.industry.tick.DeviceAlertable {
+        io.lakio.krios.core.network.ConfigurableFaces,
+        io.lakio.krios.core.energy.EnergyStats,
+        io.lakio.krios.core.tick.TickingDevice, io.lakio.krios.core.tick.DeviceAlertable {
 
     /** Seat on the ADR-027 device scheduler. */
     private final io.lakio.krios.industry.machine.LitDevice device =
@@ -394,7 +394,7 @@ public class ThermalReactorBlockEntity extends BlockEntity
             return;
         }
         io.lakio.krios.industry.machine.ItemFlow.pullIntoSlot(level, worldPosition, this, 0,
-                faceConfig, KoiosBalance.ITEM_PULL_BATCH_BASE * MachineTiers.speedFactor(
+                faceConfig, IndustryBalance.ITEM_PULL_BATCH_BASE * MachineTiers.speedFactor(
                         MachineTiers.effectiveTier(NetworkManager.networkOf(this), machineTier)));
     }
 
@@ -446,7 +446,7 @@ public class ThermalReactorBlockEntity extends BlockEntity
         Network network = NetworkManager.networkOf(this);
         if (network != null && network.controller() instanceof KoiosCoreBlockEntity core) {
             core.reportOperations(
-                    "burn:" + BuiltInRegistries.ITEM.getKey(fuel.getItem()), 1, KoiosBalance.BURN_BASE_XP);
+                    "burn:" + BuiltInRegistries.ITEM.getKey(fuel.getItem()), 1, IndustryBalance.BURN_BASE_XP);
         }
         fuel.shrink(1);
         burnTime = time;

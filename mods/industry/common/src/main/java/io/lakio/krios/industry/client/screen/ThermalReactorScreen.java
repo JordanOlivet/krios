@@ -1,5 +1,8 @@
 package io.lakio.krios.industry.client.screen;
 
+import io.lakio.krios.core.client.screen.HologramFacePanel;
+import io.lakio.krios.core.client.screen.StatsPanel;
+import io.lakio.krios.core.client.screen.AnnexPanel;
 import io.lakio.krios.industry.machine.reactor.ThermalReactorBlockEntity;
 import io.lakio.krios.industry.machine.reactor.ThermalReactorMenu;
 import net.minecraft.client.gui.GuiGraphics;

@@ -1,9 +1,9 @@
 package io.lakio.krios.industry.machine.lure;
 
+import io.lakio.krios.industry.IndustryBalance;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.lakio.krios.industry.koios.KoiosBalance;
 import io.lakio.krios.industry.machine.MachineTiers;
 import io.lakio.krios.industry.machine.ZoneGeometry;
 import io.lakio.krios.industry.machine.module.ModuleType;
@@ -111,7 +111,7 @@ public class QuantumLureBlockEntity extends ZoneMachineBlockEntity {
 
     @Override
     protected int operationXp() {
-        return KoiosBalance.CATCH_BASE_XP;
+        return IndustryBalance.CATCH_BASE_XP;
     }
 
     // --- Water ---
@@ -191,17 +191,17 @@ public class QuantumLureBlockEntity extends ZoneMachineBlockEntity {
      */
     private void cast(ServerLevel level, int line, long now, int speedPoints, int lurePoints) {
         lineLured[line] = Mth.nextInt(level.random,
-                KoiosBalance.FISH_LURED_MIN_TICKS, KoiosBalance.FISH_LURED_MAX_TICKS);
+                IndustryBalance.FISH_LURED_MIN_TICKS, IndustryBalance.FISH_LURED_MAX_TICKS);
         lineHooked[line] = Mth.nextInt(level.random,
-                KoiosBalance.FISH_HOOKED_MIN_TICKS, KoiosBalance.FISH_HOOKED_MAX_TICKS);
+                IndustryBalance.FISH_HOOKED_MIN_TICKS, IndustryBalance.FISH_HOOKED_MAX_TICKS);
         lineStart[line] = now;
         lineDuration[line] = duration(line, speedPoints, lurePoints);
     }
 
     private int duration(int line, int speedPoints, int lurePoints) {
-        int lured = Math.max(0, lineLured[line] - KoiosBalance.LURE_TICKS_PER_POINT * lurePoints);
+        int lured = Math.max(0, lineLured[line] - IndustryBalance.LURE_TICKS_PER_POINT * lurePoints);
         int wait = (lured + lineHooked[line]) * 2 / (2 + speedPoints);
-        return Math.max(KoiosBalance.FISH_MIN_WAIT_TICKS, wait);
+        return Math.max(IndustryBalance.FISH_MIN_WAIT_TICKS, wait);
     }
 
     /**
@@ -246,7 +246,7 @@ public class QuantumLureBlockEntity extends ZoneMachineBlockEntity {
             work.blocked = true;
             return false;
         }
-        if (!energy.consume(cost(level, KoiosBalance.CATCH_ENERGY, work.efficiencyPermille))) {
+        if (!energy.consume(cost(level, IndustryBalance.CATCH_ENERGY, work.efficiencyPermille))) {
             work.starved = true;
             return false;
         }
@@ -294,7 +294,7 @@ public class QuantumLureBlockEntity extends ZoneMachineBlockEntity {
     @Override
     protected int nextDelay(Work work) {
         if (waterCells == 0 || work.starved || level == null) {
-            return KoiosBalance.ZONE_IDLE_DELAY_TICKS;
+            return IndustryBalance.ZONE_IDLE_DELAY_TICKS;
         }
         long now = level.getGameTime();
         long next = Long.MAX_VALUE;
@@ -303,9 +303,9 @@ public class QuantumLureBlockEntity extends ZoneMachineBlockEntity {
                 next = Math.min(next, lineStart[line] + lineDuration[line] - now);
             }
         }
-        return next == Long.MAX_VALUE ? KoiosBalance.ZONE_ACTIVE_DELAY_TICKS
-                : (int) Math.max(1, Math.min(next, KoiosBalance.FISH_LURED_MAX_TICKS
-                        + KoiosBalance.FISH_HOOKED_MAX_TICKS));
+        return next == Long.MAX_VALUE ? IndustryBalance.ZONE_ACTIVE_DELAY_TICKS
+                : (int) Math.max(1, Math.min(next, IndustryBalance.FISH_LURED_MAX_TICKS
+                        + IndustryBalance.FISH_HOOKED_MAX_TICKS));
     }
 
     /** Lines in the water = working (LIT), even between catches. */

@@ -1,8 +1,10 @@
 package io.lakio.krios.industry.client.screen;
 
+import io.lakio.krios.industry.IndustryBalance;
+import io.lakio.krios.core.client.screen.StatsPanel;
+import io.lakio.krios.core.client.screen.AnnexPanel;
 import java.util.List;
 
-import io.lakio.krios.industry.koios.KoiosBalance;
 import io.lakio.krios.industry.machine.module.ModuleType;
 import io.lakio.krios.industry.machine.synth.BioSynthesizerBlockEntity;
 import io.lakio.krios.industry.machine.synth.BioSynthesizerMenu;
@@ -46,7 +48,7 @@ public class BioSynthesizerScreen extends ZoneMachineScreen<BioSynthesizerMenu> 
                         Component.translatable("gui.krios_industry.stats.cycle_pace")),
                 new StatsPanel.Row(StatsPanel.Icon.ENERGY_MULT,
                         () -> Component.literal("×" + String.format("%.2f",
-                                KoiosBalance.efficiencyPermille(modulePoints(ModuleType.EFFICIENCY)) / 1000.0)),
+                                IndustryBalance.efficiencyPermille(modulePoints(ModuleType.EFFICIENCY)) / 1000.0)),
                         Component.translatable("gui.krios_industry.stats.energy")),
                 new StatsPanel.Row(StatsPanel.Icon.YIELD,
                         () -> Component.literal("+" + modulePoints(ModuleType.YIELD) * 25 + " %"),

@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "formed=false": { "model": "krios_core:block/koios_core" },
+    "formed=true": { "model": "krios_core:block/koios_core_formed" }
+  }
+}

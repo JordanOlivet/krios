@@ -1,8 +1,9 @@
 package io.lakio.krios.industry.client.screen;
 
+import io.lakio.krios.industry.IndustryBalance;
+import io.lakio.krios.core.client.screen.StatsPanel;
 import java.util.List;
 
-import io.lakio.krios.industry.koios.KoiosBalance;
 import io.lakio.krios.industry.machine.module.ModuleType;
 import io.lakio.krios.industry.machine.zone.PlantingZoneBlockEntity;
 import io.lakio.krios.industry.machine.zone.ZoneMachineMenu;
@@ -45,7 +46,7 @@ public abstract class PlantingZoneScreen<T extends PlantingZoneMenu> extends Zon
                         Component.translatable("gui.krios_industry.stats.growth")),
                 new StatsPanel.Row(StatsPanel.Icon.ENERGY_MULT,
                         () -> Component.literal("×" + String.format("%.2f",
-                                KoiosBalance.efficiencyPermille(modulePoints(ModuleType.EFFICIENCY)) / 1000.0)),
+                                IndustryBalance.efficiencyPermille(modulePoints(ModuleType.EFFICIENCY)) / 1000.0)),
                         Component.translatable("gui.krios_industry.stats.energy")),
                 new StatsPanel.Row(StatsPanel.Icon.YIELD,
                         () -> Component.literal("+" + modulePoints(ModuleType.YIELD) * 25 + " %"),

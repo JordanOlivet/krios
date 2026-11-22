@@ -1,0 +1,11 @@
+{
+  "values": [
+    "krios_core:chronite_ore",
+    "krios_core:neurite_ore",
+    "krios_core:deepslate_chronite_ore",
+    "krios_core:deepslate_neurite_ore",
+    "krios_core:neural_casing",
+    "krios_core:neural_conduit",
+    "krios_core:koios_core"
+  ]
+}

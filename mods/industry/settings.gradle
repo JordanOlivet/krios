@@ -48,3 +48,13 @@ rootProject.name = 'industry'
 include('common')
 include('fabric')
 include('neoforge')
+
+// Krios: Core is a mod of its own (ADR-018), built from its sibling
+// directory: each of its projects stands in for the matching artifact.
+includeBuild('../core') {
+    dependencySubstitution {
+        substitute module('io.lakio.krios.core:krios_core-common') using project(':common')
+        substitute module('io.lakio.krios.core:krios_core-fabric') using project(':fabric')
+        substitute module('io.lakio.krios.core:krios_core-neoforge') using project(':neoforge')
+    }
+}

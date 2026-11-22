@@ -2,9 +2,9 @@ package io.lakio.krios.industry.machine.forge;
 
 import com.mojang.serialization.MapCodec;
 
-import io.lakio.krios.industry.network.NetworkConductor;
+import io.lakio.krios.core.network.NetworkConductor;
 import io.lakio.krios.industry.registry.ModBlockEntities;
-import io.lakio.krios.industry.tool.CalibratorItem;
+import io.lakio.krios.core.tool.CalibratorItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
