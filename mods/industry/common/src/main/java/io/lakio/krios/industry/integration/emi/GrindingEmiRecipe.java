@@ -15,8 +15,12 @@ public class GrindingEmiRecipe extends BasicEmiRecipe {
     private static final int WIDTH = 126;
     private static final int HEIGHT = 28;
     private static final int TEXT_X = 90;
-    /** White with a shadow, as EMI's own cooking recipes write. */
-    private static final int TEXT_COLOR = 0xFFFFFFFF;
+    /**
+     * Dark and without a shadow, like a vanilla label: on EMI's light recipe
+     * background, white shadowed digits ran together ("800" read "899" in the
+     * first screenshots).
+     */
+    private static final int TEXT_COLOR = 0xFF404040;
 
     private final GrindingRecipe recipe;
 
@@ -36,7 +40,7 @@ public class GrindingEmiRecipe extends BasicEmiRecipe {
                 .large(true)
                 .recipeContext(this)
                 .appendTooltip(ViewerText.grindingYield());
-        widgets.addText(ViewerText.energy(recipe.energy()), TEXT_X, 4, TEXT_COLOR, true);
-        widgets.addText(ViewerText.time(recipe.time()), TEXT_X, 15, TEXT_COLOR, true);
+        widgets.addText(ViewerText.energy(recipe.energy()), TEXT_X, 4, TEXT_COLOR, false);
+        widgets.addText(ViewerText.time(recipe.time()), TEXT_X, 15, TEXT_COLOR, false);
     }
 }
