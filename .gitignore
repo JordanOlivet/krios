@@ -32,3 +32,6 @@ __pycache__/
 # Extracted vanilla assets (Mojang, not redistributable)
 tools/reference/vanilla/
 .claude
+
+# Machine-specific settings: paths outside the repository
+local.properties

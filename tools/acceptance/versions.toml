@@ -1,0 +1,31 @@
+# Third-party versions the production acceptance servers run
+# (server_acceptance.py). The Krios jars come from the repository; everything
+# here is downloaded once into build/acceptance/downloads/ and cached under a
+# file name that carries its version, so a bump fetches the new one.
+#
+# To bump: change a version, run the tool on the matching targets, and read
+# the README's note on what a newer viewer or loader may need.
+
+minecraft = "1.21.1"
+
+[neoforge]
+# https://maven.neoforged.net/releases/net/neoforged/neoforge/
+version = "21.1.267"
+
+[fabric]
+# https://meta.fabricmc.net/v2/versions/loader/<minecraft>
+loader = "0.20.1"
+# https://meta.fabricmc.net/v2/versions/installer
+installer = "1.1.2"
+# https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/
+api = "0.116.18+1.21.1"
+
+[viewers]
+# https://maven.blamejared.com/mezz/jei/
+jei = "19.76.1.478"
+# https://maven.terraformersmc.com/dev/emi/
+emi = "1.1.24+1.21.1"
+# JEI's own library mods since 19.7x (its POM lists them); launchers install
+# them with JEI, a hand-built server has to.
+mezz_config = "0.7.1"
+mezz_config_gui = "mc1.21.1-0.7.1"

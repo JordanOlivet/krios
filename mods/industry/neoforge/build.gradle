@@ -25,6 +25,19 @@ neoForge {
             if (project.hasProperty('quickplay')) {
                 programArguments.addAll('--quickPlaySingleplayer', project.property('quickplay').toString())
             }
+            // -Prehearsal[=background|minimized|normal]: an automated run under Rehearsal, the
+            // client test mod (tools/acceptance/client_acceptance.py). Its own game directory,
+            // so it never touches the dev client's options and saves, and a fixed window size
+            // for screenshots that compare.
+            if (project.hasProperty('rehearsal')) {
+                gameDirectory = project.file('runs/rehearsal')
+                systemProperty('rehearsal', 'true')
+                def window = project.property('rehearsal').toString()
+                if (window in ['background', 'minimized']) {
+                    systemProperty('rehearsal.window', window)
+                }
+                programArguments.addAll('--width', '1280', '--height', '720')
+            }
         }
         data {
             data()
@@ -73,5 +86,23 @@ dependencies {
     }
     if (dev_recipe_viewer in ['emi', 'both']) {
         localRuntime "dev.emi:emi-neoforge:${emi_version}"
+    }
+    // Rehearsal joins a run that asks for it (-Prehearsal): the jar its checkout built,
+    // named by rehearsal.dir in the repository's local.properties (gitignored).
+    if (project.hasProperty('rehearsal')) {
+        def local = new Properties()
+        def localFile = rootProject.file('../../local.properties')
+        if (localFile.exists()) {
+            localFile.withInputStream { local.load(it) }
+        }
+        def checkout = local.getProperty('rehearsal.dir')
+        def jars = checkout == null ? [] : (new File(checkout, 'output').listFiles() ?: []).findAll {
+            it.name ==~ /rehearsal-neoforge-${minecraft_version}-.*\.jar/
+        }
+        if (jars.isEmpty()) {
+            throw new GradleException("-Prehearsal needs rehearsal.dir in local.properties (see "
+                    + "local.properties.example) and a Rehearsal build there for Minecraft ${minecraft_version}")
+        }
+        localRuntime files(jars.max { it.lastModified() })
     }
 }

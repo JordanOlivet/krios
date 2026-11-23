@@ -1,0 +1,7 @@
+# Copy to local.properties (gitignored) and set this machine's paths. Never write a
+# path outside the repository into a tracked file: cite the key.
+
+# A checkout of Rehearsal, the client test mod, built there with gradlew build:
+# its jar joins the dev client when a run asks for it (-Prehearsal, see
+# tools/acceptance/README.md).
+rehearsal.dir=C:/Users/<you>/source/repos/rehearsal

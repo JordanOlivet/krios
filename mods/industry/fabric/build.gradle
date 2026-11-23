@@ -60,6 +60,19 @@ loom {
             setConfigName('Fabric Client')
             ideConfigGenerated(true)
             runDir('runs/client')
+            // -Prehearsal[=background|minimized|normal]: an automated run under Rehearsal, the
+            // client test mod, in a game directory of its own. Loom 1.8 refuses its jar as a
+            // mod dependency (built with a newer Loom), so tools/acceptance/client_acceptance.py
+            // copies it into that directory's mods folder instead.
+            if (project.hasProperty('rehearsal')) {
+                runDir('runs/rehearsal')
+                property('rehearsal', 'true')
+                def window = project.property('rehearsal').toString()
+                if (window in ['background', 'minimized']) {
+                    property('rehearsal.window', window)
+                }
+                programArgs '--width', '1280', '--height', '720'
+            }
         }
         server {
             server()
