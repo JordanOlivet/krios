@@ -17,6 +17,9 @@ neoForge {
 }
 
 dependencies {
+    // Recipe viewers (optional at runtime): compiled against their APIs only.
+    compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
+    compileOnly "dev.emi:emi-xplat-mojmap:${emi_version}:api"
     compileOnly("io.lakio.krios.core:krios_core-common:${krios_core_version}") {
         capabilities {
             requireCapability 'io.lakio.krios.core:krios_core'

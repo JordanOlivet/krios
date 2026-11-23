@@ -53,6 +53,15 @@ repositories {
         name = 'BlameJared'
         url = 'https://maven.blamejared.com'
     }
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'TerraformersMC'
+                url = 'https://maven.terraformersmc.com/'
+            }
+        }
+        filter { includeGroup('dev.emi') }
+    }
 }
 
 // Declare capabilities on the outgoing configurations.

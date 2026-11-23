@@ -236,5 +236,13 @@
   "gui.krios_industry.stats.mobs": "Mobs in the zone",
   "gui.krios_industry.codex.bio_synthesizer.title": "Bio Synthesizer",
   "gui.krios_industry.codex.bio_synthesizer.body": "Synthesizes creatures in the zone behind it, light ignored. Alone, it draws from the monsters of its biome; with an Engram, only the imprinted species, wherever it stands. Imprint a blank Engram by right-clicking a living creature — the signature is data: never consumed, and a blank crafted with it makes a copy. Every mob in the zone counts toward its cap. Pair it with a Phase Death Field.",
-  "gui.krios_industry.codex.bio_synthesizer.projection.t2": "Projection t2: two bodies per cycle, a cap of sixteen."
+  "gui.krios_industry.codex.bio_synthesizer.projection.t2": "Projection t2: two bodies per cycle, a cap of sixteen.",
+  "gui.krios_industry.viewer.grinding": "Grinding",
+  "emi.category.krios_industry.grinding": "Grinding",
+  "gui.krios_industry.viewer.energy": "%s E",
+  "gui.krios_industry.viewer.time": "%s s",
+  "gui.krios_industry.viewer.grinding.yield": "Output of a tier 1 grinder on a K.O.I.O.S. network. Higher tiers and Yield modules raise it; off the network it is halved.",
+  "gui.krios_industry.viewer.engram_info": "Right-click a creature with a blank Engram to imprint its signature. Craft an imprinted Engram with blank ones to copy it: every Engram in the grid comes out imprinted.",
+  "tag.item.krios_industry.breeding_food": "Breeding Food",
+  "tag.item.krios_industry.creature_drops": "Creature Drops"
 }

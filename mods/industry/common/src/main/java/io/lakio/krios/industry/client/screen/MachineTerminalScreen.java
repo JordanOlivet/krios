@@ -1,5 +1,8 @@
 package io.lakio.krios.industry.client.screen;
 
+import java.util.ArrayList;
+import java.util.List;
+import net.minecraft.client.renderer.Rect2i;
 import io.lakio.krios.core.client.screen.HologramFacePanel;
 import io.lakio.krios.core.client.screen.AnnexPanel;
 import io.lakio.krios.core.client.screen.KriosTerminalScreen;
@@ -119,6 +122,18 @@ public abstract class MachineTerminalScreen<T extends AbstractContainerMenu & Ma
         }
         long slot = Util.getMillis() / 45_000 % 3;
         return Component.translatable("gui.krios_industry.voice.idle" + (slot + 1));
+    }
+
+    /** Every annex panel, open or collapsed, sits outside the frame. */
+    @Override
+    public List<Rect2i> extraAreas() {
+        AnnexPanel[] panels = annexPanels();
+        AnnexPanel.stack(panels);
+        List<Rect2i> areas = new ArrayList<>(panels.length);
+        for (AnnexPanel panel : panels) {
+            areas.add(panel.bounds(leftPos, topPos, imageWidth));
+        }
+        return areas;
     }
 
     @Override

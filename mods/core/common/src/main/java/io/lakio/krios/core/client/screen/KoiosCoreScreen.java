@@ -1,5 +1,7 @@
 package io.lakio.krios.core.client.screen;
 
+import java.util.List;
+import net.minecraft.client.renderer.Rect2i;
 import io.lakio.krios.core.koios.KoiosBalance;
 import io.lakio.krios.core.koios.KoiosCoreMenu;
 import io.lakio.krios.core.koios.KoiosUnlocks;
@@ -30,6 +32,12 @@ public class KoiosCoreScreen extends KriosTerminalScreen<KoiosCoreMenu> {
     private static final int COLOR_CRITICAL = 0xFFB03A;
 
     private final CodexPanel codex = new CodexPanel();
+
+    /** The open Codex is a full-screen overlay: recipe viewers step aside. */
+    @Override
+    public List<Rect2i> extraAreas() {
+        return codex.isOpen() ? List.of(new Rect2i(0, 0, width, height)) : List.of();
+    }
 
     public KoiosCoreScreen(KoiosCoreMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);

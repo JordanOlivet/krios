@@ -122,5 +122,10 @@
   "gui.krios_core.calibrator.blueprint_cleared": "Blueprint retiré",
   "gui.krios_core.calibrator.blueprint_complete": "Structure complète",
   "gui.krios_core.blueprint.koios_core": "Cœur K.O.I.O.S.",
-  "itemGroup.krios_core": "Krios: Core"
+  "itemGroup.krios_core": "Krios: Core",
+  "tag.item.c.dusts.neurite": "Poussières de neurite",
+  "tag.item.c.ingots.neurite": "Lingots de neurite",
+  "tag.item.c.ores.chronite": "Minerais de chronite",
+  "tag.item.c.ores.neurite": "Minerais de neurite",
+  "tag.item.c.raw_materials.neurite": "Neurite brute"
 }

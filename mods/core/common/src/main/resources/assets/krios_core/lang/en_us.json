@@ -122,5 +122,10 @@
   "gui.krios_core.calibrator.blueprint_cleared": "Blueprint cleared",
   "gui.krios_core.calibrator.blueprint_complete": "Structure complete",
   "gui.krios_core.blueprint.koios_core": "K.O.I.O.S. Core",
-  "itemGroup.krios_core": "Krios: Core"
+  "itemGroup.krios_core": "Krios: Core",
+  "tag.item.c.dusts.neurite": "Neurite Dusts",
+  "tag.item.c.ingots.neurite": "Neurite Ingots",
+  "tag.item.c.ores.chronite": "Chronite Ores",
+  "tag.item.c.ores.neurite": "Neurite Ores",
+  "tag.item.c.raw_materials.neurite": "Raw Neurite"
 }

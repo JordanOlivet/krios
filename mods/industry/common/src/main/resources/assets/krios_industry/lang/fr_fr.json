@@ -236,5 +236,13 @@
   "gui.krios_industry.stats.mobs": "Mobs dans la zone",
   "gui.krios_industry.codex.bio_synthesizer.title": "Bio-synthétiseur",
   "gui.krios_industry.codex.bio_synthesizer.body": "Synthétise des créatures dans la zone derrière lui, lumière ignorée. Seul, il puise dans les monstres de son biome ; avec un Engramme, seulement l'espèce gravée, où qu'il soit. Grave un Engramme vierge d'un clic droit sur une créature vivante — la signature est une donnée : jamais consommée, et un vierge crafté avec elle en fait une copie. Chaque mob de la zone compte pour son plafond. À associer à un Champ de mort phasique.",
-  "gui.krios_industry.codex.bio_synthesizer.projection.t2": "Projection t2 : deux corps par cycle, un plafond de seize."
+  "gui.krios_industry.codex.bio_synthesizer.projection.t2": "Projection t2 : deux corps par cycle, un plafond de seize.",
+  "gui.krios_industry.viewer.grinding": "Broyage",
+  "emi.category.krios_industry.grinding": "Broyage",
+  "gui.krios_industry.viewer.energy": "%s E",
+  "gui.krios_industry.viewer.time": "%s s",
+  "gui.krios_industry.viewer.grinding.yield": "Production d’un broyeur de tier 1 relié à un réseau K.O.I.O.S. Les tiers supérieurs et les modules de rendement l’augmentent ; hors réseau, elle est divisée par deux.",
+  "gui.krios_industry.viewer.engram_info": "Clic droit sur une créature avec un Engramme vierge pour graver sa signature. Un Engramme gravé crafté avec des vierges se copie : tous les Engrammes de la grille en sortent gravés.",
+  "tag.item.krios_industry.breeding_food": "Nourriture d’élevage",
+  "tag.item.krios_industry.creature_drops": "Productions de créatures"
 }

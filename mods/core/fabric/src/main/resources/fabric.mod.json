@@ -21,6 +21,12 @@
         ],
         "client": [
             "io.lakio.krios.core.client.KriosCoreClient"
+        ],
+        "jei_mod_plugin": [
+            "io.lakio.krios.core.integration.jei.KriosCoreJeiPlugin"
+        ],
+        "emi": [
+            "io.lakio.krios.core.integration.emi.KriosCoreEmiPlugin"
         ]
     },
     "depends": {

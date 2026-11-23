@@ -21,6 +21,15 @@ dependencies {
     }
     modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
+    // Recipe viewers (optional at runtime): compiled against their APIs only.
+    compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
+    compileOnly "dev.emi:emi-xplat-mojmap:${emi_version}:api"
+    if (dev_recipe_viewer in ['jei', 'both']) {
+        modLocalRuntime "mezz.jei:jei-${minecraft_version}-fabric:${jei_version}"
+    }
+    if (dev_recipe_viewer in ['emi', 'both']) {
+        modLocalRuntime "dev.emi:emi-fabric:${emi_version}"
+    }
     // Krios: Core, as its dev (named) jar: the composite build hands over a
     // project, not a remapped mod, so Loom's mod configurations do not apply.
     implementation("io.lakio.krios.core:krios_core-fabric:${krios_core_version}") {
@@ -44,6 +53,10 @@ loom {
     runs {
         client {
             client()
+            // -Pquickplay=<world folder>: open straight into that singleplayer world.
+            if (project.hasProperty('quickplay')) {
+                programArgs '--quickPlaySingleplayer', project.property('quickplay').toString()
+            }
             setConfigName('Fabric Client')
             ideConfigGenerated(true)
             runDir('runs/client')

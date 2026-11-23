@@ -1,5 +1,7 @@
 package io.lakio.krios.core.client.screen;
 
+import java.util.List;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.Util;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
@@ -43,6 +45,15 @@ public abstract class KriosTerminalScreen<T extends AbstractContainerMenu>
 
     /** Feed status: negative = network fault, 0 = offline, positive = online KOIOS level. */
     protected abstract int terminalStatus();
+
+    /**
+     * Screen-space areas this terminal draws outside its frame (annex
+     * panels, full-screen overlays). Recipe viewers (JEI, EMI) keep their
+     * own panels off them; core's plugins read this for every terminal.
+     */
+    public List<Rect2i> extraAreas() {
+        return List.of();
+    }
 
     /** Standard header order: close cross rightmost, feed to its left. */
     protected int feedX() {

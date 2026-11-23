@@ -1,5 +1,6 @@
 package io.lakio.krios.core.client.screen;
 
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
@@ -167,6 +168,18 @@ public abstract class AnnexPanel {
         // Collapse hint, right end of the title bar.
         gui.fill(x + w - 9, y + 7, x + w - 4, y + 8, 0xFF5A6170);
         renderContent(gui, font, x + PAD, y + TITLE_H, mouseX, mouseY);
+    }
+
+    /**
+     * Screen-space footprint, border included: the open frame or the
+     * collapsed tab. Call after {@link #stack}.
+     */
+    public Rect2i bounds(int leftPos, int topPos, int imageWidth) {
+        int y = panelY(topPos);
+        if (!open) {
+            return new Rect2i(tabX(leftPos, imageWidth) - 1, y - 1, TAB_SIZE + 2, TAB_SIZE + 2);
+        }
+        return new Rect2i(panelX(leftPos, imageWidth) - 1, y - 1, panelWidth() + 2, panelHeight() + 2);
     }
 
     /** Collapsed-tab tooltip; call late so it draws above everything. */

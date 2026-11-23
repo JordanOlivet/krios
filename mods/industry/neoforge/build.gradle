@@ -21,6 +21,10 @@ neoForge {
         }
         client {
             client()
+            // -Pquickplay=<world folder>: open straight into that singleplayer world.
+            if (project.hasProperty('quickplay')) {
+                programArguments.addAll('--quickPlaySingleplayer', project.property('quickplay').toString())
+            }
         }
         data {
             data()
@@ -49,5 +53,25 @@ dependencies {
         capabilities {
             requireCapability 'io.lakio.krios.core:krios_core'
         }
+    }
+}
+
+// Runtime of this build's own dev runs only: unlike runtimeOnly, a build
+// that includes this one (composite) does not inherit it.
+configurations {
+    localRuntime
+    runtimeClasspath.extendsFrom localRuntime
+}
+
+dependencies {
+    // Recipe viewers (optional at runtime): compiled against their APIs only.
+    compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
+    compileOnly "dev.emi:emi-xplat-mojmap:${emi_version}:api"
+    if (dev_recipe_viewer in ['jei', 'both']) {
+        // -Pjei_runtime_version=<version>: run against another JEI than the API compiled against.
+        localRuntime "mezz.jei:jei-${minecraft_version}-neoforge:${findProperty('jei_runtime_version') ?: jei_version}"
+    }
+    if (dev_recipe_viewer in ['emi', 'both']) {
+        localRuntime "dev.emi:emi-neoforge:${emi_version}"
     }
 }
