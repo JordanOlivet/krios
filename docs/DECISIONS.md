@@ -348,3 +348,22 @@ Before the first public release (user call): the grinding recipes were invisible
 - **Compiled against JEI 19.21.2.313**, not the latest: the newest JEI (19.76.1.478) requires NeoForge 21.1.238 while the project builds on 21.1.80, and its Fabric jar needs a newer Loom than ours. Every JEI method the plugins call was checked to exist unchanged in the 19.76 API.
 - **Dev runs**: `dev_recipe_viewer` in each mod's `gradle.properties` picks what the dev clients and servers load (`jei`, `emi`, `both`, `none`), overridable with `-Pdev_recipe_viewer=`. On NeoForge the viewers sit on a `localRuntime` configuration so that Industry's composite build does not inherit core's choice; `-Pjei_runtime_version=` runs another JEI than the one compiled against. `-Pquickplay=<world folder>` opens a dev client straight into a singleplayer world.
 - **Not done**: moving a recipe's items into a machine from the viewer (JEI transfer handlers, EMI recipe handlers) — the process columns vary with the tier, to be designed; clicking a machine's progress arrow to open its recipes.
+
+## ADR-030 — Acceptance tests run without the user: servers over RCON, clients under Rehearsal
+
+**Date**: 2026-11-23 · **Status**: accepted
+
+The first release was checked by hand-written throwaway scripts and by the user's own play test. The user asked for tools that test as much as possible with nobody at the keyboard, for every release after 0.1.0 (which does not wait for them). `docs/analysis/test-automation.md` holds the reasoning and the layers; this entry records what was built and the choices that bind.
+
+- **Three tools, under `tools/`** (their README: `tools/acceptance/README.md`):
+  - `check_assets.py`: registered blocks and items against their resources, dangling references, EN and FR keys.
+  - `acceptance/server_acceptance.py`: a dedicated server driven over RCON with no player. It builds a base, runs it, reads the world back, restarts and checks again. Targets: both dev servers, the **production jars** on the loaders and viewers pinned in `acceptance/versions.toml`, and core alone.
+  - `acceptance/client_acceptance.py`: a dev client under **Rehearsal** (the user's client test mod) runs command files (`acceptance/client/*.cmd`): every terminal opened, panels clicked, the viewers' keys pressed, screenshots taken.
+- **Python 3.11+ through uv** (user call), standard library only, each script with its PEP 723 header: the same footing as Rehearsal's and Farfield's scripts. Bare `python` is not assumed to be Python 3.
+- **A check must be able to fail.** A check whose answer does not depend on what it claims to test is removed, and an absence is only a proof after the presence was asserted.
+- **Black box on purpose.** The server tool tests what ships (jars, loaders, datapacks, a restart), from outside. It is not where per-machine rules belong: those go to GameTest (ADR-010, still to build) and to unit tests, as the analysis orders them.
+- **A test client is a dev client plus `-Prehearsal`**: Rehearsal's jar (from the checkout named by `rehearsal.dir` in the repository's gitignored `local.properties`) joins the run, which gets a game directory of its own (`<loader>/runs/rehearsal`), a fixed 1280x720 window in the background and no sound. Nothing of it exists in a normal run or in a jar.
+- **Screenshots are part of the result.** A client run proves that screens open and input works; whether they look right is read from the pictures, by the agent after each run and by the user once for anything new.
+- **Rehearsal gained the verbs this needs** (its own repository): `use`, `hold`, `hotbar`, `screen`, `wait screen`, `close`, `slot`, `cursor`, `click`, `scroll`, `key`, `type`, for Minecraft 1.20.1 and 1.21.1.
+- **Everything a run writes goes under `build/acceptance/`** (ignored): downloads, production servers, reports, screenshots. Dev server targets delete the server world of the usual run dirs; nothing else of the user's is touched.
+- **Not built**: unit tests, GameTest, the upgrade test on a previous release's world, production clients, Fabric clients, baselines for the screenshots, any of it in CI.

@@ -22,7 +22,15 @@ tools\run-client.bat [neoforge|fabric]   # from repo root: launch a dev client f
 
 Dev runs load a recipe viewer (ADR-029): `dev_recipe_viewer` in each mod's `gradle.properties` (`jei`, `emi`, `both`, `none`), or `-Pdev_recipe_viewer=emi` for one run. `-Pquickplay=<world folder>` opens a dev client straight into that singleplayer world.
 
-No unit tests yet; verification = build green + dev-server boot (registration and datapack errors surface in `logs/latest.log`) + manual client play. GameTest is planned once machines warrant it.
+Tests (ADR-030, details in `tools/acceptance/README.md`, the reasoning in `docs/analysis/test-automation.md`). Python 3 goes through **uv** (`uv run <script>`; bare `python` may be 2.7):
+
+```powershell
+uv run tools/check_assets.py                                  # static: registries against resources, both mods
+uv run tools/acceptance/server_acceptance.py all --build      # servers over RCON: dev, production jars, core alone
+uv run tools/acceptance/client_acceptance.py                  # clients under Rehearsal: screens, world, JEI, EMI
+```
+
+The server tool builds a base, runs it and reads the world back, on the dev servers and on the built jars with current loaders and viewers (`tools/acceptance/versions.toml`). The client tool needs a Rehearsal checkout (`rehearsal.dir` in `local.properties`, see `local.properties.example`) and runs a dev client with `-Prehearsal` in its own game directory, window in the background, sound off; its screenshots land in `build/acceptance/client/` and are meant to be looked at (read them after a run and say what they show). Add a check or a scenario step with the feature it covers. No unit tests and no GameTest yet (ADR-010 still plans GameTest); a manual client play test remains the first look at anything new.
 
 Windows gotchas: a backgrounded/killed gradle `runServer` orphans the child JVM. After automated smoke tests, sweep leftovers: `Get-CimInstance Win32_Process -Filter "Name = 'java.exe'" | Where-Object { $_.CommandLine -match 'krios' }`. Also, run-dir config files (`eula.txt`, `server.properties`) must be ASCII/no-BOM — a PowerShell `>` redirect writes a UTF-8 BOM and the server then reads the first key as `﻿eula` and refuses the EULA. The same trap has a second door: never round-trip source files through Windows PowerShell 5.1 text cmdlets (`Get-Content -Raw` without `-Encoding` reads UTF-8 as ANSI and mangles non-ASCII like em-dashes; `Set-Content -Encoding utf8` writes a BOM javac rejects) — use the dedicated edit tools or Python for bulk text surgery.
 
