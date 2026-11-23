@@ -5,6 +5,8 @@ world krios_world create 20261124
 wait ticks 60
 # A new world spawns the player anywhere: go to the test area and keep its chunks
 # loaded before building (a command on an unloaded position does nothing).
+# Creative: a player who joined a server is in survival and would not outlive the fall.
+command gamemode creative
 tp 8.5 220 0.5 0 20
 command forceload add -16 -16 47 31
 wait ticks 80

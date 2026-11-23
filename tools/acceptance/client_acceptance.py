@@ -160,6 +160,9 @@ def main() -> int:
                         help="the recipe viewer the client loads with --scenario (dev_recipe_viewer)")
     parser.add_argument("--window", default="background", choices=["background", "minimized", "normal"])
     parser.add_argument("--timeout", type=int, default=900, help="seconds before one run is given up")
+    parser.add_argument("--server", metavar="HOST:PORT",
+                        help="join that running server instead of opening a world: the scenario's "
+                             "'world' line is dropped, and its commands need the player to be an operator there")
     args = parser.parse_args()
 
     here = Path(__file__).parent / "client"
@@ -181,7 +184,7 @@ def run_one(args: argparse.Namespace, scenario: Path, viewer: str) -> bool:
     rehearsal_jar(args.loader)  # fails early with what is missing
     prepare(run_dir, args.loader, scenario)
 
-    name = f"{args.loader}-{args.viewer}-{scenario.stem}"
+    name = f"{args.loader}-{args.viewer}-{scenario.stem}" + ("-server" if args.server else "")
     out = OUT / name
     # The folder may be open somewhere (a terminal, an image viewer): empty it, do not replace it.
     out.mkdir(parents=True, exist_ok=True)
@@ -192,6 +195,8 @@ def run_one(args: argparse.Namespace, scenario: Path, viewer: str) -> bool:
     gradlew = str(MOD / ("gradlew.bat" if WINDOWS else "gradlew"))
     command = [gradlew, f"{args.loader}:runClient", "--no-daemon", "-q",
                f"-Prehearsal={args.window}", f"-Pdev_recipe_viewer={args.viewer}"]
+    if args.server:
+        command.append(f"-Pquickplayserver={args.server}")
     start = time.time()
     print(f"{name}: starting the client ({' '.join(command[1:])})")
     with console.open("w", encoding="utf-8") as sink:
@@ -223,7 +228,11 @@ def run_one(args: argparse.Namespace, scenario: Path, viewer: str) -> bool:
             if "Rehearsal inbox on" in fresh_log():
                 # Opening the inbox deletes what was there: drop the file only now, whole.
                 temp = inbox / "scenario.tmp"
-                shutil.copyfile(scenario, temp)
+                lines = scenario.read_text(encoding="utf-8").splitlines()
+                if args.server:
+                    # The game joins the server by itself: no world to open.
+                    lines = [line for line in lines if line.split()[:1] != ["world"]]
+                temp.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
                 temp.rename(inbox / "scenario.cmd")
                 sent = True
                 print(f"{name}: inbox on after {int(time.time() - start)} s, scenario sent")

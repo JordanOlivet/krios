@@ -174,6 +174,24 @@ test client; nothing of it exists in a normal run or in the jars.
 | `client/viewers-jei.cmd` | JEI | the Grinding category and its yield tooltip, the machines as catalysts, the information pages |
 | `client/viewers-emi.cmd` | EMI | the same through EMI |
 
+## A client that joins a server
+
+Single player hands packets over in memory: nothing is encoded. What a
+server really sends (the grinding recipes, a data component, a menu's
+values) is only exercised by a client that joins one:
+
+```
+cd mods/industry; ./gradlew neoforge:runServer        # in another terminal, wait for "Done"
+uv run tools/rcon.py "op Dev"                          # the dev client's player; scenarios run commands
+uv run tools/acceptance/client_acceptance.py neoforge --scenario tools/acceptance/client/screens.cmd --server localhost:25599
+uv run tools/acceptance/client_acceptance.py neoforge --scenario tools/acceptance/client/viewers-jei.cmd --server localhost:25599
+uv run tools/rcon.py "deop Dev" "stop"
+```
+
+`--server` makes the client join at launch and drops the scenario's `world`
+line; everything else runs as in single player. The port is the dev server's
+`server-port`. Starting and stopping the server is by hand for now.
+
 ## What a run proves, and what it leaves to the eye
 
 A run passes when every command was answered `ok` (a screen that does not

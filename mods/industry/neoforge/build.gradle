@@ -38,6 +38,11 @@ neoForge {
                 }
                 programArguments.addAll('--width', '1280', '--height', '720')
             }
+            // -Pquickplayserver=<host:port>: join that server at launch (a client against a
+            // dedicated server: what single player never sends over the wire).
+            if (project.hasProperty('quickplayserver')) {
+                programArguments.addAll('--quickPlayMultiplayer', project.property('quickplayserver').toString())
+            }
         }
         data {
             data()

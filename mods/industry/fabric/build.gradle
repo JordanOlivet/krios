@@ -73,6 +73,10 @@ loom {
                 }
                 programArgs '--width', '1280', '--height', '720'
             }
+            // -Pquickplayserver=<host:port>: join that server at launch.
+            if (project.hasProperty('quickplayserver')) {
+                programArgs '--quickPlayMultiplayer', project.property('quickplayserver').toString()
+            }
         }
         server {
             server()
