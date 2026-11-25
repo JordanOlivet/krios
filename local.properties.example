@@ -5,3 +5,7 @@
 # its jar joins the dev client when a run asks for it (-Prehearsal, see
 # tools/acceptance/README.md).
 rehearsal.dir=C:/Users/<you>/source/repos/rehearsal
+
+# A Modrinth personal access token with project write access, for
+# docs/listing/modrinth.py (the pages' text and gallery). Never commit it.
+modrinth.token=

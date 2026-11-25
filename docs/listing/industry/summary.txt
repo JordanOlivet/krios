@@ -1,0 +1,1 @@
+A factory with a mind. Build the K.O.I.O.S. AI core, network 11 machines to it (power, ore doubling, farms, mob farms) and let it learn from what they do to unlock modules and Mk II machines.
