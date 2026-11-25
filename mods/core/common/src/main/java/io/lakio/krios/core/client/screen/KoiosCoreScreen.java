@@ -55,6 +55,19 @@ public class KoiosCoreScreen extends KriosTerminalScreen<KoiosCoreMenu> {
         return list;
     }
 
+    /** A Codex entry out of the sidebar's viewport: wheel notches over the list until its row shows. */
+    @Override
+    public void reveal(String control) {
+        int[] point = codex.listPoint(width, height);
+        for (int notch = 0; notch < io.lakio.krios.core.koios.CodexEntries.all().size(); notch++) {
+            int direction = codex.wheelToward(control, menu);
+            if (direction == 0) {
+                return;
+            }
+            mouseScrolled(point[0], point[1], 0, direction);
+        }
+    }
+
     @Override
     public java.util.Map<String, Object> readout() {
         java.util.Map<String, Object> out = super.readout();

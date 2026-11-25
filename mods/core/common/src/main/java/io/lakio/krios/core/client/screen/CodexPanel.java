@@ -86,6 +86,30 @@ public class CodexPanel {
         return list;
     }
 
+    /** A point over the sidebar, where the wheel scrolls it. */
+    public int[] listPoint(int screenW, int screenH) {
+        return new int[] {panelX(screenW) + SIDEBAR_X + SIDEBAR_W / 2, panelY(screenH) + LIST_TOP + ROW_H / 2};
+    }
+
+    /**
+     * Which way the wheel turns to bring an entry's row into the sidebar's
+     * viewport: 1 up, -1 down, 0 when the row is in view, the overlay is
+     * closed, or the name is not an entry the core's level can open.
+     */
+    public int wheelToward(String control, KoiosCoreMenu menu) {
+        if (!open) {
+            return 0;
+        }
+        for (int i = 0; i < CodexEntries.all().size(); i++) {
+            Entry entry = CodexEntries.all().get(i);
+            if (control.equals("codex.entry." + shortName(entry)) && menu.getKoiosLevel() >= entry.minLevel()) {
+                int center = i * ROW_H - scroll + ROW_H / 2;
+                return center < 0 ? 1 : center >= LIST_H ? -1 : 0;
+            }
+        }
+        return 0;
+    }
+
     /** The Codex as data: open or not, the page shown, the entries in order (readable, then locked). */
     public java.util.Map<String, Object> readout(KoiosCoreMenu menu) {
         java.util.Map<String, Object> out = new java.util.LinkedHashMap<>();
@@ -101,6 +125,7 @@ public class CodexPanel {
             }
         }
         out.put("page", page);
+        out.put("scroll", scroll / ROW_H);
         out.put("entries", String.join(",", readable));
         out.put("locked", String.join(",", locked));
         out.put("projections", projectionsVisible(menu));

@@ -23,7 +23,7 @@ import net.minecraft.client.Minecraft;
  *
  * <pre>
  * state                      adds "krios": the open terminal's readout and its controls
- * krios press &lt;control&gt;      a left click on that control
+ * krios press &lt;control&gt;      a left click on that control, scrolled into view first when it needs to be
  * krios set &lt;control&gt; on|off  the same click, only when the toggle is not there yet
  * </pre>
  *
@@ -68,6 +68,8 @@ public final class TerminalExtension {
             throw new IllegalArgumentException("the terminal is still booting and would swallow the click: "
                     + "wait a few ticks after it opens");
         }
+        // A row of a list that scrolls is brought into view first.
+        terminal.reveal(words.get(2));
         Control control = find(terminal, words.get(2));
         switch (words.get(1)) {
             case "press" -> {

@@ -77,6 +77,14 @@ public abstract class KriosTerminalScreen<T extends AbstractContainerMenu>
     }
 
     /**
+     * Brings a control into view when the terminal has it out of view (a
+     * row of a list that scrolls), the way a player would: nothing to do by
+     * default, and for a name the terminal does not know.
+     */
+    public void reveal(String control) {
+    }
+
+    /**
      * What the terminal shows, as data: the state a screenshot does not
      * give. JDK types only (strings, numbers, booleans, nested maps), keys
      * in display order. Subclasses add theirs to the map they get from
