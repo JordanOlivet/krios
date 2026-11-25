@@ -32,7 +32,7 @@ In English and French.
 ## Not there yet
 
 - **Tiers 3 and 4** of the core: four are planned, and the first two are playable with Krios: Industry.
-- This is 0.1.0, the first public version: balance and some of the art will still move.
+- These are the first public versions: balance and some of the art will still move.
 
 ## Feedback
 

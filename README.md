@@ -20,7 +20,7 @@ Install both, on the client and on the server. On Fabric, Fabric API is needed t
 3. Put a **Thermal Reactor** and a machine against the structure, or link them with **Neural Conduits**. Fuel the reactor.
 4. Open the core's screen (right-click the structure): its level, what the next levels unlock, and the **Codex**, the in-game guide.
 
-The mods are at 0.1.0: tiers 1 and 2 are playable, balance and some art will still move. Bugs and ideas are welcome in the [issues](https://github.com/JordanOlivet/krios/issues).
+These are the mods' first versions: tiers 1 and 2 are playable, balance and some art will still move. Bugs and ideas are welcome in the [issues](https://github.com/JordanOlivet/krios/issues).
 
 ## For pack makers
 
