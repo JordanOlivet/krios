@@ -174,6 +174,31 @@ test client; nothing of it exists in a normal run or in the jars.
 | `client/viewers-jei.cmd` | JEI | the Grinding category and its yield tooltip, the machines as catalysts, the information pages |
 | `client/viewers-emi.cmd` | EMI | the same through EMI |
 
+## Production clients
+
+`--prod` runs the **built jars** instead of the dev client: the loader and
+the recipe viewers pinned in `versions.toml`, Rehearsal's jar, nothing else,
+launched by portablemc (offline, player `Dev`). The whole suite or one
+scenario, as with the dev client:
+
+```
+uv run tools/acceptance/client_acceptance.py neoforge --prod
+uv run tools/acceptance/client_acceptance.py fabric --prod --scenario tools/acceptance/client/world.cmd --viewer none
+```
+
+Build the jars first (`server_acceptance.py ... --build` or `gradlew build`
+in both mods). Everything lives in `build/acceptance/client-prod/`: the
+launcher's folder (`launcher/`, Minecraft, the loader, libraries, assets) and
+one game folder per loader, whose `mods/` is emptied and refilled each run.
+The first run installs the game outside the run's timeout (a few minutes,
+`install-<loader>.log`). Java: `--java <path>`, else `JAVA_HOME`, else
+`java` (21 or newer; `javaw` is used next to it). portablemc comes through
+`uvx`, pinned below version 5.
+
+This is what a player runs: Fabric's remapped production names, the client
+classes (screens, the KOIOS head) loaded from the jars, the loader and viewer
+versions players have.
+
 ## A client that joins a server
 
 Single player hands packets over in memory: nothing is encoded. What a
@@ -181,16 +206,33 @@ server really sends (the grinding recipes, a data component, a menu's
 values) is only exercised by a client that joins one:
 
 ```
-cd mods/industry; ./gradlew neoforge:runServer        # in another terminal, wait for "Done"
-uv run tools/rcon.py "op Dev"                          # the dev client's player; scenarios run commands
-uv run tools/acceptance/client_acceptance.py neoforge --scenario tools/acceptance/client/screens.cmd --server localhost:25599
-uv run tools/acceptance/client_acceptance.py neoforge --scenario tools/acceptance/client/viewers-jei.cmd --server localhost:25599
-uv run tools/rcon.py "deop Dev" "stop"
+uv run tools/acceptance/client_acceptance.py neoforge --server local            # dev client, dev server
+uv run tools/acceptance/client_acceptance.py fabric --prod --server local       # production jars on both sides
 ```
 
-`--server` makes the client join at launch and drops the scenario's `world`
-line; everything else runs as in single player. The port is the dev server's
-`server-port`. Starting and stopping the server is by hand for now.
+`--server local` starts the matching server itself: the dev server of
+`mods/industry` (its world is deleted, as `server_acceptance.py` does), or
+with `--prod` the production server of `build/acceptance/<loader>-prod`
+(installed when missing). It makes the player an operator, runs `screens`
+and `viewers-jei` there (or `--scenario` with `--viewer`: one viewer per
+server), then stops the server and reports the errors of its log. The client
+joins at launch and the scenarios' `world` lines are dropped.
+
+`--server HOST:PORT` joins a server already running instead. The player must
+be an operator there, or the commands of the scenarios fail. **Do not `op
+Dev` over RCON before the player has joined**: for a name it has not seen,
+the server asks Mojang and makes the real account named Dev an operator.
+Write the entry into `ops.json` before starting the server, with the offline
+UUID (`380df991-f603-344c-a090-369bad2a924a` for `Dev`); `--server local`
+does exactly that.
+
+On a server, Rehearsal paces `command` and `tp` under vanilla's chat spam
+guard (a burst of six, then one every 24 ticks), so a scenario takes about
+half a minute longer there. Before that pacing, a player who was not an
+operator was kicked "for spamming" at the tenth command of a tick.
+
+On Fabric, a client without the server's JEI is refused at login (JEI
+registers recipe serializers on the server): both sides load the same viewer.
 
 ## What a run proves, and what it leaves to the eye
 
@@ -248,7 +290,7 @@ Learned on the first runs:
 
 ## Not there yet
 
-- **The production jars in a real client** (Rehearsal's `neoforge_pack.py`
-  and `fabric_pack.py`, which launch a launcher instance).
+- A production client in a launcher instance with other mods around it (a
+  modpack): Rehearsal's `neoforge_pack.py` and `fabric_pack.py` do that.
 - Creative tabs, modules in the bay, the breakthrough ritual, the zone
   holograms.

@@ -72,6 +72,9 @@ loom {
                     property('rehearsal.window', window)
                 }
                 programArgs '--width', '1280', '--height', '720'
+                // A fixed name (NeoForge's dev client is "Dev" too): a server can make it an
+                // operator before it joins, by its offline UUID.
+                programArgs '--username', 'Dev'
             }
             // -Pquickplayserver=<host:port>: join that server at launch.
             if (project.hasProperty('quickplayserver')) {
