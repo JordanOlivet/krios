@@ -36,10 +36,8 @@ server acceptance below; what needs no world is a unit test (ADR-034).
 Writing one: a `TestFunction` in the mod's `gametest` class (`CoreGameTests`,
 `IndustryGameTests`), structure `CoreGameTests.ARENA` (an empty 8x8x8 arena in
 core's data), the arena's own coordinates (`helper.setBlock(x, y, z, ...)`),
-`helper.succeedWhen(...)` for a rule that settles over ticks. Build things in
-the order a player would: a core placed by code after its casings has no
-placer hook and only checks its shell when its screen opens, so the tests
-place the core first.
+`helper.succeedWhen(...)` for a rule that settles over ticks (a core placed
+after its casings forms one tick later, not at once).
 
 # Server acceptance tests
 

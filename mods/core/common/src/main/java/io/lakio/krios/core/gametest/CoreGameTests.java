@@ -34,17 +34,21 @@ public class CoreGameTests {
     public List<TestFunction> tests() {
         return List.of(
                 new TestFunction(BATCH, "koios_shell_forms", ARENA, 100, 0L, true, CoreGameTests::shellForms),
-                new TestFunction(BATCH, "koios_shell_breaks", ARENA, 100, 0L, true, CoreGameTests::shellBreaks));
+                new TestFunction(BATCH, "koios_shell_breaks", ARENA, 100, 0L, true, CoreGameTests::shellBreaks),
+                new TestFunction(BATCH, "koios_core_placed_last_forms", ARENA, 100, 0L, true, CoreGameTests::corePlacedLastForms));
     }
 
     /**
      * A core, then the casings around it: the last casing completes the shell
-     * and its placement makes the core check it. (A core placed last by code
-     * rather than by a player has no placer hook: it checks on its first
-     * GUI opening.)
+     * and its placement makes the core check it.
      */
     public static void buildShell(GameTestHelper helper) {
         helper.setBlock(CORE, ModBlocks.KOIOS_CORE.get());
+        placeCasings(helper);
+    }
+
+    /** The 26 casings around {@link #CORE}. */
+    private static void placeCasings(GameTestHelper helper) {
         for (int x = 1; x <= 3; x++) {
             for (int y = 1; y <= 3; y++) {
                 for (int z = 1; z <= 3; z++) {
@@ -75,5 +79,19 @@ public class CoreGameTests {
                     helper.assertBlockProperty(new BlockPos(1, 1, 1), NeuralCasingBlock.FORMED, false);
                 })
                 .thenSucceed();
+    }
+
+    /**
+     * The casings first, then the core, placed by code as a command or a
+     * structure would: no player, so no placer hook. The core checks its
+     * shell on its own once placed.
+     */
+    private static void corePlacedLastForms(GameTestHelper helper) {
+        placeCasings(helper);
+        helper.setBlock(CORE, ModBlocks.KOIOS_CORE.get());
+        helper.succeedWhen(() -> {
+            helper.assertBlockProperty(CORE, KoiosCoreBlock.FORMED, true);
+            helper.assertBlockProperty(new BlockPos(1, 1, 1), NeuralCasingBlock.FORMED, true);
+        });
     }
 }

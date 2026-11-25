@@ -5,6 +5,8 @@ import com.mojang.serialization.MapCodec;
 import io.lakio.krios.core.network.NetworkConductor;
 import io.lakio.krios.core.tool.CalibratorItem;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
@@ -25,7 +27,9 @@ import org.jetbrains.annotations.Nullable;
 /**
  * The K.O.I.O.S. core: center block of the 3x3x3 hollow neural-casing frame.
  * Never ticks (ADR-012) — it only reacts to reported operations and to frame
- * changes. FORMED gates XP accrual and drives the visual/light state.
+ * changes. FORMED gates XP accrual and drives the visual/light state. Its one
+ * scheduled tick follows a placement, so a core placed without a player (a
+ * command, a structure) checks its shell too.
  */
 public class KoiosCoreBlock extends BaseEntityBlock implements NetworkConductor {
 
@@ -66,6 +70,27 @@ public class KoiosCoreBlock extends BaseEntityBlock implements NetworkConductor 
         }
     }
 
+    /**
+     * Any placement, a player's or not: the block entity does not exist yet
+     * here, so the shell is checked one tick later. Its own FORMED flips are
+     * the same block and schedule nothing.
+     */
+    @Override
+    protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
+        super.onPlace(state, level, pos, oldState, movedByPiston);
+        if (!level.isClientSide && !oldState.is(this)) {
+            level.scheduleTick(pos, this, 1);
+        }
+    }
+
+    /** One tick after a placement. A no-op when the placer hook already formed the shell. */
+    @Override
+    protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        if (level.getBlockEntity(pos) instanceof KoiosCoreBlockEntity core) {
+            core.revalidateStructure();
+        }
+    }
+
     /** The Calibrator and the compute chip override the block's own right-click. */
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level,
@@ -82,7 +107,7 @@ public class KoiosCoreBlock extends BaseEntityBlock implements NetworkConductor 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (!level.isClientSide && level.getBlockEntity(pos) instanceof KoiosCoreBlockEntity core) {
-            // Catches placements that bypass setPlacedBy (commands, structures).
+            // Opening the screen re-checks the shell too (cheap, and a safety net).
             core.revalidateStructure();
             player.openMenu(core);
         }
