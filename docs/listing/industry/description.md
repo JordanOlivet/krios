@@ -51,11 +51,11 @@ The last seven work a zone behind the machine: hold the Calibrator to see it. Al
 
 ## Compatibility
 
-JEI and EMI: a Grinding category, and the machines listed as catalysts of the recipes they run. Tested with JEI 19.76 and EMI 1.1.24 on NeoForge 21.1.267 and Fabric Loader 0.20.1, on clients and on dedicated servers.
+JEI and EMI: a Grinding category, the machines listed as catalysts of the recipes they run, and recipe transfer: the viewer's fill button moves a recipe's input into the open Fractal Grinder, Plasma Forge or Thermal Reactor (a click for one item, a shift-click for all that fits). Tested with JEI 19.76 and EMI 1.1.24 on NeoForge 21.1.267 and Fabric Loader 0.20.1, on clients and on dedicated servers.
 
 ## Requirements
 
-- **Krios: Core** 0.1.0 or newer.
+- **Krios: Core** 0.2.0 or newer.
 - Fabric: Fabric API.
 
 In English and French.
@@ -64,8 +64,7 @@ In English and French.
 
 - **Tiers 3 and 4**: the core has four tiers planned, and the first two are playable, from the first ore to Mk II machines.
 - **Cable-borne item transport and digital storage**: planned as a separate mod, Krios: Storage. Today items move between machines and inventories that touch.
-- **Recipe transfer** from JEI and EMI into the machines.
-- Balance and some of the art will still move: this is 0.1.0, the first public version.
+- Balance and some of the art will still move: these are the first public versions.
 
 ## Feedback
 
