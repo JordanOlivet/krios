@@ -6,11 +6,15 @@ on:
     paths:
       - 'mods/industry/**'
       - 'mods/core/**'
+      - 'tools/check_assets.py'
+      - 'tools/acceptance/gametest.py'
       - '.github/workflows/industry.yml'
   pull_request:
     paths:
       - 'mods/industry/**'
       - 'mods/core/**'
+      - 'tools/check_assets.py'
+      - 'tools/acceptance/gametest.py'
       - '.github/workflows/industry.yml'
 
 jobs:
@@ -19,3 +23,5 @@ jobs:
     with:
       working-directory: mods/industry
       artifact-name: krios_industry-jars
+      # Industry loads core: both mods' assets are checked and both mods' game tests run, on both loaders.
+      checks: uv run tools/check_assets.py && uv run tools/acceptance/gametest.py

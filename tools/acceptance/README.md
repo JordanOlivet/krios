@@ -23,6 +23,10 @@ passed"; a failure names the tests. About a minute a run. The servers live
 in `<loader>/runs/gametest` of each mod (ignored by git); Fabric also writes
 a JUnit report there (`junit.xml`).
 
+CI runs it (and `check_assets.py`) after Industry's build, on every pull
+request that touches a mod (ADR-036): a red game test fails the pull
+request. The server and client tools below stay local.
+
 Where a test belongs: a rule of a machine, one block or a few, read through
 the block entity (a grinder off the network works at furnace pace, a tier 2
 machine under a tier 1 core works at tier 1). What only a whole base shows
