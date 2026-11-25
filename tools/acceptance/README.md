@@ -16,6 +16,7 @@ real, current loaders.
 ```
 uv run tools/acceptance/server_acceptance.py all --build
 uv run tools/acceptance/server_acceptance.py neoforge-prod fabric-prod
+uv run tools/acceptance/server_acceptance.py upgrade
 uv run tools/acceptance/server_acceptance.py dev --verbose
 ```
 
@@ -32,8 +33,10 @@ was left behind.
 | `neoforge-dev`, `fabric-dev` | `gradlew <loader>:runServer` in `mods/industry` | core and Industry from source, the dev viewer |
 | `neoforge-prod`, `fabric-prod` | the loader pinned in `versions.toml`, installed under `build/acceptance/` | the built jars of core and Industry, JEI, EMI (and Fabric API) |
 | `neoforge-core`, `fabric-core` | same | the built jar of core alone |
+| `neoforge-upgrade`, `fabric-upgrade` | same | a release's jars to build a world, then the built jars to load it |
 
-Groups: `dev`, `prod`, `core`, `all`. Targets run one after the other.
+Groups: `dev`, `prod`, `core`, `upgrade`, `all`. Targets run one after the
+other.
 
 Options: `--build` runs `gradlew build` in `mods/core` then `mods/industry`
 first (without it a missing jar stops the run); `--java <path>` names the Java
@@ -64,6 +67,43 @@ Every boot also checks the log: the server loaded exactly the recipes and
 advancements the mods ship (the files are counted in the repository and
 added to vanilla's 1290 and 1399), and logged no error or exception.
 
+## Upgrade targets
+
+A world saved by a release must still load after an update: only a MAJOR
+bump may break saves (ADR-009). An upgrade target checks it for each release
+listed under `[[upgrade.from]]` in `versions.toml`:
+
+1. **release-\<version>**: the jars of that release, downloaded from its
+   GitHub Releases, build the base on a fresh world. The scenario is this
+   tool **as it was at the release's tag** (`git show
+   industry/v<version>:tools/acceptance/server_acceptance.py`, loaded as a
+   module): a later scenario may place machines the release did not have.
+   The world is then kept in `build/acceptance/fixtures/`, and this phase is
+   skipped while it is there.
+2. **upgrade-\<version>**: the built jars load a copy of that world, and the
+   restart phase of the same old scenario checks it: the core kept its form
+   and XP, the network re-forms with every machine, the grinder kept its
+   output, the machines work again. The log must also hold no warning or
+   error naming a Krios id (`krios_core:…`, `krios_industry:…`): that is how
+   a loader reports an id the new jars no longer register.
+
+What it catches: a renamed or removed block, item or block entity id, a
+renamed NBT field, a changed `serverconfig` key, a data component that no
+longer decodes. What it does not: anything the release's scenario did not
+build (modules in a bay, a configured face, a blueprint), and a player's
+inventory.
+
+List a release when its saves differ from the ones already listed (a new
+machine, a changed block entity); a release that only changed code or art
+adds nothing. A check of the old scenario that the current jars fail on
+purpose (a rule that changed) is a decision to take, not a line to delete:
+the tag's scenario cannot be edited, so name another git ref for that
+release with `scenario = "<ref>"`.
+
+The phase functions are the contract: `phase_build(c, server, r) -> int`
+and `phase_verify(c, server, r, xp)` are called by every later release
+through the file at its tag. Keep their signatures.
+
 ## What it does not test
 
 - Anything a client shows: screens, the Codex, JEI and EMI categories,
@@ -87,6 +127,9 @@ added to vanilla's 1290 and 1399), and logged no error or exception.
 - Production targets live in `build/acceptance/` (ignored by git): downloads,
   one folder per target, console logs in `logs/`. Delete the folder to start
   over.
+- Upgrade targets also keep `build/acceptance/fixtures/`: one world per
+  release and loader, and the old scenarios. Delete a world's folder to have
+  the release build it again.
 - Servers stop on RCON `stop`. On a failure or a timeout the whole process
   tree is killed, and the run ends by checking that nothing still listens on
   the servers' ports.

@@ -8,8 +8,9 @@
 
 Targets: neoforge-dev, fabric-dev (gradlew runServer in mods/industry),
 neoforge-prod, fabric-prod (the built jars on real servers with the pinned
-loaders and viewers), neoforge-core, fabric-core (core alone, production).
-Groups: dev, prod, core, all.
+loaders and viewers), neoforge-core, fabric-core (core alone, production),
+neoforge-upgrade, fabric-upgrade (a world saved by a release, loaded by the
+built jars). Groups: dev, prod, core, upgrade, all.
 
 No player is needed: every chunk used is force-loaded and time is sprinted.
 One PASS/FAIL line per check, a summary per target, a table at the end, and
@@ -18,6 +19,7 @@ build/acceptance/report.md. Exit code 1 when anything failed. See README.md.
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import os
 import re
 import shutil
@@ -52,12 +54,16 @@ SPRINT_TIMEOUT = 300
 DEV_TARGETS = {"neoforge-dev": ("neoforge", "neoforge/run"), "fabric-dev": ("fabric", "fabric/runs/server")}
 PROD_TARGETS = {"neoforge-prod": "neoforge", "fabric-prod": "fabric"}
 CORE_TARGETS = {"neoforge-core": "neoforge", "fabric-core": "fabric"}
+UPGRADE_TARGETS = {"neoforge-upgrade": "neoforge", "fabric-upgrade": "fabric"}
 GROUPS = {
     "dev": list(DEV_TARGETS),
     "prod": list(PROD_TARGETS),
     "core": list(CORE_TARGETS),
-    "all": [*DEV_TARGETS, *PROD_TARGETS, *CORE_TARGETS],
+    "upgrade": list(UPGRADE_TARGETS),
+    "all": [*DEV_TARGETS, *PROD_TARGETS, *CORE_TARGETS, *UPGRADE_TARGETS],
 }
+# The prefix of a mod's release tags (ADR-009): core/v0.1.0, industry/v0.1.0.
+RELEASE_TAGS = {"krios_core": "core", "krios_industry": "industry"}
 
 VERBOSE = False
 
@@ -365,6 +371,11 @@ def sprint(server: Server, r: Rcon, ticks: int) -> bool:
 # Layout (y 200, stone floor at 199). The KOIOS shell is the 3x3x3 at 4..6, a
 # conduit trunk runs along z=3; line machines sit on z=2, zone machines on z=4
 # facing north so their zones (9x9, behind the screen) spread south.
+#
+# phase_build and phase_verify are also called by the upgrade targets of later
+# releases, through this file as it was at a release's tag: keep their
+# signatures, (c, server, r) -> int and (c, server, r, xp), and what they use
+# of their arguments (c.check, server.log_text, r.cmd).
 
 CORE = "5 201 5"
 REACTOR, PHOTON, GRINDER, GRINDER2, FORGE = "8 200 2", "10 200 2", "12 200 2", "14 200 2", "16 200 2"
@@ -588,10 +599,12 @@ def shipped_count(mods: list[str], kind: str, loader: str) -> int:
     return total
 
 
-def log_checks(c: Checks, server: Server, mods: list[str], loader: str) -> None:
+def log_checks(c: Checks, server: Server, mods: list[str], loader: str, counts: bool = True) -> None:
+    """`counts` is off for a server running released jars: the files counted
+    are the repository's, which may have gained some since."""
     text = server.log_text()
     for kind, word, vanilla in (("recipe", "recipes", VANILLA_RECIPES),
-                                ("advancement", "advancements", VANILLA_ADVANCEMENTS)):
+                                ("advancement", "advancements", VANILLA_ADVANCEMENTS)) if counts else ():
         want = vanilla + shipped_count(mods, kind, loader)
         got = re.findall(rf"Loaded (\d+) {word}", text)
         c.check(f"every {kind} file is loaded ({want})", bool(got) and int(got[-1]) == want,
@@ -735,7 +748,8 @@ def find_java(explicit: str | None) -> str:
     return java
 
 
-def provision(target: str, loader: str, mods: list[str], viewers: bool, v: dict, java: str) -> tuple[Path, list[str]]:
+def provision(target: str, loader: str, mod_jars: list[Path], viewers: bool, v: dict,
+              java: str) -> tuple[Path, list[str]]:
     """Installs or refreshes one production server; returns its dir and its command."""
     server_dir = WORK / target
     (server_dir / "mods").mkdir(parents=True, exist_ok=True)
@@ -765,7 +779,7 @@ def provision(target: str, loader: str, mods: list[str], viewers: bool, v: dict,
         command = [java, "-Xmx3G", "-jar", "fabric-server-launch.jar", "nogui"]
     for old in (server_dir / "mods").glob("*.jar"):
         old.unlink()
-    for jar in [mod_jar(mod, loader) for mod in mods] + third_parties(v, loader, viewers):
+    for jar in mod_jars + third_parties(v, loader, viewers):
         shutil.copyfile(jar, server_dir / "mods" / jar.name)
     return server_dir, command
 
@@ -793,7 +807,7 @@ def build_mods() -> None:
 
 
 def run_phase(c: Checks, phase: str, command: list[str], cwd: Path, run_dir: Path, net: Net, mods: list[str],
-              loader: str, body) -> object:
+              loader: str, body, counts: bool = True, log_extra=None) -> object:
     """Launches the server, runs one phase in it, stops it. Returns what the phase returned."""
     c.phase = phase
     for port in net.ports:
@@ -823,7 +837,9 @@ def run_phase(c: Checks, phase: str, command: list[str], cwd: Path, run_dir: Pat
         if stopped:
             stopped = server.wait_exit(STOP_TIMEOUT)
             c.check("the server stops and its process exits", stopped, f"still running after {STOP_TIMEOUT} s")
-        log_checks(c, server, mods, loader)
+        log_checks(c, server, mods, loader, counts)
+        if log_extra is not None:
+            log_extra(c, server)
     finally:
         if not stopped or server.alive():
             server.kill()
@@ -831,9 +847,91 @@ def run_phase(c: Checks, phase: str, command: list[str], cwd: Path, run_dir: Pat
     return result
 
 
+# -------------------------------------------------------------------- upgrade
+#
+# A world saved by a release must load on the current jars: only a MAJOR bump
+# may break it (ADR-009). The world is built by the released jars, with the
+# scenario of this file as it was at the release's tag; the built jars then
+# load it and that same scenario's restart phase checks it. What the release
+# promised after a restart is what must still hold after an update.
+
+def release_jar(v: dict, mod: str, loader: str, version: str) -> Path:
+    name = f"{mod}-{loader}-{v['minecraft']}-{version}.jar"
+    return download(f"{v['upgrade']['releases']}/{RELEASE_TAGS[mod]}/v{version}/{name}",
+                    WORK / "downloads" / "releases" / name)
+
+
+def release_scenario(ref: str):
+    """This file as it was at a git ref, loaded as a module for its phases."""
+    done = subprocess.run(["git", "-C", str(REPO), "show", f"{ref}:tools/acceptance/server_acceptance.py"],
+                          capture_output=True)
+    if done.returncode != 0:
+        raise SystemExit(f"no tools/acceptance/server_acceptance.py at the git ref '{ref}' (are the tags fetched?): "
+                         + done.stderr.decode("utf-8", "replace").strip())
+    name = "scenario_" + re.sub(r"\W+", "_", ref)
+    path = WORK / "fixtures" / f"{name}.py"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(done.stdout)
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def upgrade_log_checks(c: Checks, server: Server) -> None:
+    """What a loader or the game says about an id it no longer knows is a
+    warning or an error naming it; a healthy load names none."""
+    bad = [line for line in server.log_text().splitlines()
+           if re.search(r"/(WARN|ERROR)\]", line) and re.search(r"krios_\w+:\w", line)]
+    c.check("no warning or error names a Krios id", not bad, " | ".join(line[-200:] for line in bad[:4]))
+
+
+def run_upgrade(c: Checks, loader: str, v: dict, java: str) -> None:
+    mods = ["krios_core", "krios_industry"]
+    current = [mod_jar(mod, loader) for mod in mods]
+    for release in v["upgrade"]["from"]:
+        core, industry = release["core"], release["industry"]
+        label = industry if core == industry else f"core-{core}-industry-{industry}"
+        scenario = release_scenario(release.get("scenario", f"{RELEASE_TAGS['krios_industry']}/v{industry}"))
+
+        # The release's world is built once and kept: delete its folder to build it again.
+        fixture = WORK / "fixtures" / f"{loader}-core-{core}-industry-{industry}"
+        xp_file = fixture / "xp.txt"
+        if xp_file.is_file():
+            say(f"--- {c.target}: the world of {label} is kept in {fixture.relative_to(REPO)}")
+        else:
+            released = [release_jar(v, "krios_core", loader, core), release_jar(v, "krios_industry", loader, industry)]
+            run_dir, command = provision(c.target, loader, released, True, v, java)
+            net = ensure_server_files(run_dir)
+            fresh_world(run_dir, net.level)
+            failed = len(c.failed)
+            xp = run_phase(c, f"release-{label}", command, run_dir, run_dir, net, mods, loader,
+                           lambda s, r: scenario.phase_build(c, s, r), counts=False)
+            if not isinstance(xp, int) or len(c.failed) > failed:
+                c.phase = f"upgrade-{label}"
+                c.check("the upgrade phase ran", False, "skipped: the release did not build its world cleanly")
+                continue
+            if fixture.is_dir():
+                shutil.rmtree(fixture)
+            shutil.copytree(run_dir / net.level, fixture / "world")
+            xp_file.write_text(f"{xp}\n", encoding="ascii")
+
+        xp = int(xp_file.read_text(encoding="ascii").strip())
+        run_dir, command = provision(c.target, loader, current, True, v, java)
+        net = ensure_server_files(run_dir)
+        fresh_world(run_dir, net.level)
+        shutil.copytree(fixture / "world", run_dir / net.level)
+        run_phase(c, f"upgrade-{label}", command, run_dir, run_dir, net, mods, loader,
+                  lambda s, r: scenario.phase_verify(c, s, r, xp), log_extra=upgrade_log_checks)
+
+
 def run_target(target: str, v: dict, java: str | None) -> Checks:
     c = Checks(target)
     say(f"\n=== {target}")
+    if target in UPGRADE_TARGETS:
+        run_upgrade(c, UPGRADE_TARGETS[target], v, java or "java")
+        say(f"=== {target}: {len(c.rows)} checks, {len(c.failed)} failed")
+        return c
     if target in DEV_TARGETS:
         loader, rel = DEV_TARGETS[target]
         cwd = MODS["krios_industry"]
@@ -845,7 +943,7 @@ def run_target(target: str, v: dict, java: str | None) -> Checks:
         full = target in PROD_TARGETS
         loader = (PROD_TARGETS if full else CORE_TARGETS)[target]
         mods = ["krios_core", "krios_industry"] if full else ["krios_core"]
-        run_dir, command = provision(target, loader, mods, full, v, java or "java")
+        run_dir, command = provision(target, loader, [mod_jar(mod, loader) for mod in mods], full, v, java or "java")
         cwd = run_dir
     net = ensure_server_files(run_dir)
     fresh_world(run_dir, net.level)

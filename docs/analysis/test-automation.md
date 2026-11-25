@@ -98,6 +98,9 @@ To add:
   (`build/acceptance/<target>/world`) as a fixture, and make the next
   release load it and run the restart checks. This is the only automatic
   guard for ADR-009's promise that a MAJOR bump is what breaks worlds.
+  *Built on 2026-11-25 as the `upgrade` targets (ADR-031), with one change:
+  the world is not archived but built again from the release's published
+  jars and the tool at its tag, so nothing binary is kept in git.*
 - The machines it only places: forester (grow a tree), lure (a water
   zone), breeding pod (two cows and wheat), bio synthesizer (count the
   spawns), photon array output, tier 2 behaviour, modules inserted by
