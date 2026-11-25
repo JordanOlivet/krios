@@ -382,6 +382,10 @@ REACTOR, PHOTON, GRINDER, GRINDER2, FORGE = "8 200 2", "10 200 2", "12 200 2", "
 FARMER, POD, FIELD = "14 200 4", "24 200 4", "34 200 4"
 # A reactor away from the trunk, on no network: what it burns changes nothing in the base.
 LONE_REACTOR = "8 200 -4"
+# Two more, each over a hopper (in the floor): one burns a lava bucket, one coal with a
+# module in its bay. A hopper may take what burning left behind, never the fuel or a module.
+BUCKET_REACTOR, BUCKET_HOPPER = "10 200 -4", "10 199 -4"
+FUEL_REACTOR, FUEL_HOPPER = "12 200 -4", "12 199 -4"
 LINE_MACHINES = [
     (REACTOR, "krios_industry:thermal_reactor"),
     (PHOTON, "krios_industry:photon_array"),
@@ -504,6 +508,14 @@ def phase_build(c: Checks, server: Server, r: Rcon) -> int:
     c.check("placed a reactor off the network", "Changed the block" in out, out)
     out = r.cmd(f"item replace block {LONE_REACTOR} container.0 with minecraft:lava_bucket")
     fed_lava = c.check("fed it a lava bucket", "Replaced a slot" in out, out)
+    hoppers = True
+    for reactor, hopper in ((BUCKET_REACTOR, BUCKET_HOPPER), (FUEL_REACTOR, FUEL_HOPPER)):
+        hoppers &= "Changed the block" in r.cmd(f"setblock {hopper} minecraft:hopper")
+        hoppers &= "Changed the block" in r.cmd(f"setblock {reactor} krios_industry:thermal_reactor")
+    hoppers &= "Replaced a slot" in r.cmd(f"item replace block {BUCKET_REACTOR} container.0 with minecraft:lava_bucket")
+    hoppers &= "Replaced a slot" in r.cmd(f"item replace block {FUEL_REACTOR} container.0 with minecraft:coal_block 4")
+    hoppers &= "Replaced a slot" in r.cmd(f"item replace block {FUEL_REACTOR} container.1 with krios_industry:speed_module")
+    c.check("placed two reactors over hoppers, fed lava and coal with a module", hoppers)
 
     xp_before = number(block_data(r, CORE, "DataXp"))
     c.check("sprint 3000 ticks completes", sprint(server, r, 3000))
@@ -519,6 +531,17 @@ def phase_build(c: Checks, server: Server, r: Rcon) -> int:
     c.check("the reactor burned the lava and kept the empty bucket",
             fed_lava and item_count(lava, "minecraft:lava_bucket") == 0 and item_count(lava, "minecraft:bucket") == 1,
             lava)
+    taken = block_data(r, BUCKET_HOPPER, "Items")
+    left = block_data(r, BUCKET_REACTOR, "Items")
+    c.check("a hopper under the reactor took the empty bucket",
+            item_count(taken, "minecraft:bucket") == 1 and item_count(left, "minecraft:bucket") == 0,
+            f"hopper={taken} reactor={left}")
+    taken = block_data(r, FUEL_HOPPER, "Items")
+    kept = block_data(r, FUEL_REACTOR, "Items")
+    c.check("a hopper under the reactor took neither its fuel nor its module",
+            item_count(taken, "minecraft:coal_block") == 0 and item_count(taken, "krios_industry:speed_module") == 0
+            and item_count(kept, "krios_industry:speed_module") == 1,
+            f"hopper={taken} reactor={kept}")
     gravel = block_data(r, GRINDER, "Items")
     c.check("grinder turned cobblestone into gravel", item_count(gravel, "minecraft:gravel") > 0, gravel)
     shards = block_data(r, GRINDER2, "Items")
