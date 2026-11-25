@@ -69,7 +69,7 @@ Textures started as script-generated placeholders (`tools/gen_textures.py`, pure
 - Language: docs/code/commits in English; conversation with the user in French.
 - ADRs in `docs/DECISIONS.md`: append a new entry to change a decision, don't edit history. New structural choices get an ADR.
 - Progress log: one `docs/progress/YYYY-MM-DD.md` per working day, written at session end (state, what was validated, prioritized next steps).
-- Git: Conventional Commits, no AI attribution trailers. Direct pushes to `main` are for the bootstrap phase only — once the user declares the base done, switch to branches + PRs. Versioning per ADR-009 (SemVer per mod, tags `industry/v0.1.0`).
+- Git: Conventional Commits, no AI attribution trailers. The bootstrap is over (user, 2026-11-25, after 0.1.0): docs, skills and other minor changes that cannot disturb another session working on the project may still go straight to `main`; everything else (code, build, workflows, assets) goes by default through a git worktree on a dedicated branch and a PR with green CI, so concurrent sessions never conflict. Versioning per ADR-009 (SemVer per mod, tags `industry/v0.1.0`).
 - CI: thin callers in `.github/workflows/` delegating to reusable workflows in `JordanOlivet/ci-workflows` (pinned `@main` until that repo's next proper release, then `@v1`). Never direct-push ci-workflows once its CI shape is finalized — PR + `VERSION` bump there.
 - License: LGPL-3.0-or-later, code and assets (ADR-011).
 - `templates/multiloader/` is the pristine upstream template for bootstrapping new mods — never edit it in place.
