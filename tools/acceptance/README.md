@@ -52,7 +52,8 @@ A full target starts from a fresh world, twice:
    machines the way a hopper would (`item replace block`), sprints 3600
    ticks, and checks: the core and casings form, `/krios_core koios info`,
    `/koios energy` and `/krios_core config` answer, the network holds its 22
-   members and is valid, the reactor burns, the grinders and the forge
+   members and is valid, the reactor burns (and one off the network keeps the
+   empty bucket of the lava bucket it burned), the grinders and the forge
    produce, the core gains XP, the Chrono Farmer tills, plants and harvests,
    the Harvest Pod shears, the Phase Death Field kills the husks and leaves
    the sheep next door, a mined core drops with its `koios_data`.
