@@ -13,6 +13,7 @@ import io.lakio.krios.industry.Constants;
 import io.lakio.krios.industry.machine.grinder.GrindingRecipe;
 import io.lakio.krios.industry.registry.ModBlocks;
 import io.lakio.krios.industry.registry.ModItems;
+import io.lakio.krios.industry.registry.ModMenus;
 import io.lakio.krios.industry.registry.ModRecipeTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.crafting.RecipeHolder;
@@ -43,6 +44,13 @@ public class KriosIndustryEmiPlugin implements EmiPlugin {
         registry.addWorkstation(VanillaEmiRecipeCategories.SMELTING, EmiStack.of(ModBlocks.PLASMA_FORGE_TIER2.get()));
         registry.addWorkstation(VanillaEmiRecipeCategories.FUEL, EmiStack.of(ModBlocks.THERMAL_REACTOR.get()));
         registry.addWorkstation(VanillaEmiRecipeCategories.FUEL, EmiStack.of(ModBlocks.THERMAL_REACTOR_TIER2.get()));
+
+        // The fill button, in the machine that runs each category.
+        registry.addRecipeHandler(ModMenus.FRACTAL_GRINDER.get(), new MachineEmiHandler<>(grinding));
+        registry.addRecipeHandler(ModMenus.PLASMA_FORGE.get(),
+                new MachineEmiHandler<>(VanillaEmiRecipeCategories.SMELTING));
+        registry.addRecipeHandler(ModMenus.THERMAL_REACTOR.get(),
+                new MachineEmiHandler<>(VanillaEmiRecipeCategories.FUEL));
 
         // Copying an Engram is a special crafting recipe viewers cannot list.
         // Synthetic recipe: EMI's convention is an id path starting with a slash.

@@ -1,17 +1,23 @@
 package io.lakio.krios.industry.integration.jei;
 
 import io.lakio.krios.industry.Constants;
+import io.lakio.krios.industry.machine.forge.PlasmaForgeMenu;
+import io.lakio.krios.industry.machine.grinder.FractalGrinderMenu;
 import io.lakio.krios.industry.machine.grinder.GrindingRecipe;
+import io.lakio.krios.industry.machine.reactor.ThermalReactorMenu;
 import io.lakio.krios.industry.registry.ModBlocks;
 import io.lakio.krios.industry.registry.ModItems;
+import io.lakio.krios.industry.registry.ModMenus;
 import io.lakio.krios.industry.registry.ModRecipeTypes;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.recipe.RecipeType;
+import mezz.jei.api.recipe.transfer.IRecipeTransferHandlerHelper;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
+import mezz.jei.api.registration.IRecipeTransferRegistration;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.network.chat.Component;
@@ -23,7 +29,9 @@ import net.minecraft.world.item.crafting.RecipeHolder;
  * annotation on NeoForge and by the {@code jei_mod_plugin} entrypoint on
  * Fabric): the grinding category, and the machines as catalysts of the
  * vanilla categories they run (smelting for the Plasma Forge, fuels for
- * the Thermal Reactor). The terminals' off-frame areas are core's part.
+ * the Thermal Reactor), each with a transfer handler that moves a recipe's
+ * input into the open machine. The terminals' off-frame areas are core's
+ * part.
  */
 @JeiPlugin
 public class KriosIndustryJeiPlugin implements IModPlugin {
@@ -53,6 +61,19 @@ public class KriosIndustryJeiPlugin implements IModPlugin {
         // Copying an Engram is a special crafting recipe viewers cannot list.
         registration.addIngredientInfo(ModItems.ENGRAM.get(),
                 Component.translatable("gui.krios_industry.viewer.engram_info"));
+    }
+
+    @Override
+    public void registerRecipeTransferHandlers(IRecipeTransferRegistration registration) {
+        IRecipeTransferHandlerHelper helper = registration.getTransferHelper();
+        registration.addRecipeTransferHandler(new MachineTransferHandler<>(
+                FractalGrinderMenu.class, ModMenus.FRACTAL_GRINDER.get(), GRINDING, helper), GRINDING);
+        registration.addRecipeTransferHandler(new MachineTransferHandler<>(
+                PlasmaForgeMenu.class, ModMenus.PLASMA_FORGE.get(), RecipeTypes.SMELTING, helper),
+                RecipeTypes.SMELTING);
+        registration.addRecipeTransferHandler(new MachineTransferHandler<>(
+                ThermalReactorMenu.class, ModMenus.THERMAL_REACTOR.get(), RecipeTypes.FUELING, helper),
+                RecipeTypes.FUELING);
     }
 
     @Override

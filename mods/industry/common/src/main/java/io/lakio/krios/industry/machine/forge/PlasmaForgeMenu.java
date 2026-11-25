@@ -114,6 +114,13 @@ public class PlasmaForgeMenu extends AbstractContainerMenu implements MachineMen
         return data.get(22) != 0;
     }
 
+    /** The input column the next item goes to; menu and container indices match. */
+    @Override
+    public int workInputSlot(ItemStack stack) {
+        return io.lakio.krios.industry.machine.InputDistribution.chooseColumn(
+                container, PlasmaForgeBlockEntity.INPUT_FIRST, activeColumns(), stack, isInputBalance());
+    }
+
     /**
      * Shift-click routing honoring the distribution mode: one elected
      * column at a time (item by item in balance mode, so the spread stays

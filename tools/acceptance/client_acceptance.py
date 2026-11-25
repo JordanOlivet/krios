@@ -396,6 +396,35 @@ def main() -> int:
     return 0 if results and all(ok for _, _, ok in results) else 1
 
 
+def is_screen_line(words: list[str]) -> bool:
+    return words[:1] == ["screen"] or words[:2] == ["wait", "screen"]
+
+
+def expectations(scenario: Path, replies: list[dict]) -> tuple[int, list[str]]:
+    """Checks the `#expect slot <n> <item id> x<count>` and `#expect slot <n> empty` lines of
+    a scenario; returns how many there are and the ones that are not met.
+
+    Such a line follows a `screen` or `wait screen` line and says what that reply's items
+    must hold; Rehearsal reads it as a comment. The k-th screen line of the file is
+    answered by the k-th screen reply, whatever lines a server run dropped before it."""
+    screens = [r for r in replies if is_screen_line(str(r.get("cmd", "")).split())]
+    count, unmet, index = 0, [], -1
+    for number, line in enumerate(scenario.read_text(encoding="utf-8").splitlines(), 1):
+        words = line.split()
+        if is_screen_line(words):
+            index += 1
+        elif words[:2] == ["#expect", "slot"] and len(words) >= 4:
+            count += 1
+            slot, wanted = words[2], " ".join(words[3:])
+            if not 0 <= index < len(screens):
+                unmet.append(f"line {number}: `{line.strip()}` — no screen reply to check")
+                continue
+            got = screens[index].get("items", {}).get(slot, "empty")
+            if got != wanted:
+                unmet.append(f"line {number}: `{line.strip()}` — slot {slot} holds {got}")
+    return count, unmet
+
+
 def run_one(args: argparse.Namespace, scenario: Path, viewer: str, server: str | None, versions: dict,
             java: str | None) -> bool:
     """One client launch on one command file; True when nothing failed."""
@@ -511,6 +540,7 @@ def run_one(args: argparse.Namespace, scenario: Path, viewer: str, server: str |
             except json.JSONDecodeError:
                 pass
     failed = [r for r in replies if not r.get("ok")]
+    expected, unmet = expectations(scenario, replies)
     shots = sorted((run_dir / "rehearsal" / "shots").glob("*.png"))
     for shot in shots:
         shutil.copy2(shot, out)
@@ -533,6 +563,7 @@ def run_one(args: argparse.Namespace, scenario: Path, viewer: str, server: str |
               f"- client: {'production, ' + game_version(versions, args.loader) if args.prod else 'dev'}"
               + (f", joined {server}" if server else ""),
               f"- commands answered: {len(replies)}, failed: {len(failed)}",
+              f"- expectations: {expected}, not met: {len(unmet)}",
               f"- screenshots: {len(shots)}",
               f"- log lines that look like errors: {len(errors)}",
               f"- seconds: {int(time.time() - start)}", ""]
@@ -542,6 +573,8 @@ def run_one(args: argparse.Namespace, scenario: Path, viewer: str, server: str |
         report += ["## Failed commands", ""]
         report += [f"- line {r.get('line')}: `{r.get('cmd')}` — {r.get('error', r)}" for r in failed]
         report += [""]
+    if unmet:
+        report += ["## Expectations not met", ""] + [f"- {line}" for line in unmet] + [""]
     if errors:
         report += ["## Log", ""] + [f"    {line[:300]}" for line in errors[:40]] + [""]
     report += ["## Screens", ""]
@@ -554,10 +587,13 @@ def run_one(args: argparse.Namespace, scenario: Path, viewer: str, server: str |
 
     for r in failed:
         print(f"FAIL  line {r.get('line')}: {r.get('cmd')}  [{r.get('error', '')}]")
+    for line in unmet:
+        print(f"FAIL  {line}")
     for line in errors[:10]:
         print(f"LOG   {line[:220]}")
-    ok = failure is None and not failed and not errors and bool(replies)
+    ok = failure is None and not failed and not unmet and not errors and bool(replies)
     print(f"{'PASS' if ok else 'FAIL'}  {name}: {len(replies)} commands, {len(failed)} failed, "
+          f"{expected} expectations, {len(unmet)} not met, "
           f"{len(shots)} screenshots, {len(errors)} log errors"
           + (f" — {failure}" if failure else ""))
     print(f"report and screenshots: {out}")

@@ -215,7 +215,7 @@ test client; nothing of it exists in a normal run or in the jars.
 |---|---|---|
 | `client/screens.cmd` | JEI, then EMI | every machine terminal, the faces panel, a slot tooltip, the KOIOS screen, the Codex, the formed core in the world; the viewer's list beside the panels |
 | `client/world.cmd` | none | the ores by day and by night, the Calibrator's overlay, diagnostic screen and blueprint, the core's screen side |
-| `client/viewers-jei.cmd` | JEI | the Grinding category and its yield tooltip, the machines as catalysts, the information pages |
+| `client/viewers-jei.cmd` | JEI | the Grinding category and its yield tooltip, the machines as catalysts, the information pages, recipe transfer into the grinder, the forge and the reactor |
 | `client/viewers-emi.cmd` | EMI | the same through EMI |
 
 ## Production clients
@@ -281,8 +281,9 @@ registers recipe serializers on the server): both sides load the same viewer.
 ## What a run proves, and what it leaves to the eye
 
 A run passes when every command was answered `ok` (a screen that does not
-open, a slot that does not exist, a block too far are failed replies), the
-game did not crash, and the log holds no error of ours. That proves the
+open, a slot that does not exist, a block too far are failed replies), every
+`#expect` line is met, the game did not crash, and the log holds no error of
+ours. That proves the
 screens open and the input path works. It does not prove they *look* right:
 the screenshots do, to whoever looks at them. They land in
 `build/acceptance/client/<loader>-<viewer>-<scenario>/` with a `report.md`
@@ -307,6 +308,19 @@ click, key <name>, slot <n>     input through the game's own path
 screenshot <name> [hud]
 ```
 
+A scenario can also say what a screen must hold. After a `screen` or
+`wait screen` line:
+
+```
+#expect slot 0 minecraft:cobblestone x1     the slot holds exactly that
+#expect slot 9 empty
+```
+
+Rehearsal reads the line as a comment; the tool checks it against that
+reply's items once the run is over, and an unmet line fails the run. Assert
+the state before an action as well as after it: "one item in the input" only
+proves a transfer when the input was empty a moment earlier.
+
 Learned on the first runs:
 
 - **Load the chunks before building.** A new world spawns the player
@@ -322,7 +336,12 @@ Learned on the first runs:
   screens that are not containers (a viewer's recipe screen): it depends on
   the 640x360 GUI the run fixes.
 - **A key's modifiers are not seen by code that asks the keyboard itself**:
-  JEI's shift shortcuts do not work, its tabs are clicked instead.
+  JEI's shift shortcuts do not work, its tabs are clicked instead. For the
+  same reason a shift-click on a viewer's transfer button (move all that
+  fits) cannot be played: only the plain click is.
+- **A machine that works changes its slots under the test.** For a count to
+  hold, the machine has no energy (no network, no reactor beside it); the
+  reactor lights whatever it is given, so its proof is the inventory.
 - With JEI and EMI both loaded, EMI leaves out JEI's plugin of a mod that
   has an EMI plugin: test each viewer alone.
 - **On Fabric, Rehearsal's jar goes in the run's `mods` folder** (the tool

@@ -243,6 +243,8 @@
   "gui.krios_industry.viewer.time": "%s s",
   "gui.krios_industry.viewer.grinding.yield": "Production d’un broyeur de tier 1 relié à un réseau K.O.I.O.S. Les tiers supérieurs et les modules de rendement l’augmentent ; hors réseau, elle est divisée par deux.",
   "gui.krios_industry.viewer.engram_info": "Clic droit sur une créature avec un Engramme vierge pour graver sa signature. Un Engramme gravé crafté avec des vierges se copie : tous les Engrammes de la grille en sortent gravés.",
-  "tag.item.krios_industry.breeding_food": "Nourriture d’élevage",
+  "gui.krios_industry.viewer.transfer.no_room": "L’entrée de la machine n’a pas de place pour cet objet.",
+  "gui.krios_industry.viewer.transfer.cursor": "Posez d’abord l’objet que vous tenez.",
+  "tag.item.krios_industry.breeding_food":"Nourriture d’élevage",
   "tag.item.krios_industry.creature_drops": "Productions de créatures"
 }

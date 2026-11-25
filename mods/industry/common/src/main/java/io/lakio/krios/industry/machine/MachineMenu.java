@@ -1,6 +1,7 @@
 package io.lakio.krios.industry.machine;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * Shared surface of the three machine menus, consumed by the client
@@ -41,6 +42,17 @@ public interface MachineMenu {
     /** Input distribution mode (synced); false = fill first (default). */
     default boolean isInputBalance() {
         return false;
+    }
+
+    /**
+     * The menu slot one more item of this stack would land in as work
+     * input, where a shift-click routes it: the columns of the machine's
+     * tier and the distribution mode decide. -1 when no input takes it
+     * (full, holding something else, or a machine without work input).
+     * Recipe viewers move a recipe's input through it.
+     */
+    default int workInputSlot(ItemStack stack) {
+        return -1;
     }
 
     /** Raw face-config bits for face 0..5 (decode via FaceConfig statics). */

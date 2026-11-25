@@ -381,3 +381,16 @@ ADR-009 promises that only a MAJOR bump breaks saved worlds, and nothing checked
 - **A load is also judged by its log**: no warning or error naming a Krios id, which is how both loaders report a missing registry entry.
 - **Run it** before a release, and after a change to a registered id, a block entity's NBT, a data component or the server config. It is not in CI (ADR-030: none of the acceptance tools is yet).
 - **Not covered**: what the scenario of that release did not build (modules in a bay, face configuration, blueprints, a player's inventory). Those belong to the scenario first, and reach the upgrade test with the next listed release.
+
+## ADR-032 — Recipe transfer: vanilla clicks, routed by the machine's menu
+
+**Date**: 2026-11-25 · **Status**: accepted · **Amends**: ADR-029 (its "not done" on transfer)
+
+ADR-029 left recipe transfer out because the process columns vary with the tier. JEI's "+" button and EMI's fill button now move a recipe's input into the open machine: grinding into the Fractal Grinder, vanilla smelting into the Plasma Forge, vanilla fuels into the Thermal Reactor. A click moves one item (one operation), a shift-click all that fits.
+
+- **The menu decides where an item goes.** `MachineMenu.workInputSlot(stack)` answers with the slot the next item lands in, by the same election as a shift-click (`InputDistribution`: the columns of the machine's tier, fill-first or balance). The viewers know nothing of tiers; that was the open question.
+- **The move is ordinary slot clicks** (pick the stack up, place on the input, put the rest back), sent and predicted like a player's. No packet of ours (the rule since the KOIOS head: no custom networking), and neither viewer's own transfer packet: JEI's needs JEI on the server, and EMI falls back to clicks itself when the server has no EMI. A server therefore needs nothing, and validates each click as any other.
+- **One mover, two adapters.** `integration/MachineTransfer` (client-only) checks and moves; `MachineTransferHandler` (JEI, a full `IRecipeTransferHandler`) and `MachineEmiHandler` (EMI, an `EmiRecipeHandler`) translate each viewer's recipe into "which items are accepted" and its errors: nothing to move (the viewer's own wording), no room in the inputs, a stack on the cursor.
+- **One-input recipes only.** Every machine recipe has one input; a recipe with another count gets no button rather than a partial move.
+- **Contracts read from the pinned versions**: JEI 19.21.2.313 (API sources) and EMI 1.1.24+1.21.1 (API jar and sources).
+- **Tested** by the viewer scenarios of the client acceptance tool, which gained `#expect slot` lines: the input empty before, one item in it after, one less in the inventory, on both loaders and both viewers. Not automated: the shift-click (Rehearsal's modifiers are not seen by code that asks the keyboard), tier 2's second column and the balance mode through a viewer; they share the mover's loop and go to the play test.
