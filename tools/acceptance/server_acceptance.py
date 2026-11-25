@@ -380,6 +380,8 @@ def sprint(server: Server, r: Rcon, ticks: int) -> bool:
 CORE = "5 201 5"
 REACTOR, PHOTON, GRINDER, GRINDER2, FORGE = "8 200 2", "10 200 2", "12 200 2", "14 200 2", "16 200 2"
 FARMER, POD, FIELD = "14 200 4", "24 200 4", "34 200 4"
+# A reactor away from the trunk, on no network: what it burns changes nothing in the base.
+LONE_REACTOR = "8 200 -4"
 LINE_MACHINES = [
     (REACTOR, "krios_industry:thermal_reactor"),
     (PHOTON, "krios_industry:photon_array"),
@@ -497,6 +499,12 @@ def phase_build(c: Checks, server: Server, r: Rcon) -> int:
         out = r.cmd(f"item replace block {pos} container.0 with {stack}")
         fed[pos] = c.check(f"fed {stack.split(' ')[0]} into the machine at {pos}", "Replaced a slot" in out, out)
 
+    # A fuel that leaves something behind when it burns.
+    out = r.cmd(f"setblock {LONE_REACTOR} krios_industry:thermal_reactor")
+    c.check("placed a reactor off the network", "Changed the block" in out, out)
+    out = r.cmd(f"item replace block {LONE_REACTOR} container.0 with minecraft:lava_bucket")
+    fed_lava = c.check("fed it a lava bucket", "Replaced a slot" in out, out)
+
     xp_before = number(block_data(r, CORE, "DataXp"))
     c.check("sprint 3000 ticks completes", sprint(server, r, 3000))
 
@@ -507,6 +515,10 @@ def phase_build(c: Checks, server: Server, r: Rcon) -> int:
     fuel = block_data(r, REACTOR, "Items")
     left = item_count(fuel, "minecraft:coal_block")
     c.check("reactor burned fuel", fed[REACTOR] and left < FUEL, f"coal blocks left={left} of {FUEL}")
+    lava = block_data(r, LONE_REACTOR, "Items")
+    c.check("the reactor burned the lava and kept the empty bucket",
+            fed_lava and item_count(lava, "minecraft:lava_bucket") == 0 and item_count(lava, "minecraft:bucket") == 1,
+            lava)
     gravel = block_data(r, GRINDER, "Items")
     c.check("grinder turned cobblestone into gravel", item_count(gravel, "minecraft:gravel") > 0, gravel)
     shards = block_data(r, GRINDER2, "Items")

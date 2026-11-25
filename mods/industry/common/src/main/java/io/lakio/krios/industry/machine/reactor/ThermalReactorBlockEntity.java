@@ -448,7 +448,13 @@ public class ThermalReactorBlockEntity extends BlockEntity
             core.reportOperations(
                     "burn:" + BuiltInRegistries.ITEM.getKey(fuel.getItem()), 1, IndustryBalance.BURN_BASE_XP);
         }
+        // A fuel that leaves something behind (a lava bucket's bucket) leaves
+        // it in the slot once the last one burned, as a furnace does.
+        net.minecraft.world.item.Item burned = fuel.getItem();
         fuel.shrink(1);
+        if (fuel.isEmpty() && burned.hasCraftingRemainingItem()) {
+            items.set(FUEL_SLOT, new ItemStack(burned.getCraftingRemainingItem()));
+        }
         burnTime = time;
         burnDuration = time;
         return true;
