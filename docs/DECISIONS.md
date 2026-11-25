@@ -394,3 +394,16 @@ ADR-029 left recipe transfer out because the process columns vary with the tier.
 - **One-input recipes only.** Every machine recipe has one input; a recipe with another count gets no button rather than a partial move.
 - **Contracts read from the pinned versions**: JEI 19.21.2.313 (API sources) and EMI 1.1.24+1.21.1 (API jar and sources).
 - **Tested** by the viewer scenarios of the client acceptance tool, which gained `#expect slot` lines: the input empty before, one item in it after, one less in the inventory, on both loaders and both viewers; then a shift-click (all that fits), a tier 2 grinder's two columns filled first then second, and a balance-mode grinder ending 16 and 16. The shift-click needed Rehearsal to hold a click's modifiers for code that asks the keyboard (`click shift`, its `main` of 2026-11-25).
+
+## ADR-033 — Terminals describe themselves: a readout and named controls, read by tests
+
+**Date**: 2026-11-25 · **Status**: accepted · **Amends**: ADR-030 (the client scenarios)
+
+The client scenarios clicked the terminals' own controls at pixels, and judged a terminal by its picture. Both were weak: a layout change moves a tab, and a panel's open state is kept between runs, so a blind click toggled from wherever the last run left it. What a terminal says (the voice line, a tier, the Codex order) was only checked by an eye on a screenshot.
+
+- **Every terminal says what it shows**: `KriosTerminalScreen.readout()`, a map of JDK types in display order. Core's base gives the title and the network status; the machine terminal adds the voice line by its lang key, energy, tier and effective tier, the distribution mode, the panels; the KOIOS screen its level, tier, XP, unlocks, the Codex (open, page, entries in order, locked ones, the unread badge).
+- **Every terminal names its controls**: `controls()`, a name, a click point and a toggle's state. `close`, `panel.<name>` (from the panel's title key), `distribution`, `codex`, `codex.entry.<name>`. A control is only listed where a click can reach it (a Codex row out of the viewport is not).
+- **One Rehearsal extension, in core** (`integration/rehearsal/TerminalExtension`, optional like the recipe viewer plugins: found by name, JDK types only, inert in the jar). It holds no knowledge: `state` gains the open terminal's readout and controls, `krios press <control>` clicks one, `krios set <control> on|off` clicks a toggle only when it is not there yet. The click goes through the screen's own `mouseClicked`, at the point the terminal gave. The analysis expected one class per mod; a mod's screens extend core's, so they describe themselves and core's class serves them all.
+- **Tests assert on data**: `#expect state <path> <value>` in a scenario, checked by `client_acceptance.py` like the slot expectations. Screenshots stay for what only an eye judges.
+- **A new screen or control** overrides `readout()` and `controls()`; its scenario step reads and presses by name. Pixels remain for what is not ours (a recipe viewer's own buttons).
+- **Release note**: Industry's screens now use API that core gains here. Its next release requires the core release that carries it.

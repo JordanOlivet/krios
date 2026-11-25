@@ -168,7 +168,10 @@ wait ticks 3
 key r
 wait ticks 15
 screenshot 10-transfer-smelting
-cursor 373 136
+# JEI's smelting layout is wider in the version the production runs pin (it shows the
+# fuel), so its button sits further right there.
+@dev cursor 373 136
+@prod cursor 390 136
 wait ticks 3
 click
 wait ticks 10
@@ -229,7 +232,6 @@ wait ticks 5
 # to the brim, then the second. Two stacks in the inventory, 64 and 32.
 command setblock 14 200 2 krios_industry:fractal_grinder_tier2
 command setblock 16 200 2 krios_industry:fractal_grinder_tier2
-command data merge block 16 200 2 {InputBalance:1b}
 command item replace entity @s container.10 with minecraft:cobblestone 64
 command item replace entity @s container.14 with minecraft:cobblestone 32
 tp 14.5 200 0.5 0 20
@@ -259,8 +261,8 @@ cursor off
 close
 wait ticks 5
 
-# The other tier 2 grinder is in balance mode: each item goes to the column
-# that holds the least, so 32 items end 16 and 16.
+# The other tier 2 grinder is put in balance mode with its own toggle: each item
+# goes to the column that holds the least, so 32 items end 16 and 16.
 command item replace entity @s container.10 with minecraft:cobblestone 32
 wait ticks 10
 use 16 200 2
@@ -269,6 +271,10 @@ wait screen
 #expect slot 1 empty
 #expect slot 9 minecraft:cobblestone x32
 wait ticks 8
+krios set distribution on
+wait ticks 10
+state
+#expect state krios.distribution balance
 cursor slot 8
 wait ticks 3
 key r

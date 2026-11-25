@@ -57,6 +57,56 @@ public class CodexPanel {
         open = !open;
     }
 
+    /** An entry's short name, from its lang key ("gui.krios_core.codex.progression": progression). */
+    private static String shortName(Entry entry) {
+        return entry.key().substring(entry.key().lastIndexOf('.') + 1);
+    }
+
+    /**
+     * The open overlay's controls: its close cross, and every entry the
+     * core's level can open whose row is in the sidebar's viewport.
+     */
+    public java.util.List<KriosTerminalScreen.Control> controls(int screenW, int screenH, KoiosCoreMenu menu) {
+        java.util.List<KriosTerminalScreen.Control> list = new java.util.ArrayList<>();
+        if (!open) {
+            return list;
+        }
+        int x = panelX(screenW);
+        int y = panelY(screenH);
+        list.add(new KriosTerminalScreen.Control("codex.close", x + W - 10, y + 9, null));
+        for (int i = 0; i < CodexEntries.all().size(); i++) {
+            Entry entry = CodexEntries.all().get(i);
+            int rowY = y + LIST_TOP + i * ROW_H - scroll + ROW_H / 2;
+            if (menu.getKoiosLevel() >= entry.minLevel()
+                    && inList(x, y, x + SIDEBAR_X + SIDEBAR_W / 2, rowY)) {
+                list.add(new KriosTerminalScreen.Control("codex.entry." + shortName(entry),
+                        x + SIDEBAR_X + SIDEBAR_W / 2, rowY, i == selected));
+            }
+        }
+        return list;
+    }
+
+    /** The Codex as data: open or not, the page shown, the entries in order (readable, then locked). */
+    public java.util.Map<String, Object> readout(KoiosCoreMenu menu) {
+        java.util.Map<String, Object> out = new java.util.LinkedHashMap<>();
+        out.put("open", open);
+        java.util.List<String> readable = new java.util.ArrayList<>();
+        java.util.List<String> locked = new java.util.ArrayList<>();
+        String page = "";
+        for (int i = 0; i < CodexEntries.all().size(); i++) {
+            Entry entry = CodexEntries.all().get(i);
+            (menu.getKoiosLevel() >= entry.minLevel() ? readable : locked).add(shortName(entry));
+            if (i == selected) {
+                page = shortName(entry);
+            }
+        }
+        out.put("page", page);
+        out.put("entries", String.join(",", readable));
+        out.put("locked", String.join(",", locked));
+        out.put("projections", projectionsVisible(menu));
+        return out;
+    }
+
     private int panelX(int screenW) {
         return (screenW - W) / 2;
     }

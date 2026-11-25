@@ -39,6 +39,44 @@ public class KoiosCoreScreen extends KriosTerminalScreen<KoiosCoreMenu> {
         return codex.isOpen() ? List.of(new Rect2i(0, 0, width, height)) : List.of();
     }
 
+    /** The Codex button, or the open overlay's own controls: it swallows every other click. */
+    @Override
+    public List<Control> controls() {
+        List<Control> list = super.controls();
+        if (codex.isOpen()) {
+            List<Control> overlay = codex.controls(width, height, menu);
+            list.addAll(overlay);
+            // The overlay's cross (its first control) is what turns the Codex off.
+            list.add(new Control("codex", overlay.get(0).x(), overlay.get(0).y(), true));
+        } else {
+            list.add(closeControl());
+            list.add(new Control("codex", leftPos + codexButtonX() + 6, topPos + 10, false));
+        }
+        return list;
+    }
+
+    @Override
+    public java.util.Map<String, Object> readout() {
+        java.util.Map<String, Object> out = super.readout();
+        out.put("formed", menu.isFormed());
+        out.put("level", menu.getKoiosLevel());
+        out.put("tier", menu.getTier());
+        out.put("xp", menu.getXp());
+        out.put("nextLevelXp", menu.getNextLevelXp());
+        out.put("diversity", menu.getDiversityPermille() / 10);
+        java.util.Map<String, Object> unlocks = new java.util.LinkedHashMap<>();
+        for (KoiosUnlocks.Unlock unlock : KoiosUnlocks.ofTier(menu.getTier())) {
+            // The lang key's last word names the unlock (speed, efficiency, yield...).
+            String key = unlock.nameKey();
+            unlocks.put(key.substring(key.lastIndexOf('.') + 1), menu.getKoiosLevel() >= unlock.level());
+        }
+        out.put("unlocks", unlocks);
+        out.put("voice", phraseKey(koiosPhrase()));
+        out.put("codexUnread", CodexPanel.visibleSignature(menu) > menu.getCodexSeen());
+        out.put("codex", codex.readout(menu));
+        return out;
+    }
+
     public KoiosCoreScreen(KoiosCoreMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
         imageWidth = 256;
