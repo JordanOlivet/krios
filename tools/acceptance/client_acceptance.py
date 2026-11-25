@@ -404,13 +404,27 @@ def is_screen_line(words: list[str]) -> bool:
     return words[:1] == ["screen"] or words[:2] == ["wait", "screen"]
 
 
+MISSING = object()
+
+
 def lookup(reply: dict, path: str) -> str:
     """A value of a reply by its dotted path, as text ("absent" when the path leads nowhere)."""
-    value: object = reply
-    for key in path.split("."):
-        if not isinstance(value, dict) or key not in value:
-            return "absent"
-        value = value[key]
+    def descend(value: object, parts: list[str]) -> object:
+        # A key may hold dots itself (a control's name): the longest key that exists wins.
+        if not parts:
+            return value
+        if isinstance(value, dict):
+            for size in range(len(parts), 0, -1):
+                key = ".".join(parts[:size])
+                if key in value:
+                    found = descend(value[key], parts[size:])
+                    if found is not MISSING:
+                        return found
+        return MISSING
+
+    value = descend(reply, path.split("."))
+    if value is MISSING:
+        return "absent"
     if isinstance(value, bool):
         return "true" if value else "false"
     return json.dumps(value, ensure_ascii=False) if isinstance(value, dict) else str(value)

@@ -243,7 +243,18 @@ krios press codex.entry.progression
 wait ticks 3
 state
 #expect state krios.codex.page progression
+# The Calibrator's entry is below the sidebar's viewport, so it is no control yet.
+#expect state krios.codex.scroll 0
+#expect state krios.controls.codex.entry.calibrator absent
 screenshot 15b-codex-progression
+# Pressing it turns the wheel over the list until its row shows, then clicks the row.
+krios press codex.entry.calibrator
+wait ticks 3
+state
+#expect state krios.codex.page calibrator
+#expect state krios.controls.codex.entry.calibrator on
+#expect state krios.controls.codex.entry.koios absent
+screenshot 15c-codex-calibrator
 krios set codex off
 wait ticks 3
 state

@@ -315,8 +315,10 @@ The two `krios` verbs and the `krios` part of `state` come from core's
 Rehearsal extension (`integration/rehearsal/TerminalExtension`, named to the
 run by `-Drehearsal.extensions`). It knows nothing itself: each terminal says
 what it shows (`KriosTerminalScreen.readout()`) and names its controls
-(`controls()`). `state` lists the controls a terminal has; a wrong name fails
-with that list. A new screen overrides both methods, and its scenario step
+(`controls()`). `state` lists the controls a terminal has in view; a wrong
+name fails with that list. A control out of view (a Codex entry below the
+sidebar's viewport) is scrolled into view by `krios press` itself, with the
+wheel, before the click. A new screen overrides both methods, and its scenario step
 reads and presses by name.
 
 A scenario can also say what a screen must hold. After a `screen` or
@@ -391,5 +393,5 @@ Learned on the first runs:
   modpack): Rehearsal's `neoforge_pack.py` and `fabric_pack.py` do that.
 - Creative tabs, modules in the bay, the breakthrough ritual, the zone
   holograms.
-- A Codex entry below the sidebar's viewport: only the rows in view are
-  controls, and nothing scrolls the list by name yet.
+- A locked Codex entry (above the core's level) is not a control: a click on
+  its row does nothing.
