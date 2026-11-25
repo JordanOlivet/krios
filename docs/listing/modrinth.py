@@ -7,6 +7,7 @@
     uv run docs/listing/modrinth.py <core|industry> show                  # the page as Modrinth has it now
     uv run docs/listing/modrinth.py <core|industry> push-body             # <mod>/description.md as the page's body
     uv run docs/listing/modrinth.py <core|industry> push-summary          # <mod>/summary.txt as the short description
+    uv run docs/listing/modrinth.py <core|industry> push-categories       # the featured categories (CATEGORIES below)
     uv run docs/listing/modrinth.py <core|industry> push-icon <png>       # the project icon
     uv run docs/listing/modrinth.py <core|industry> add-image <png|jpg> <title> [--featured]   # a gallery image; prints its URL
     uv run docs/listing/modrinth.py <core|industry> push-links            # source and issues links to GitHub
@@ -30,6 +31,9 @@ HERE = Path(__file__).resolve().parent
 API = "https://api.modrinth.com/v2"
 # The project ids, as in the repository variables of the release workflows.
 PROJECTS = {"core": "3MuVLFk8", "industry": "Spsf6zt6"}
+# The three featured categories of each page (docs/listing/README.md).
+CATEGORIES = {"core": ["technology", "library", "worldgen"],
+              "industry": ["technology", "game-mechanics", "mobs"]}
 REPOSITORY = "https://github.com/JordanOlivet/krios"
 USER_AGENT = "JordanOlivet/krios listing script"
 SUMMARY_MAX = 256
@@ -82,6 +86,12 @@ def push_summary(mod: str, project: str) -> None:
     print(f"summary pushed: HTTP {status}, {len(summary)} characters")
 
 
+def push_categories(mod: str, project: str) -> None:
+    body = {"categories": CATEGORIES[mod], "additional_categories": []}
+    status, _ = call("PATCH", f"/project/{project}", body)
+    print(f"categories pushed: HTTP {status}, {', '.join(CATEGORIES[mod])}")
+
+
 def push_icon(project: str, png: str) -> None:
     status, _ = call("PATCH", f"/project/{project}/icon?ext=png", Path(png).read_bytes(), "image/png")
     print(f"icon pushed: HTTP {status}")
@@ -123,6 +133,8 @@ def main() -> None:
         push_body(mod, project)
     elif command == "push-summary":
         push_summary(mod, project)
+    elif command == "push-categories":
+        push_categories(mod, project)
     elif command == "push-icon" and len(args) > 2:
         push_icon(project, args[2])
     elif command == "push-links":
