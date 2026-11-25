@@ -433,3 +433,12 @@ The analysis left two questions to the user: where the tests live, and whether t
 - **Production**: NeoForge cannot run game tests on production jars at all; Fabric could (its property works in production), not wired.
 - **Every test is proven able to fail** with a planted bug when it is written (for the first five: the reactor eating the bucket, a grinder at recipe pace off the network, no tier cap, a casing that does not notify its core).
 - **Not in CI yet**: the reusable build only runs `gradlew build`. The game test servers are headless and would run on a GitHub runner.
+
+## ADR-036 — CI runs the asset checks and the GameTests
+
+**Date**: 2026-11-25 · **Status**: accepted · **Amends**: ADR-030 (no acceptance tool in CI), ADR-035 ("not in CI yet")
+
+- The reusable `build-gradle-mod.yml` of `JordanOlivet/ci-workflows` takes a `checks` command, run from the repository root after the build and the jar upload, with uv set up (ci-workflows#13).
+- **Industry's CI** passes `uv run tools/check_assets.py && uv run tools/acceptance/gametest.py`: static checks of both mods, then both mods' game tests on the NeoForge and Fabric game test servers (Industry loads core). About three minutes more per run. It also triggers on changes to those two tools.
+- **Core's CI** stays a build: every change to `mods/core` triggers Industry's CI too, which runs core's game tests. Core alone (`gametest.py --core`) is not run in CI.
+- **Stay local**: the server acceptance (production jars, the upgrade from a release: minutes, downloads; to run before a release) and the client acceptance (a display, a Rehearsal checkout).
