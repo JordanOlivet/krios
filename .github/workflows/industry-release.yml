@@ -5,14 +5,38 @@ name: Industry Release
 # publish them to Modrinth, CurseForge and a GitHub Release (ADR-010). A tag
 # without a pre-release label publishes as a release, -alpha.N as alpha,
 # -beta.N / -rc.N as beta. Needs the repository variables INDUSTRY_MODRINTH_ID
-# and INDUSTRY_CURSEFORGE_ID and the secrets MODRINTH_TOKEN and
-# CURSEFORGE_TOKEN (an empty id skips that platform). Krios: Core is a hard
-# dependency with its own release (core-release.yml, tag core/v*): publish
-# the core version this build needs first.
+# and INDUSTRY_CURSEFORGE_ID (project ids, not slugs) and the secrets
+# MODRINTH_TOKEN and CURSEFORGE_TOKEN (an empty id skips that platform).
+# Krios: Core is a hard dependency with its own release (core-release.yml,
+# tag core/v*): publish the core version this build needs first. The jars
+# name Core's store projects by id (mc-publish metadata in fabric.mod.json
+# and neoforge.mods.toml).
+#
+# Run it by hand (Actions > Industry Release > Run workflow) to publish an
+# existing tag again to the platforms ticked: a store that failed, a project
+# that was not ready. The GitHub Release is off by default there (it exists).
 
 on:
   push:
     tags: ['industry/v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'An existing tag, industry/v<version>'
+        required: true
+        type: string
+      modrinth:
+        description: 'Publish to Modrinth'
+        type: boolean
+        default: true
+      curseforge:
+        description: 'Publish to CurseForge'
+        type: boolean
+        default: true
+      github-release:
+        description: 'Create or update the GitHub Release'
+        type: boolean
+        default: false
 
 jobs:
   publish:
@@ -20,14 +44,15 @@ jobs:
       contents: write
     uses: JordanOlivet/ci-workflows/.github/workflows/publish-mod.yml@v1
     with:
-      tag: ${{ github.ref_name }}
+      tag: ${{ inputs.tag || github.ref_name }}
       tag-prefix: industry/
       mod-name: 'Krios: Industry'
       working-directory: mods/industry
       changelog-paths: mods/industry
       game-versions: 1.21.1
-      modrinth-id: ${{ vars.INDUSTRY_MODRINTH_ID }}
-      curseforge-id: ${{ vars.INDUSTRY_CURSEFORGE_ID }}
+      modrinth-id: ${{ (github.event_name == 'push' || inputs.modrinth) && vars.INDUSTRY_MODRINTH_ID || '' }}
+      curseforge-id: ${{ (github.event_name == 'push' || inputs.curseforge) && vars.INDUSTRY_CURSEFORGE_ID || '' }}
+      github-release: ${{ github.event_name == 'push' || inputs.github-release }}
       targets: >-
         [{"loader":"neoforge","label":"NeoForge","files":"neoforge/build/libs/krios_industry-neoforge-*.jar"},
          {"loader":"fabric","label":"Fabric","files":"fabric/build/libs/krios_industry-fabric-*.jar"}]

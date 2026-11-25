@@ -43,7 +43,7 @@
     "custom": {
         "mc-publish": {
             "dependencies": [
-                "krios_core@>=${krios_core_version}(required){modrinth:krios-core}{curseforge:krios-core}"
+                "krios_core@>=${krios_core_version}(required){modrinth:3MuVLFk8}{curseforge:1824997}"
             ]
         }
     }
