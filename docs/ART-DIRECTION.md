@@ -95,6 +95,18 @@ The guide **is KOIOS explaining its own ecosystem**: entries grow richer with th
 
 Never mandatory: JEI keeps recipes, the game stays discoverable without the Codex.
 
+## Mod icons (settled 2026-11-25)
+
+The icon of a Krios mod, in the game's mod list and on the stores, is one mark and one contour:
+
+- **The mark is the K of the two materials, the same in every mod.** Its stem is a shard of chronite (amber: time, Krios), its two arms are shards of neurite (cyan: thought, Koios). Its size, shape and place never change from one mod to the next.
+- **The contour is the mod's own**, and it is what tells the mods apart: a thin dark frame for Core (the base everything stands on), a copper gear for Industry. A new mod draws its own around the K.
+- **No frame by default.** Only Core has one, because the frame is its contour. Every other mod uses the whole icon for its contour, and adds a frame only if its drawing needs one.
+- **The background is transparent** outside the contour, so an icon must read on a light store page and on a dark one. The K carries dark rims for that. A contour of dark steel disappears on a dark page: prefer copper, cyan, or a filled shape. Where the contour encloses the K (Industry's gear), its inside is dark, so the K keeps the same ground as in Core.
+- Drawn at 32×32 in palette A, exported at 4× and above without smoothing. The sources are in `art/icons/`.
+
+The palette's colour contract holds here as everywhere: cyan is the intelligence, amber and copper the hardware.
+
 ## Sound
 
 A brand palette, shared across mods: low hum for hardware, crystalline ticks for software (XP pulses, UI clicks), discreet UI blips. Formation/level-up keep their beacon-family sounds.
