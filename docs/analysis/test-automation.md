@@ -63,7 +63,15 @@ edge cases exhaustively (every tier, every face mask).
 Cost: a test source set in each mod's `common` project and JUnit on its
 classpath. Rehearsal's `core` module shows the pattern.
 
-### L2 — GameTest (not built; ADR-010 planned it)
+### L2 — GameTest (built, ADR-035)
+
+*Built on 2026-11-25: the tests live in each mod's jar (common, plain
+vanilla generator), registered per loader, run by `tools/acceptance/gametest.py`
+on both loaders' game test servers. NeoForge never enables game tests in
+production, so the "same tests on a production server" idea below holds for
+Fabric only. First tests: the KOIOS shell forms and breaks, a lava bucket
+leaves its bucket, a grinder off the network works at furnace pace, a tier 2
+machine under a tier 1 core works at tier 1.*
 
 Vanilla's in-world test framework: a test places blocks in its own corner
 of a void world, waits, asserts in Java with direct access to the block

@@ -54,6 +54,15 @@ neoForge {
             programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
 
         }
+        // ADR-035: the game test server runs every registered test and exits with the
+        // number of required tests that failed (tools/acceptance/gametest.py reads it).
+        gameTestServer {
+            type = 'gameTestServer'
+            gameDirectory = project.file('runs/gametest')
+            // The tests of every Krios mod loaded share core's arena (krios_core:gametest/empty):
+            // NeoForge keeps only the tests whose structure is in an enabled namespace.
+            systemProperty('neoforge.enabledGameTestNamespaces', 'krios_core,krios_industry')
+        }
         server {
             server()
         }
