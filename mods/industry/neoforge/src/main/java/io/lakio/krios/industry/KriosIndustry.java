@@ -19,6 +19,9 @@ public class KriosIndustry {
         CommonClass.init();
         NeoForgeRegistrar.attach(eventBus, Constants.MOD_ID);
         eventBus.addListener(KriosIndustry::registerCapabilities);
+        // ADR-035: NeoForge fires this only where game tests are enabled, never in production.
+        eventBus.addListener((net.neoforged.neoforge.event.RegisterGameTestsEvent event) ->
+                event.register(io.lakio.krios.industry.gametest.IndustryGameTests.class));
     }
 
     private static void registerCapabilities(RegisterCapabilitiesEvent event) {

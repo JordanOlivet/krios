@@ -418,3 +418,18 @@ The client scenarios clicked the terminals' own controls at pixels, and judged a
 - **Industry tests read core's numbers** (`testImplementation` of core's common): an unlock must sit on a classic level of its tier, never on a critical level or out of reach.
 - **A test is proven able to fail** when it is written: one deliberate bug per mod (an evicted window key keeping its count, a tier 2 unlock on the critical level) failed three tests; the files were restored.
 - **First set**: `KoiosBalance`, `DiversityWindow`, `EnergyBuffer`, `FaceConfig`, `KriosConfig.scale`, `MachineTiers`, `IndustryBalance`: 47 tests, under a second each mod.
+
+## ADR-035 — GameTests: in each mod's jar, a vanilla generator in common, registered per loader
+
+**Date**: 2026-11-25 · **Status**: accepted · **Amends**: ADR-010 (GameTest planned), ADR-030 (its "not built: GameTest")
+
+The analysis left two questions to the user: where the tests live, and whether they can run against production jars. The user asked for the work and left the choice; this records it. It can be reversed by moving the classes to a dev-only test mod.
+
+- **In each mod's jar**, package `gametest` of its common code. A separate test mod would keep them out of the jars but needs a source set, a mod descriptor and a run entry per loader and per mod. In the jars they are inert: NeoForge fires its registration event only where game tests are enabled, never in production (`GameTestHooks.isGametestEnabled` requires a dev environment); Fabric API registers the entrypoint's class always, which costs one class load, and runs nothing without its game test server.
+- **A `@GameTestGenerator`**, not annotated test methods: it returns vanilla `TestFunction`s, so the class is plain vanilla in common. NeoForge's `@GameTestHolder` and `@PrefixGameTestTemplate` and Fabric's `FabricGameTest` are never needed, and both loaders name the tests and their structure the same way.
+- **One arena for every mod**: `krios_core:gametest/empty`, an empty 8x8x8 structure in core's data (a generated binary NBT, `data/krios_core/structure/gametest/empty.nbt`). NeoForge keeps only the tests whose structure namespace is enabled, so its game test runs set `neoforge.enabledGameTestNamespaces=krios_core,krios_industry`.
+- **Registration**: NeoForge, a mod-bus listener for `RegisterGameTestsEvent` in each mod's entry class; Fabric, a `fabric-gametest` entrypoint in each `fabric.mod.json`.
+- **Runs**: `gameTestServer` (MDG run type) and `gametest` (Loom, `fabric-api.gametest`, a JUnit report) in each mod's loader builds, run dir `runs/gametest`; `tools/acceptance/gametest.py` runs them and reads the exit code and the summary line.
+- **Production**: NeoForge cannot run game tests on production jars at all; Fabric could (its property works in production), not wired.
+- **Every test is proven able to fail** with a planted bug when it is written (for the first five: the reactor eating the bucket, a grinder at recipe pace off the network, no tier cap, a casing that does not notify its core).
+- **Not in CI yet**: the reusable build only runs `gradlew build`. The game test servers are headless and would run on a GitHub runner.

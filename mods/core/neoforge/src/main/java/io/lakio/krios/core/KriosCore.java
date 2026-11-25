@@ -29,5 +29,8 @@ public class KriosCore {
             }
         });
         NeoForge.EVENT_BUS.addListener((ServerStoppingEvent event) -> TickManager.clear());
+        // ADR-035: NeoForge fires this only where game tests are enabled, never in production.
+        eventBus.addListener((net.neoforged.neoforge.event.RegisterGameTestsEvent event) ->
+                event.register(io.lakio.krios.core.gametest.CoreGameTests.class));
     }
 }

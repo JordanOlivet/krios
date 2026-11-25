@@ -6,6 +6,37 @@ keyboard: `server_acceptance.py` on dedicated servers (below), and
 `tools/check_assets.py` is the static check that goes before both. The
 reasoning behind the layers is in `docs/analysis/test-automation.md`.
 
+# GameTests
+
+`gametest.py` runs the mods' GameTests (ADR-035) on the game test server of
+each loader: `gradlew neoforge:runGameTestServer` and `gradlew
+fabric:runGametest` in `mods/industry`, which loads core too, so both mods'
+tests run. `--core` adds the same runs in `mods/core`, core alone.
+
+```
+uv run tools/acceptance/gametest.py                 # both loaders
+uv run tools/acceptance/gametest.py neoforge --core
+```
+
+A run passes when the server exits 0 and its log says "All N required tests
+passed"; a failure names the tests. About a minute a run. The servers live
+in `<loader>/runs/gametest` of each mod (ignored by git); Fabric also writes
+a JUnit report there (`junit.xml`).
+
+Where a test belongs: a rule of a machine, one block or a few, read through
+the block entity (a grinder off the network works at furnace pace, a tier 2
+machine under a tier 1 core works at tier 1). What only a whole base shows
+(a restart, a network of 22 machines, the production jars) stays in the
+server acceptance below; what needs no world is a unit test (ADR-034).
+
+Writing one: a `TestFunction` in the mod's `gametest` class (`CoreGameTests`,
+`IndustryGameTests`), structure `CoreGameTests.ARENA` (an empty 8x8x8 arena in
+core's data), the arena's own coordinates (`helper.setBlock(x, y, z, ...)`),
+`helper.succeedWhen(...)` for a rule that settles over ticks. Build things in
+the order a player would: a core placed by code after its casings has no
+placer hook and only checks its shell when its screen opens, so the tests
+place the core first.
+
 # Server acceptance tests
 
 `server_acceptance.py` starts a dedicated server, drives it over RCON with no

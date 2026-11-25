@@ -25,6 +25,9 @@
         "jei_mod_plugin": [
             "io.lakio.krios.industry.integration.jei.KriosIndustryJeiPlugin"
         ],
+        "fabric-gametest": [
+            "io.lakio.krios.industry.gametest.IndustryGameTests"
+        ],
         "emi": [
             "io.lakio.krios.industry.integration.emi.KriosIndustryEmiPlugin"
         ]

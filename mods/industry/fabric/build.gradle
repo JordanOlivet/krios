@@ -83,6 +83,15 @@ loom {
                 programArgs '--quickPlayMultiplayer', project.property('quickplayserver').toString()
             }
         }
+        // ADR-035: Fabric API's game test server runs every registered test, writes a
+        // JUnit report and exits with the number of failures (tools/acceptance/gametest.py).
+        gametest {
+            server()
+            setConfigName('Fabric Game Test')
+            property('fabric-api.gametest', 'true')
+            property('fabric-api.gametest.report-file', project.file('runs/gametest/junit.xml').absolutePath)
+            runDir('runs/gametest')
+        }
         server {
             server()
             setConfigName('Fabric Server')
