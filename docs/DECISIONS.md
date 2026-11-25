@@ -367,3 +367,17 @@ The first release was checked by hand-written throwaway scripts and by the user'
 - **Rehearsal gained the verbs this needs** (its own repository): `use`, `hold`, `hotbar`, `screen`, `wait screen`, `close`, `slot`, `cursor`, `click`, `scroll`, `key`, `type`, for Minecraft 1.20.1 and 1.21.1.
 - **Everything a run writes goes under `build/acceptance/`** (ignored): downloads, production servers, reports, screenshots. Dev server targets delete the server world of the usual run dirs; nothing else of the user's is touched.
 - **Not built**: unit tests, GameTest, the upgrade test on a previous release's world, production clients, Fabric clients, baselines for the screenshots, any of it in CI.
+
+## ADR-031 — Upgrade test: a release's world is rebuilt from its published jars, never archived
+
+**Date**: 2026-11-25 · **Status**: accepted · **Amends**: ADR-030 (the upgrade test is built)
+
+ADR-009 promises that only a MAJOR bump breaks saved worlds, and nothing checked it. Since 0.1.0 players have worlds. `server_acceptance.py` gains the targets `neoforge-upgrade` and `fabric-upgrade` (group `upgrade`, part of `all`).
+
+- **The fixture is derived, not stored.** A release's world is built on demand by the jars of that release, downloaded from its GitHub Releases, and cached under `build/acceptance/fixtures/` (ignored). No world goes into git or onto a release page: a world is megabytes of binary per release and loader, and the jars and the tag are already immutable and public.
+- **The scenario is the tool at the release's tag**, loaded as a module (`git show <tag>:tools/acceptance/server_acceptance.py`). Its `phase_build` runs on the released jars, its `phase_verify` on the built jars. The current scenario cannot build an old world: it grows with every machine, and a release does not have the machines added after it. What the release's own test asserted after a restart is the definition of "the world still works".
+- **`phase_build(c, server, r) -> int` and `phase_verify(c, server, r, xp)` are therefore a contract** between versions of the tool: their signatures and what they use of their arguments stay.
+- **Releases are listed by hand** in `versions.toml` (`[[upgrade.from]]`), one per release whose saves differ from the ones listed. 0.1.0 is the first; 0.1.1 changed icons only.
+- **A load is also judged by its log**: no warning or error naming a Krios id, which is how both loaders report a missing registry entry.
+- **Run it** before a release, and after a change to a registered id, a block entity's NBT, a data component or the server config. It is not in CI (ADR-030: none of the acceptance tools is yet).
+- **Not covered**: what the scenario of that release did not build (modules in a bay, face configuration, blueprints, a player's inventory). Those belong to the scenario first, and reach the upgrade test with the next listed release.

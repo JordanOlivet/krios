@@ -29,3 +29,16 @@ emi = "1.1.24+1.21.1"
 # them with JEI, a hand-built server has to.
 mezz_config = "0.7.1"
 mezz_config_gui = "mc1.21.1-0.7.1"
+
+[upgrade]
+# Where the released jars are fetched: <releases>/<core|industry>/v<version>/<jar>.
+releases = "https://github.com/JordanOlivet/krios/releases/download"
+
+# The releases whose saved world the upgrade targets load on the built jars.
+# Each world is built by that release's jars with the scenario of the tool at
+# its tag (industry/v<industry>, or the git ref given as `scenario`). Add a
+# release whose saves differ from the ones listed: a new machine, a changed
+# block entity. A release that only changed code or art adds nothing here.
+[[upgrade.from]]
+core = "0.1.0"
+industry = "0.1.0"
