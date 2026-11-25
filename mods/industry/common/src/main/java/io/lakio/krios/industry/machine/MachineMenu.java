@@ -55,6 +55,16 @@ public interface MachineMenu {
         return -1;
     }
 
+    /** Hardware tier of the machine (synced); 1 for a machine without tiers. */
+    default int getMachineTier() {
+        return 1;
+    }
+
+    /** Effective tier = min(machine, core), live (synced). */
+    default int getEffectiveTier() {
+        return 1;
+    }
+
     /** Raw face-config bits for face 0..5 (decode via FaceConfig statics). */
     int faceBits(int face);
 

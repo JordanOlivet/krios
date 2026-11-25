@@ -213,7 +213,7 @@ test client; nothing of it exists in a normal run or in the jars.
 
 | Scenario | Viewer | What it covers |
 |---|---|---|
-| `client/screens.cmd` | JEI, then EMI | every machine terminal, the faces panel, a slot tooltip, the KOIOS screen, the Codex, the formed core in the world; the viewer's list beside the panels |
+| `client/screens.cmd` | JEI, then EMI | every machine terminal and what it says (title, voice line, tier, effective tier), the faces panel, the distribution toggle, a slot tooltip, the KOIOS screen, the Codex (its entries in order, the locked ones, the unread badge), the formed core in the world; the viewer's list beside the panels |
 | `client/world.cmd` | none | the ores by day and by night, the Calibrator's overlay, diagnostic screen and blueprint, the core's screen side |
 | `client/viewers-jei.cmd` | JEI | the Grinding category and its yield tooltip, the machines as catalysts, the information pages, recipe transfer into the grinder, the forge and the reactor: a click, a shift-click, tier 2's two columns, the balance mode |
 | `client/viewers-emi.cmd` | EMI | the same through EMI |
@@ -306,7 +306,18 @@ wait screen                     until a screen is open; replies with its title, 
 cursor in <x> <y> | cursor slot <n> | cursor <x> <y>     a virtual mouse cursor
 click [shift], key <name>, slot <n>     input through the game's own path
 screenshot <name> [hud]
+state                           the game's state, and under "krios" what the open terminal shows
+krios set <control> on|off      a terminal's toggle by its name (panel.faces, codex, distribution)
+krios press <control>           a terminal's button by its name (close, codex.entry.progression)
 ```
+
+The two `krios` verbs and the `krios` part of `state` come from core's
+Rehearsal extension (`integration/rehearsal/TerminalExtension`, named to the
+run by `-Drehearsal.extensions`). It knows nothing itself: each terminal says
+what it shows (`KriosTerminalScreen.readout()`) and names its controls
+(`controls()`). `state` lists the controls a terminal has; a wrong name fails
+with that list. A new screen overrides both methods, and its scenario step
+reads and presses by name.
 
 A scenario can also say what a screen must hold. After a `screen` or
 `wait screen` line:
@@ -316,10 +327,25 @@ A scenario can also say what a screen must hold. After a `screen` or
 #expect slot 9 empty
 ```
 
-Rehearsal reads the line as a comment; the tool checks it against that
-reply's items once the run is over, and an unmet line fails the run. Assert
+After a `state` line, a dotted path into its reply:
+
+```
+#expect state krios.voice gui.krios_industry.voice.starved
+#expect state krios.panels.faces true
+#expect state krios.codex.locked modules,critical
+```
+
+Rehearsal reads these lines as comments; the tool checks them against the
+reply once the run is over, and an unmet line fails the run. Voice lines are
+compared by their lang key, not their text. Assert
 the state before an action as well as after it: "one item in the input" only
 proves a transfer when the input was empty a moment earlier.
+
+A line that starts with `@dev` or `@prod` is sent to that kind of client only
+(`@prod cursor 390 136`): the dev clients load the JEI the mods compile
+against, the production ones the pinned current JEI, and a category's layout
+can differ between the two. Keep it to cursor lines: `screen` and `state`
+lines are counted for the expectations as the file has them.
 
 Learned on the first runs:
 
@@ -331,10 +357,17 @@ Learned on the first runs:
   under load the click leaves from the old place and fails as too far.
 - **A terminal opens with a short boot flicker**: `wait ticks 8` after
   `wait screen`, or the picture is dim.
-- `cursor in` counts from the terminal frame's top-left corner, so a panel
-  tab left of the frame has a negative x. Absolute `cursor <x> <y>` is for
-  screens that are not containers (a viewer's recipe screen): it depends on
+- **A terminal's own controls are pressed by name** (`krios set`, `krios
+  press`), never at a pixel: the layout can move, and a panel's open state
+  is kept between runs (`config/krios_core-client.properties`), so a blind
+  click toggles from wherever the last run left it. Pixels are left for what
+  is not ours: `cursor <x> <y>` on a viewer's recipe screen, which depends on
   the 640x360 GUI the run fixes.
+- **A terminal swallows the first click of its boot flicker**: `krios press`
+  refuses to click during it. Wait the usual 8 ticks after `wait screen`.
+- **A value that goes through the server takes a few ticks to come back**
+  (the distribution toggle, the Codex badge): `wait ticks 10` before the
+  `state` that checks it.
 - **`click shift` and `key <name> shift` hold the modifier for whoever asks
   the keyboard** (`Screen.hasShiftDown()`, which both viewers do for "move all
   that fits"), from the press to the release. It needs a Rehearsal built from
@@ -358,3 +391,5 @@ Learned on the first runs:
   modpack): Rehearsal's `neoforge_pack.py` and `fabric_pack.py` do that.
 - Creative tabs, modules in the bay, the breakthrough ritual, the zone
   holograms.
+- A Codex entry below the sidebar's viewport: only the rows in view are
+  controls, and nothing scrolls the list by name yet.

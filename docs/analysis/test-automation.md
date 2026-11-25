@@ -234,7 +234,9 @@ Still missing, by usefulness for Krios:
   picture does not give — the terminal's status, a machine's synced
   values, the Codex entries in order, the unlock list — and verbs that
   would be brittle as pixel clicks (open the Codex, toggle an annex
-  panel, select a creative tab).
+  panel, select a creative tab). *Built on 2026-11-25 (ADR-033): one class
+  in core serves every mod, because each terminal describes itself.
+  Creative tabs are vanilla's and stay out of it.*
 - Done on 2026-11-23: a test run directory of its own
   (`<loader>/runs/rehearsal`), scenario files per area, and Rehearsal in
   the Fabric dev run (its jar, built with a newer Loom than Krios's 1.8

@@ -60,6 +60,25 @@ public abstract class AnnexPanel {
         return open;
     }
 
+    /** The panel's short name, from its title key ("gui.krios_core.faces.title": faces). */
+    public String key() {
+        String[] parts = titleKey.split("\\.");
+        return parts.length >= 2 ? parts[parts.length - 2] : titleKey;
+    }
+
+    /**
+     * The panel as a named control: a click there toggles it, on its tab
+     * while collapsed, on its title bar while open. Call after {@link #stack}.
+     */
+    public KriosTerminalScreen.Control control(int leftPos, int topPos, int imageWidth) {
+        int y = panelY(topPos);
+        return open
+                ? new KriosTerminalScreen.Control("panel." + key(), panelX(leftPos, imageWidth) + PAD,
+                        y + TITLE_H / 2, true)
+                : new KriosTerminalScreen.Control("panel." + key(), tabX(leftPos, imageWidth) + TAB_SIZE / 2,
+                        y + TAB_SIZE / 2, false);
+    }
+
     /** True for panels hosting real menu slots: they must head their stack. */
     protected boolean anchorsSlots() {
         return false;

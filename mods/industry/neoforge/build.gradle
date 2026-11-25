@@ -32,6 +32,8 @@ neoForge {
             if (project.hasProperty('rehearsal')) {
                 gameDirectory = project.file('runs/rehearsal')
                 systemProperty('rehearsal', 'true')
+                // The terminals' readout and named controls, for the scenarios.
+                systemProperty('rehearsal.extensions', 'io.lakio.krios.core.integration.rehearsal.TerminalExtension')
                 def window = project.property('rehearsal').toString()
                 if (window in ['background', 'minimized']) {
                     systemProperty('rehearsal.window', window)

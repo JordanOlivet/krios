@@ -69,6 +69,10 @@ OPTIONS = {
     "guiScale": "2",
 }
 
+# Core's class that gives Rehearsal the terminals' readout and named controls (the dev
+# runs name it in the build files, under -Prehearsal).
+EXTENSION = "io.lakio.krios.core.integration.rehearsal.TerminalExtension"
+
 # The standard suite, run when no --scenario is given: each scenario with the
 # viewer it is about. A scenario is one client launch (about two minutes).
 SUITE = [
@@ -276,7 +280,7 @@ class LocalServer:
         self.loader = loader
         if prod:
             server_java = java.replace("javaw.exe", "java.exe") if java else "java"
-            mods = ["krios_core", "krios_industry"]
+            mods = [sa.mod_jar("krios_core", loader), sa.mod_jar("krios_industry", loader)]
             self.run_dir, command = sa.provision(f"{loader}-prod", loader, mods, False, versions, server_java)
             # The client's viewer on the server too (provision put Fabric API there already).
             for jar in viewer_jars(versions, loader, viewer):
@@ -400,19 +404,46 @@ def is_screen_line(words: list[str]) -> bool:
     return words[:1] == ["screen"] or words[:2] == ["wait", "screen"]
 
 
-def expectations(scenario: Path, replies: list[dict]) -> tuple[int, list[str]]:
-    """Checks the `#expect slot <n> <item id> x<count>` and `#expect slot <n> empty` lines of
-    a scenario; returns how many there are and the ones that are not met.
+def lookup(reply: dict, path: str) -> str:
+    """A value of a reply by its dotted path, as text ("absent" when the path leads nowhere)."""
+    value: object = reply
+    for key in path.split("."):
+        if not isinstance(value, dict) or key not in value:
+            return "absent"
+        value = value[key]
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    return json.dumps(value, ensure_ascii=False) if isinstance(value, dict) else str(value)
 
-    Such a line follows a `screen` or `wait screen` line and says what that reply's items
-    must hold; Rehearsal reads it as a comment. The k-th screen line of the file is
-    answered by the k-th screen reply, whatever lines a server run dropped before it."""
+
+def expectations(scenario: Path, replies: list[dict]) -> tuple[int, list[str]]:
+    """Checks the `#expect` lines of a scenario; returns how many there are and the ones that
+    are not met. Rehearsal reads such a line as a comment.
+
+    `#expect slot <n> <item id> x<count>` (or `empty`) follows a `screen` or `wait screen`
+    line and says what that reply's items must hold. `#expect state <path> <value>` follows
+    a `state` line and says what that reply holds at a dotted path (`krios.panels.faces
+    true`): the game's own state and what the mods' extensions add to it. The k-th screen
+    (or state) line of the file is answered by the k-th such reply, whatever lines a server
+    run dropped before it."""
     screens = [r for r in replies if is_screen_line(str(r.get("cmd", "")).split())]
-    count, unmet, index = 0, [], -1
+    states = [r for r in replies if str(r.get("cmd", "")).split() == ["state"]]
+    count, unmet, index, state_index = 0, [], -1, -1
     for number, line in enumerate(scenario.read_text(encoding="utf-8").splitlines(), 1):
         words = line.split()
         if is_screen_line(words):
             index += 1
+        elif words == ["state"]:
+            state_index += 1
+        elif words[:2] == ["#expect", "state"] and len(words) >= 4:
+            count += 1
+            wanted = " ".join(words[3:])
+            if not 0 <= state_index < len(states):
+                unmet.append(f"line {number}: `{line.strip()}` — no state reply to check")
+                continue
+            got = lookup(states[state_index], words[2])
+            if got != wanted:
+                unmet.append(f"line {number}: `{line.strip()}` — {words[2]} is {got}")
         elif words[:2] == ["#expect", "slot"] and len(words) >= 4:
             count += 1
             slot, wanted = words[2], " ".join(words[3:])
@@ -444,7 +475,8 @@ def run_one(args: argparse.Namespace, scenario: Path, viewer: str, server: str |
         mods = [sa.mod_jar("krios_core", args.loader), sa.mod_jar("krios_industry", args.loader),
                 rehearsal_jar(args.loader), *viewer_jars(versions, args.loader, viewer)]
         prepare(run_dir, args.loader, scenario, mods)
-        jvm = "-Xmx4G -Drehearsal=true" + (f" -Drehearsal.window={args.window}" if args.window != "normal" else "")
+        jvm = (f"-Xmx4G -Drehearsal=true -Drehearsal.extensions={EXTENSION}"
+               + (f" -Drehearsal.window={args.window}" if args.window != "normal" else ""))
         command = [*portablemc(args.loader), "start", game_version(versions, args.loader), "-u", PLAYER,
                    "--resolution", "1280x720", "--jvm", java, "--jvm-args", jvm]
         if server:
@@ -509,6 +541,18 @@ def run_one(args: argparse.Namespace, scenario: Path, viewer: str, server: str |
                 if server:
                     # The game joins the server by itself: no world to open.
                     lines = [line for line in lines if line.split()[:1] != ["world"]]
+                # "@dev <command>" and "@prod <command>" are for that kind of client only: a
+                # viewer's layout differs between the version the dev runs load and the pinned one.
+                kind = "@prod" if args.prod else "@dev"
+                kept = []
+                for line in lines:
+                    words = line.split(maxsplit=1)
+                    if words and words[0] in ("@dev", "@prod"):
+                        if words[0] == kind and len(words) == 2:
+                            kept.append(words[1])
+                    else:
+                        kept.append(line)
+                lines = kept
                 temp.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
                 temp.rename(inbox / "scenario.cmd")
                 sent = True

@@ -67,6 +67,8 @@ loom {
             if (project.hasProperty('rehearsal')) {
                 runDir('runs/rehearsal')
                 property('rehearsal', 'true')
+                // The terminals' readout and named controls, for the scenarios.
+                property('rehearsal.extensions', 'io.lakio.krios.core.integration.rehearsal.TerminalExtension')
                 def window = project.property('rehearsal').toString()
                 if (window in ['background', 'minimized']) {
                     property('rehearsal.window', window)

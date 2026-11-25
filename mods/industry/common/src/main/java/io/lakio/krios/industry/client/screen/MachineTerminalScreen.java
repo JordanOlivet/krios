@@ -124,6 +124,43 @@ public abstract class MachineTerminalScreen<T extends AbstractContainerMenu & Ma
         return Component.translatable("gui.krios_industry.voice.idle" + (slot + 1));
     }
 
+    /** The close cross, every annex panel, and the distribution toggle where there is one. */
+    @Override
+    public List<Control> controls() {
+        List<Control> list = super.controls();
+        list.add(closeControl());
+        AnnexPanel[] panels = annexPanels();
+        AnnexPanel.stack(panels);
+        for (AnnexPanel panel : panels) {
+            list.add(panel.control(leftPos, topPos, imageWidth));
+        }
+        if (hasDistributionToggle()) {
+            list.add(new Control("distribution", leftPos + DIST_X + DIST_SIZE / 2,
+                    topPos + DIST_Y + DIST_SIZE / 2, menu.isInputBalance()));
+        }
+        return list;
+    }
+
+    @Override
+    public java.util.Map<String, Object> readout() {
+        java.util.Map<String, Object> out = super.readout();
+        out.put("voice", phraseKey(voicePhrase()));
+        out.put("energy", menu.getEnergyStored());
+        out.put("energyCapacity", menu.getEnergyCapacity());
+        out.put("starved", menu.isStarved());
+        out.put("tier", menu.getMachineTier());
+        out.put("effectiveTier", menu.getEffectiveTier());
+        if (hasDistributionToggle()) {
+            out.put("distribution", menu.isInputBalance() ? "balance" : "fill_first");
+        }
+        java.util.Map<String, Object> panels = new java.util.LinkedHashMap<>();
+        for (AnnexPanel panel : annexPanels()) {
+            panels.put(panel.key(), panel.isOpen());
+        }
+        out.put("panels", panels);
+        return out;
+    }
+
     /** Every annex panel, open or collapsed, sits outside the frame. */
     @Override
     public List<Rect2i> extraAreas() {

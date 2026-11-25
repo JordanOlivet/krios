@@ -1,10 +1,14 @@
 package io.lakio.krios.core.client.screen;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.Util;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -55,6 +59,50 @@ public abstract class KriosTerminalScreen<T extends AbstractContainerMenu>
         return List.of();
     }
 
+    /**
+     * A control of the terminal by name, and the point (screen space) where
+     * a click lands on it. {@code on} is a toggle's state (a panel open, a
+     * mode set), null for a plain button.
+     */
+    public record Control(String name, int x, int y, Boolean on) {
+    }
+
+    /**
+     * The terminal's controls by name, wherever the layout put them: what a
+     * test or a tool presses without knowing a pixel. Subclasses add theirs
+     * to the list they get from super.
+     */
+    public List<Control> controls() {
+        return new ArrayList<>();
+    }
+
+    /**
+     * What the terminal shows, as data: the state a screenshot does not
+     * give. JDK types only (strings, numbers, booleans, nested maps), keys
+     * in display order. Subclasses add theirs to the map they get from
+     * super.
+     */
+    public Map<String, Object> readout() {
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("title", title.getString());
+        out.put("status", terminalStatus());
+        return out;
+    }
+
+    /** A phrase by its lang key (stable across languages), or as text when it has none. */
+    protected static String phraseKey(Component phrase) {
+        if (phrase == null) {
+            return "";
+        }
+        return phrase.getContents() instanceof TranslatableContents translatable
+                ? translatable.getKey() : phrase.getString();
+    }
+
+    /** The standard close cross as a control. */
+    protected Control closeControl() {
+        return new Control("close", leftPos + imageWidth - 10, topPos + 10, null);
+    }
+
     /** Standard header order: close cross rightmost, feed to its left. */
     protected int feedX() {
         return imageWidth - 34;
@@ -89,6 +137,11 @@ public abstract class KriosTerminalScreen<T extends AbstractContainerMenu>
         String cursor = (Util.getMillis() / 500) % 2 == 0 ? "_" : "";
         Component line = Component.literal("> ").append(phrase).append(Component.literal(cursor));
         gui.drawWordWrap(font, line, x, y, width, 0xFF5FC8DC);
+    }
+
+    /** True during the boot flicker, which swallows the first click. */
+    public boolean isBooting() {
+        return bootActive();
     }
 
     private boolean bootActive() {
