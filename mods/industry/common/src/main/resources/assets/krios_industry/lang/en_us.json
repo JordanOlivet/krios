@@ -243,6 +243,8 @@
   "gui.krios_industry.viewer.time": "%s s",
   "gui.krios_industry.viewer.grinding.yield": "Output of a tier 1 grinder on a K.O.I.O.S. network. Higher tiers and Yield modules raise it; off the network it is halved.",
   "gui.krios_industry.viewer.engram_info": "Right-click a creature with a blank Engram to imprint its signature. Craft an imprinted Engram with blank ones to copy it: every Engram in the grid comes out imprinted.",
-  "tag.item.krios_industry.breeding_food": "Breeding Food",
+  "gui.krios_industry.viewer.transfer.no_room": "The machine's input has no room for this item.",
+  "gui.krios_industry.viewer.transfer.cursor": "Put down the item you are holding first.",
+  "tag.item.krios_industry.breeding_food":"Breeding Food",
   "tag.item.krios_industry.creature_drops": "Creature Drops"
 }

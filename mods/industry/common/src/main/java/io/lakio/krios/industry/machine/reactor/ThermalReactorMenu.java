@@ -92,6 +92,16 @@ public class ThermalReactorMenu extends AbstractContainerMenu implements Machine
         return result;
     }
 
+    /** The fuel slot, while it takes this fuel. */
+    @Override
+    public int workInputSlot(ItemStack stack) {
+        Slot fuel = getSlot(FUEL_SLOT);
+        ItemStack held = fuel.getItem();
+        boolean fits = held.isEmpty()
+                || (ItemStack.isSameItemSameComponents(held, stack) && held.getCount() < fuel.getMaxStackSize(held));
+        return fits && fuel.mayPlace(stack) ? FUEL_SLOT : -1;
+    }
+
     @Override
     public void setModuleBayOpen(boolean open) {
         moduleBayOpen = open;
