@@ -42,3 +42,20 @@ artifacts {
     commonResources sourceSets.main.resources.sourceDirectories.singleFile
 }
 
+// Unit tests (ADR-034): the logic that needs no world, in milliseconds, on
+// every build and in CI. Vanilla value types (Direction, CompoundTag) load
+// without bootstrapping the game; anything needing registries is GameTest's.
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.11.3')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+// The vanilla classes the tests touch (Direction, CompoundTag) on their classpath too.
+neoForge {
+    addModdingDependenciesTo(sourceSets.test)
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
