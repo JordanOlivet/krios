@@ -1,9 +1,7 @@
 package io.lakio.krios.core.koios;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import io.lakio.krios.core.energy.EnergyReport;
 import io.lakio.krios.core.network.Network;
@@ -84,13 +82,9 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
     private int clientEnergyPermille = 1000;
     private boolean clientEnergyDeficit;
 
-    // Sliding diversity window: ring buffer of the last N operation keys plus
-    // per-key counts for O(1) share lookups (design: diminishing returns on
-    // repetition, recovers as operations vary).
-    private final String[] window = new String[KoiosBalance.WINDOW_SIZE];
-    private int windowHead;
-    private int windowFill;
-    private final Map<String, Integer> windowCounts = new HashMap<>();
+    // Sliding diversity window (design: diminishing returns on repetition,
+    // recovers as operations vary).
+    private final DiversityWindow window = new DiversityWindow();
     /**
      * Codex badge state: the visible-entry signature the codex was last
      * opened at (see CodexPanel.visibleSignature). Written through the
@@ -109,8 +103,8 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
                 case 3 -> xp & 0xFFFF;
                 case 4 -> (xp >> 16) & 0xFFFF;
                 // 5..6: the raw numbers behind the diversity gauge (tooltip).
-                case 5 -> windowCounts.size();
-                case 6 -> windowFill;
+                case 5 -> window.distinct();
+                case 6 -> window.fill();
                 // 7..8: network energy health (KOIOS alerts).
                 case 7 -> networkEnergyPermille();
                 case 8 -> networkEnergyDeficit() ? 1 : 0;
@@ -200,8 +194,8 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
         }
         int cap = KoiosBalance.xpCap(tier);
         for (int i = 0; i < count && xp < cap; i++) {
-            xp = Math.min(cap, xp + KoiosBalance.scaledOpXp(level, baseXp, diversityFactorPermille(key)));
-            pushWindow(key);
+            xp = Math.min(cap, xp + KoiosBalance.scaledOpXp(level, baseXp, window.factorPermille(key)));
+            window.push(key);
         }
         int previousLevel = koiosLevel;
         koiosLevel = KoiosBalance.levelForXp(xp, tier);
@@ -318,22 +312,9 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
                 && state.getValue(KoiosCoreBlock.FORMED);
     }
 
-    private int diversityFactorPermille(String key) {
-        if (windowFill == 0) {
-            return 1000;
-        }
-        int share = windowCounts.getOrDefault(key, 0) * 1000 / windowFill;
-        int knee = KoiosBalance.DIVERSITY_KNEE_PERMILLE;
-        int floor = KoiosBalance.DIVERSITY_FLOOR_PERMILLE;
-        if (share <= knee) {
-            return 1000;
-        }
-        return Math.max(floor, 1000 - (share - knee) * (1000 - floor) / (1000 - knee));
-    }
-
     /** Distinct operations over window fill, per-mille — the GUI's diversity gauge. */
     public int diversityPermille() {
-        return windowFill == 0 ? 1000 : windowCounts.size() * 1000 / windowFill;
+        return window.diversityPermille();
     }
 
     /** Renderer-side diversity: the synced value on the client, live on the server. */
@@ -382,34 +363,6 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
 
     public boolean displayEnergyDeficit() {
         return level != null && level.isClientSide ? clientEnergyDeficit : networkEnergyDeficit();
-    }
-
-    private void pushWindow(String key) {
-        String evicted = window[windowHead];
-        if (evicted == null) {
-            windowFill++;
-        } else {
-            windowCounts.merge(evicted, -1, (a, b) -> a + b <= 0 ? null : a + b);
-        }
-        window[windowHead] = key;
-        windowCounts.merge(key, 1, Integer::sum);
-        windowHead = (windowHead + 1) % KoiosBalance.WINDOW_SIZE;
-    }
-
-    private void resetWindow() {
-        java.util.Arrays.fill(window, null);
-        windowCounts.clear();
-        windowHead = 0;
-        windowFill = 0;
-    }
-
-    private List<String> windowToList() {
-        List<String> list = new ArrayList<>(windowFill);
-        int start = (windowHead - windowFill + KoiosBalance.WINDOW_SIZE) % KoiosBalance.WINDOW_SIZE;
-        for (int i = 0; i < windowFill; i++) {
-            list.add(window[(start + i) % KoiosBalance.WINDOW_SIZE]);
-        }
-        return list;
     }
 
     // --- Multiblock ---
@@ -597,7 +550,7 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
             tag.putInt("ScreenSide", screenSide.get3DDataValue());
         }
         ListTag list = new ListTag();
-        for (String key : windowToList()) {
+        for (String key : window.keys()) {
             list.add(StringTag.valueOf(key));
         }
         tag.put("Window", list);
@@ -622,10 +575,10 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
         // Client-only in practice: the update tag carries the fault flag; on
         // the server the graph rederives it after load (never persisted).
         networkFault = tag.getBoolean("Fault");
-        resetWindow();
+        window.clear();
         ListTag list = tag.getList("Window", Tag.TAG_STRING);
         for (int i = 0; i < list.size(); i++) {
-            pushWindow(list.getString(i));
+            window.push(list.getString(i));
         }
         koiosLevel = KoiosBalance.levelForXp(xp, tier);
     }
@@ -659,7 +612,7 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
     protected void collectImplicitComponents(DataComponentMap.Builder builder) {
         super.collectImplicitComponents(builder);
         if (xp > 0 || tier > 1) {
-            builder.set(ModDataComponents.KOIOS_DATA.get(), new KoiosData(xp, windowToList(), tier));
+            builder.set(ModDataComponents.KOIOS_DATA.get(), new KoiosData(xp, window.keys(), tier));
         }
     }
 
@@ -672,9 +625,9 @@ public class KoiosCoreBlockEntity extends BlockEntity implements MenuProvider, N
         if (data != null && data.outranks(tier, xp)) {
             tier = Math.max(1, Math.min(KoiosBalance.MAX_TIER, data.tier()));
             xp = Math.min(KoiosBalance.xpCap(tier), data.xp());
-            resetWindow();
+            window.clear();
             for (String key : data.window()) {
-                pushWindow(key);
+                window.push(key);
             }
             koiosLevel = KoiosBalance.levelForXp(xp, tier);
         }

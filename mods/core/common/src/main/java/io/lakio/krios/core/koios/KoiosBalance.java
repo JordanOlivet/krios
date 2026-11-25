@@ -71,7 +71,10 @@ public final class KoiosBalance {
         return criticalLevel(tier) - 1;
     }
 
-    /** The next tier's curve is defined — its content shipped. */
+    /**
+     * This tier's curve is defined up to its critical level — its content
+     * shipped. Callers ask it of the tier a breakthrough would open.
+     */
     public static boolean hasTierCurve(int tier) {
         return criticalLevel(tier) < LEVEL_XP.length;
     }

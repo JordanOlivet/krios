@@ -44,7 +44,13 @@ To add: recipe ingredients and results resolved against registered ids
 and tags, lang keys referenced from Java (`Component.translatable`) all
 present, every recipe with its unlock advancement.
 
-### L1 — Unit tests (not built)
+### L1 — Unit tests (built, ADR-034)
+
+*Built on 2026-11-25: JUnit 5 in each mod's `common/src/test`, run by
+`gradlew build` and therefore by CI. 47 tests; the diversity window moved
+out of the core's block entity into `DiversityWindow` to be testable. Their
+first run caught a wrong reading of `hasTierCurve` (the test's, and the
+method's javadoc), not of the code.*
 
 JUnit on the logic that needs no world: `KoiosBalance` (levels, caps,
 projections), `MachineTiers`, `ZoneGeometry`, `FaceConfig` and

@@ -407,3 +407,14 @@ The client scenarios clicked the terminals' own controls at pixels, and judged a
 - **Tests assert on data**: `#expect state <path> <value>` in a scenario, checked by `client_acceptance.py` like the slot expectations. Screenshots stay for what only an eye judges.
 - **A new screen or control** overrides `readout()` and `controls()`; its scenario step reads and presses by name. Pixels remain for what is not ours (a recipe viewer's own buttons).
 - **Release note**: Industry's screens now use API that core gains here. Its next release requires the core release that carries it.
+
+## ADR-034 — Unit tests: JUnit in each mod's common, run by every build
+
+**Date**: 2026-11-25 · **Status**: accepted · **Amends**: ADR-030 (its "not built: unit tests")
+
+- **Where**: `common/src/test/java` of each mod, JUnit 5 (BOM 5.11.3), `useJUnitPlatform()`. `gradlew build` runs them, so every CI build does; `gradlew :common:test` runs one mod's alone.
+- **What qualifies**: logic that needs no world and no registry. Vanilla value types are fine (`Direction`, `CompoundTag` load without bootstrapping the game): ModDevGradle's `addModdingDependenciesTo(sourceSets.test)` puts the NeoForm Minecraft on the test classpath. Anything that touches items, blocks or a level belongs to GameTest (ADR-010).
+- **Logic is moved out to be tested**, not tested through a block entity: the KOIOS diversity window became `koios/DiversityWindow` (the block entity delegates and persists its keys as before; the 0.1.0 upgrade test passes).
+- **Industry tests read core's numbers** (`testImplementation` of core's common): an unlock must sit on a classic level of its tier, never on a critical level or out of reach.
+- **A test is proven able to fail** when it is written: one deliberate bug per mod (an evicted window key keeping its count, a tier 2 unlock on the critical level) failed three tests; the files were restored.
+- **First set**: `KoiosBalance`, `DiversityWindow`, `EnergyBuffer`, `FaceConfig`, `KriosConfig.scale`, `MachineTiers`, `IndustryBalance`: 47 tests, under a second each mod.
