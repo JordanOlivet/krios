@@ -41,7 +41,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 public class ThermalReactorBlockEntity extends BlockEntity
-        implements Container, MenuProvider, NetworkNode, EnergyPort,
+        implements net.minecraft.world.WorldlyContainer, MenuProvider, NetworkNode, EnergyPort,
         io.lakio.krios.core.network.ConfigurableFaces,
         io.lakio.krios.core.energy.EnergyStats,
         io.lakio.krios.core.tick.TickingDevice, io.lakio.krios.core.tick.DeviceAlertable {
@@ -561,6 +561,36 @@ public class ThermalReactorBlockEntity extends BlockEntity
         // Hopper discipline: fuel only, never into the module bay (the
         // menu's ModuleSlot carries the player-facing module gate).
         return slot == FUEL_SLOT && Services.PLATFORM.getBurnTime(stack) > 0;
+    }
+
+    // --- WorldlyContainer: what automation may reach. A plain Container let a
+    // hopper below take everything, the fuel and the module bay included. ---
+
+    private static final int[] FUEL_ONLY = {FUEL_SLOT};
+    private static final int[] NO_SLOTS = {};
+
+    /** Items through this face: any face until it is configured, then the item-in contract. */
+    private boolean allowsItem(Direction face) {
+        return !faceConfig.isManual(face) || faceConfig.allows(face, Flow.ITEM, false);
+    }
+
+    @Override
+    public int[] getSlotsForFace(Direction side) {
+        return allowsItem(side) ? FUEL_ONLY : NO_SLOTS;
+    }
+
+    @Override
+    public boolean canPlaceItemThroughFace(int slot, ItemStack stack, Direction side) {
+        return canPlaceItem(slot, stack) && allowsItem(side);
+    }
+
+    /**
+     * Only what burning left behind (a lava bucket's bucket) comes out, as from
+     * a furnace: never fuel, which would let a hopper drain the reactor.
+     */
+    @Override
+    public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
+        return slot == FUEL_SLOT && Services.PLATFORM.getBurnTime(stack) <= 0 && allowsItem(side);
     }
 
     @Override
