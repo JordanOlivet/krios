@@ -214,7 +214,7 @@ test client; nothing of it exists in a normal run or in the jars.
 |---|---|---|
 | `client/screens.cmd` | JEI, then EMI | every machine terminal, the faces panel, a slot tooltip, the KOIOS screen, the Codex, the formed core in the world; the viewer's list beside the panels |
 | `client/world.cmd` | none | the ores by day and by night, the Calibrator's overlay, diagnostic screen and blueprint, the core's screen side |
-| `client/viewers-jei.cmd` | JEI | the Grinding category and its yield tooltip, the machines as catalysts, the information pages, recipe transfer into the grinder, the forge and the reactor |
+| `client/viewers-jei.cmd` | JEI | the Grinding category and its yield tooltip, the machines as catalysts, the information pages, recipe transfer into the grinder, the forge and the reactor: a click, a shift-click, tier 2's two columns, the balance mode |
 | `client/viewers-emi.cmd` | EMI | the same through EMI |
 
 ## Production clients
@@ -303,7 +303,7 @@ tp <x> <y> <z> <yaw> <pitch>
 use <x> <y> <z> [face]          right-click a block, within 5 blocks
 wait screen                     until a screen is open; replies with its title, menu and items
 cursor in <x> <y> | cursor slot <n> | cursor <x> <y>     a virtual mouse cursor
-click, key <name>, slot <n>     input through the game's own path
+click [shift], key <name>, slot <n>     input through the game's own path
 screenshot <name> [hud]
 ```
 
@@ -334,10 +334,11 @@ Learned on the first runs:
   tab left of the frame has a negative x. Absolute `cursor <x> <y>` is for
   screens that are not containers (a viewer's recipe screen): it depends on
   the 640x360 GUI the run fixes.
-- **A key's modifiers are not seen by code that asks the keyboard itself**:
-  JEI's shift shortcuts do not work, its tabs are clicked instead. For the
-  same reason a shift-click on a viewer's transfer button (move all that
-  fits) cannot be played: only the plain click is.
+- **`click shift` and `key <name> shift` hold the modifier for whoever asks
+  the keyboard** (`Screen.hasShiftDown()`, which both viewers do for "move all
+  that fits"), from the press to the release. It needs a Rehearsal built from
+  its `main` of 2026-11-25 or later: an older jar refuses `click shift` as a
+  failed command.
 - **A machine that works changes its slots under the test.** For a count to
   hold, the machine has no energy (no network, no reactor beside it); the
   reactor lights whatever it is given, so its proof is the inventory.
