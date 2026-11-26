@@ -20,7 +20,7 @@ A machine cut off from the core keeps working in a reduced mode: the forge smelt
 |---|---|
 | **Thermal Reactor** | Burns furnace fuel into energy for the network |
 | **Photon Array** | Solar energy, with a buffer deep enough to carry the day into the night |
-| **Fractal Grinder** | Doubles chronite and neurite ore, turns cobblestone into gravel and gravel into sand |
+| **Fractal Grinder** | Doubles ores: chronite and neurite, the vanilla ones (iron, gold and copper into dusts to smelt; coal, diamond, emerald, quartz, redstone, lapis) and the metals other mods bring (tin, lead, silver, nickel, zinc and more). Turns cobblestone into gravel and gravel into sand |
 | **Plasma Forge** | Smelts everything a furnace does, on energy, twice as fast on the network |
 | **Chrono Farmer** | Tills, plants, harvests and replants a field, keeps it moist and hurries the crops |
 | **Cyclic Forester** | Plants saplings and fells grown trees from the canopy down, leaves included |
@@ -43,7 +43,7 @@ The last seven work a zone behind the machine: hold the Calibrator to see it. Al
 ## Packs and servers
 
 - Install it on the server and on the players' clients.
-- Every recipe is datapack JSON, with a `krios_industry:grinding` type for the grinder. Materials use the `c:` tags.
+- Every recipe is datapack JSON, with a `krios_industry:grinding` type for the grinder. Materials use the `c:` tags, and a grinding result can name a tag too (`c:dusts/tin`): one recipe covers whichever mod brings the material, and stays out of the way when none does.
 - The generators expose Forge Energy (NeoForge) and Team Reborn Energy (Fabric) for other mods to draw from. Machine faces exchange items with the chests, hoppers and other mods' inventories that touch them.
 - `/krios_core config` scales energy costs and data XP gain for a world.
 - Machines sleep when they have nothing to do, instead of ticking.

@@ -1,0 +1,7 @@
+{
+  "type": "krios_industry:grinding",
+  "ingredient": { "tag": "c:ores/antimony" },
+  "result": { "tag": "c:raw_materials/antimony", "count": 2 },
+  "energy": 800,
+  "time": 160
+}

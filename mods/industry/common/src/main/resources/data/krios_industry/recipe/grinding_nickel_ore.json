@@ -1,0 +1,7 @@
+{
+  "type": "krios_industry:grinding",
+  "ingredient": { "tag": "c:ores/nickel" },
+  "result": { "tag": "c:raw_materials/nickel", "count": 2 },
+  "energy": 800,
+  "time": 160
+}

@@ -23,7 +23,18 @@ public final class ModItems {
     public static final Supplier<Item> NEURITE_INGOT = register("neurite_ingot",
             () -> new Item(new Item.Properties()));
 
-    public static final Supplier<Item> CALIBRATOR = register("calibrator",
+    // Dusts of the vanilla metals (ADR-037): what a ground raw metal becomes
+    // when no other mod brings one. Smelted back into the vanilla ingot.
+    public static final Supplier<Item> IRON_DUST = register("iron_dust",
+            () -> new Item(new Item.Properties()));
+
+    public static final Supplier<Item> GOLD_DUST = register("gold_dust",
+            () -> new Item(new Item.Properties()));
+
+    public static final Supplier<Item> COPPER_DUST = register("copper_dust",
+            () -> new Item(new Item.Properties()));
+
+    public static final Supplier<Item> CALIBRATOR =register("calibrator",
             () -> new CalibratorItem(new Item.Properties().stacksTo(1)));
 
     public static final Supplier<Item> COMPUTE_CHIP = register("compute_chip",

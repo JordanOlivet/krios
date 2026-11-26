@@ -1,0 +1,7 @@
+{
+  "type": "krios_industry:grinding",
+  "ingredient": { "tag": "c:raw_materials/zinc" },
+  "result": { "tag": "c:dusts/zinc", "count": 2 },
+  "energy": 600,
+  "time": 120
+}

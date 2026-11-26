@@ -1,0 +1,7 @@
+{
+  "type": "krios_industry:grinding",
+  "ingredient": { "tag": "c:ores/emerald" },
+  "result": { "id": "minecraft:emerald", "count": 2 },
+  "energy": 800,
+  "time": 160
+}

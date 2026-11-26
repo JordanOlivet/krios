@@ -22,7 +22,8 @@ ASSETS = Path(__file__).resolve().parents[1] / "common/src/main/resources/assets
 CORE_ASSETS = Path(__file__).resolve().parents[2] / "core/common/src/main/resources/assets/krios_core/textures"
 CORE_PREFIXES = ("block/chronite_ore", "block/deepslate_", "block/neurite_ore", "block/neural_",
                  "block/koios_", "item/chronite_shard", "item/raw_neurite", "item/neurite_",
-                 "item/calibrator", "item/compute_chip")
+                 "item/calibrator", "item/compute_chip",
+                 "item/iron_dust", "item/gold_dust", "item/copper_dust")
 
 
 def assets_for(rel):
@@ -912,6 +913,47 @@ def neurite_dust():
     return img
 
 
+# Vanilla redstone dust as a hex index grid (0 = darkest of its seven reds,
+# 6 = brightest; extracted from the 1.21.1 client jar): the dusts of the
+# vanilla metals keep its pile and its shading, in the metal's own ramp
+# (user call, 2026-11-26).
+REDSTONE_DUST_GRID = """
+................
+................
+................
+.......33.......
+......3453......
+.....356520.....
+....35654620....
+...3555652320...
+..346542642510..
+..354565422320..
+..025654252210..
+...0254232210...
+....00122100....
+......0000......
+................
+................
+"""
+
+# Seven shades each, darkest first, taken from the vanilla ingots.
+IRON_DUST_RAMP = [(0x35, 0x35, 0x35), (0x45, 0x45, 0x45), (0x58, 0x58, 0x58), (0x72, 0x72, 0x72),
+                  (0x82, 0x82, 0x82), (0xA8, 0xA8, 0xA8), (0xD8, 0xD8, 0xD8)]
+GOLD_DUST_RAMP = [(0x75, 0x28, 0x02), (0x8D, 0x40, 0x0A), (0xB2, 0x64, 0x11), (0xDC, 0x96, 0x13),
+                  (0xE9, 0xB1, 0x15), (0xFA, 0xD6, 0x4A), (0xFD, 0xF5, 0x5F)]
+COPPER_DUST_RAMP = [(0x6D, 0x34, 0x21), (0x7C, 0x3B, 0x25), (0x8A, 0x41, 0x29), (0x9C, 0x4E, 0x31),
+                    (0xC1, 0x5A, 0x36), (0xE7, 0x7C, 0x56), (0xFC, 0x99, 0x82)]
+
+
+def metal_dust(ramp):
+    img = Img(16, 16)
+    for y, line in enumerate(REDSTONE_DUST_GRID.split()):
+        for x, ch in enumerate(line):
+            if ch != ".":
+                img.set(x, y, ramp[int(ch)])
+    return img
+
+
 def chronite_shard():
     img = Img(16, 16)
     pts = [(11, 3), (12, 4), (11, 5), (10, 5)]
@@ -1257,6 +1299,9 @@ def main():
         "item/neurite_ingot.png": neurite_ingot(),
         "item/raw_neurite.png": raw_neurite(),
         "item/neurite_dust.png": neurite_dust(),
+        "item/iron_dust.png": metal_dust(IRON_DUST_RAMP),
+        "item/gold_dust.png": metal_dust(GOLD_DUST_RAMP),
+        "item/copper_dust.png": metal_dust(COPPER_DUST_RAMP),
         "item/chronite_shard.png": chronite_shard(),
         "item/calibrator.png": calibrator(),
         "item/compute_chip.png": compute_chip(),

@@ -55,8 +55,11 @@ public class KriosIndustryJeiPlugin implements IModPlugin {
     public void registerRecipes(IRecipeRegistration registration) {
         ClientLevel level = Minecraft.getInstance().level;
         if (level != null) {
+            // A recipe for a material no installed mod brings is not listed (ADR-037).
             registration.addRecipes(GRINDING,
-                    level.getRecipeManager().getAllRecipesFor(ModRecipeTypes.GRINDING.get()));
+                    level.getRecipeManager().getAllRecipesFor(ModRecipeTypes.GRINDING.get()).stream()
+                            .filter(holder -> holder.value().available())
+                            .toList());
         }
         // Copying an Engram is a special crafting recipe viewers cannot list.
         registration.addIngredientInfo(ModItems.ENGRAM.get(),

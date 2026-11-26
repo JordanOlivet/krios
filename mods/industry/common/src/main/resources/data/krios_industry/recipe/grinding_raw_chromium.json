@@ -1,0 +1,7 @@
+{
+  "type": "krios_industry:grinding",
+  "ingredient": { "tag": "c:raw_materials/chromium" },
+  "result": { "tag": "c:dusts/chromium", "count": 2 },
+  "energy": 600,
+  "time": 120
+}

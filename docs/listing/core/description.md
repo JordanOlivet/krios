@@ -10,7 +10,7 @@ NeoForge and Fabric · single player and servers
 - **The network.** Krios machines that touch each other are networked, and the **Neural Conduit** bridges the gaps. One core per network. Each machine face can be left to configure itself or set by hand, for energy and for items.
 - **The Calibrator.** Sneak-click the ground to project a hologram of the core's structure and build inside it. Hold it to see how nearby machines have their faces set. Right-click any network block for a live diagnostic: members, energy produced and consumed, machines out of power.
 - **The Codex.** The in-game guide, opened from the core's screen. Other Krios mods add their own entries to it.
-- **Two ores.** Neurite between Y -8 and 72, chronite below Y 0, in stone and deepslate, both glowing in the dark. Their materials (shards, dust, ingots, the Compute Chip) are what the other Krios mods are built from.
+- **Two ores.** Neurite between Y -8 and 72, chronite below Y 0, in stone and deepslate, both glowing in the dark. Their materials (shards, dust, ingots, the Compute Chip) are what the other Krios mods are built from. Core also holds the dusts of iron, gold and copper, which smelt into their ingots.
 
 ## Packs and servers
 

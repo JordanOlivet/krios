@@ -49,6 +49,7 @@ Speed, Efficiency (energy cost), Yield (crusher multiplier). All gated behind KO
 - **Chronite** — time-infused crystal; hardware-axis components.
 - **Neurite** — data-conductive mineral; software-axis components.
 - Common metals through `c:` tags (copper, tin, steel, titanium, …) — modpack ore sets plug in automatically (ADR-008).
+- 2026-11-26 (ADR-037): the grinder doubles every ore, not only ours. Vanilla metals go ore → raw → dust (Krios dusts for iron, gold and copper) → ingot, vanilla gems go ore → gem, and fifteen metals of other mods have their recipes waiting, written with tag results and unavailable until a mod brings the material.
 
 ## Worldgen
 

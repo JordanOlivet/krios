@@ -1,0 +1,7 @@
+{
+  "type": "krios_industry:grinding",
+  "ingredient": { "tag": "c:raw_materials/uranium" },
+  "result": { "tag": "c:dusts/uranium", "count": 2 },
+  "energy": 600,
+  "time": 120
+}
