@@ -1,14 +1,22 @@
 package io.lakio.krios.core.gametest;
 
 import java.util.List;
+import java.util.Map;
 
 import io.lakio.krios.core.koios.KoiosCoreBlock;
 import io.lakio.krios.core.koios.NeuralCasingBlock;
 import io.lakio.krios.core.registry.ModBlocks;
+import io.lakio.krios.core.registry.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestGenerator;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.gametest.framework.TestFunction;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.AbstractCookingRecipe;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.block.Blocks;
 
 /**
@@ -35,7 +43,28 @@ public class CoreGameTests {
         return List.of(
                 new TestFunction(BATCH, "koios_shell_forms", ARENA, 100, 0L, true, CoreGameTests::shellForms),
                 new TestFunction(BATCH, "koios_shell_breaks", ARENA, 100, 0L, true, CoreGameTests::shellBreaks),
-                new TestFunction(BATCH, "koios_core_placed_last_forms", ARENA, 100, 0L, true, CoreGameTests::corePlacedLastForms));
+                new TestFunction(BATCH, "koios_core_placed_last_forms", ARENA, 100, 0L, true, CoreGameTests::corePlacedLastForms),
+                new TestFunction(BATCH, "metal_dusts_smelt_into_their_ingots", ARENA, 20, 0L, true,
+                        CoreGameTests::metalDustsSmeltIntoTheirIngots));
+    }
+
+    /** Each dust of a vanilla metal (ADR-037) smelts and blasts into that metal's ingot. */
+    private static void metalDustsSmeltIntoTheirIngots(GameTestHelper helper) {
+        Map<Item, Item> ingots = Map.of(
+                ModItems.IRON_DUST.get(), Items.IRON_INGOT,
+                ModItems.GOLD_DUST.get(), Items.GOLD_INGOT,
+                ModItems.COPPER_DUST.get(), Items.COPPER_INGOT,
+                ModItems.NEURITE_DUST.get(), ModItems.NEURITE_INGOT.get());
+        ingots.forEach((dust, ingot) -> {
+            for (RecipeType<? extends AbstractCookingRecipe> type : List.of(RecipeType.SMELTING, RecipeType.BLASTING)) {
+                ItemStack cooked = helper.getLevel().getRecipeManager()
+                        .getRecipeFor(type, new SingleRecipeInput(new ItemStack(dust)), helper.getLevel())
+                        .map(holder -> holder.value().getResultItem(helper.getLevel().registryAccess()))
+                        .orElse(ItemStack.EMPTY);
+                helper.assertTrue(cooked.is(ingot), dust + " in " + type + " gives " + cooked);
+            }
+        });
+        helper.succeed();
     }
 
     /**

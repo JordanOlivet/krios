@@ -549,6 +549,22 @@ def phase_build(c: Checks, server: Server, r: Rcon) -> int:
     ingots = block_data(r, FORGE, "Items")
     c.check("forge smelted raw iron", item_count(ingots, "minecraft:iron_ingot") > 0, ingots)
 
+    # A vanilla metal through both machines (ADR-037): raw iron ground into two
+    # dusts each, a dust smelted into an ingot. The tier 2 grinder's first
+    # output (container.2) is emptied of its shards so the dust has room.
+    ingots_before = item_count(ingots, "minecraft:iron_ingot")
+    chain = "Replaced a slot" in r.cmd(f"item replace block {GRINDER2} container.2 with minecraft:air")
+    chain &= "Replaced a slot" in r.cmd(f"item replace block {GRINDER2} container.0 with minecraft:raw_iron 4")
+    chain &= "Replaced a slot" in r.cmd(f"item replace block {FORGE} container.0 with krios_core:iron_dust 4")
+    c.check("fed raw iron to the tier 2 grinder and iron dust to the forge", chain)
+    c.check("sprint 800 ticks completes", sprint(server, r, 800))
+    dusts = block_data(r, GRINDER2, "Items")
+    c.check("the grinder turned 4 raw iron into 8 iron dusts", item_count(dusts, "krios_core:iron_dust") == 8, dusts)
+    ingots = block_data(r, FORGE, "Items")
+    ingots_after = item_count(ingots, "minecraft:iron_ingot")
+    c.check("the forge smelted iron dust into ingots", ingots_after > ingots_before,
+            f"iron ingots {ingots_before} -> {ingots_after} {ingots}")
+
     xp = number(block_data(r, CORE, "DataXp"))
     c.check("the core gained data XP", xp > xp_before, f"DataXp {xp_before} -> {xp}")
 

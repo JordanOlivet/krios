@@ -89,7 +89,8 @@ A full target starts from a fresh world, twice:
    empty bucket of the lava bucket it burned, a hopper under another takes
    that bucket, and a hopper under a third takes neither its fuel nor its
    module), the grinders and the forge
-   produce, the core gains XP, the Chrono Farmer tills, plants and harvests,
+   produce (and, in a second run of 800 ticks, a grinder turns 4 raw iron
+   into 8 iron dusts while the forge smelts iron dust), the core gains XP, the Chrono Farmer tills, plants and harvests,
    the Harvest Pod shears, the Phase Death Field kills the husks and leaves
    the sheep next door, a mined core drops with its `koios_data`.
 2. **restart**: stops the server, starts it again on the same world, and

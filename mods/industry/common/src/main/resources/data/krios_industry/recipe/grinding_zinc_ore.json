@@ -1,0 +1,7 @@
+{
+  "type": "krios_industry:grinding",
+  "ingredient": { "tag": "c:ores/zinc" },
+  "result": { "tag": "c:raw_materials/zinc", "count": 2 },
+  "energy": 800,
+  "time": 160
+}

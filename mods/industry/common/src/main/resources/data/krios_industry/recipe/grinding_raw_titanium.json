@@ -1,0 +1,7 @@
+{
+  "type": "krios_industry:grinding",
+  "ingredient": { "tag": "c:raw_materials/titanium" },
+  "result": { "tag": "c:dusts/titanium", "count": 2 },
+  "energy": 600,
+  "time": 120
+}

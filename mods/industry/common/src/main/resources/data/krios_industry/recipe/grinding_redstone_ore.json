@@ -1,0 +1,7 @@
+{
+  "type": "krios_industry:grinding",
+  "ingredient": { "tag": "c:ores/redstone" },
+  "result": { "id": "minecraft:redstone", "count": 9 },
+  "energy": 800,
+  "time": 160
+}

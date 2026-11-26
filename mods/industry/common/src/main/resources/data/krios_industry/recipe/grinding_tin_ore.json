@@ -1,0 +1,7 @@
+{
+  "type": "krios_industry:grinding",
+  "ingredient": { "tag": "c:ores/tin" },
+  "result": { "tag": "c:raw_materials/tin", "count": 2 },
+  "energy": 800,
+  "time": 160
+}

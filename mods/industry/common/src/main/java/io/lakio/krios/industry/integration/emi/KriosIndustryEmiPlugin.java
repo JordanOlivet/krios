@@ -37,7 +37,10 @@ public class KriosIndustryEmiPlugin implements EmiPlugin {
         registry.addWorkstation(grinding, EmiStack.of(ModBlocks.FRACTAL_GRINDER_TIER2.get()));
         for (RecipeHolder<GrindingRecipe> holder
                 : registry.getRecipeManager().getAllRecipesFor(ModRecipeTypes.GRINDING.get())) {
-            registry.addRecipe(new GrindingEmiRecipe(grinding, holder));
+            // A recipe for a material no installed mod brings is not listed (ADR-037).
+            if (holder.value().available()) {
+                registry.addRecipe(new GrindingEmiRecipe(grinding, holder));
+            }
         }
 
         registry.addWorkstation(VanillaEmiRecipeCategories.SMELTING, EmiStack.of(ModBlocks.PLASMA_FORGE.get()));

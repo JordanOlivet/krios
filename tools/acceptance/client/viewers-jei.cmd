@@ -19,6 +19,7 @@ command give @s krios_industry:engram
 command give @s krios_industry:plasma_forge
 command give @s krios_industry:thermal_reactor
 command give @s krios_core:neurite_ingot
+command give @s krios_core:iron_dust
 wait ticks 20
 
 key e
@@ -105,6 +106,22 @@ wait ticks 3
 key u
 wait ticks 15
 screenshot 08-neurite-ingot-uses
+key escape
+wait ticks 8
+
+# A dust of a vanilla metal (ADR-037): made by grinding the raw metal, smelted into the ingot.
+cursor slot 43
+wait ticks 3
+key r
+wait ticks 15
+screenshot 08b-iron-dust-recipes
+key escape
+wait ticks 8
+cursor slot 43
+wait ticks 3
+key u
+wait ticks 15
+screenshot 08c-iron-dust-uses
 key escape
 wait ticks 8
 

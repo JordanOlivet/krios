@@ -1,0 +1,7 @@
+{
+  "type": "krios_industry:grinding",
+  "ingredient": { "tag": "c:ores/osmium" },
+  "result": { "tag": "c:raw_materials/osmium", "count": 2 },
+  "energy": 800,
+  "time": 160
+}

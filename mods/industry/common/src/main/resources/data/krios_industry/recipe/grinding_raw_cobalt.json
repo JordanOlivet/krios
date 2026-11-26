@@ -1,0 +1,7 @@
+{
+  "type": "krios_industry:grinding",
+  "ingredient": { "tag": "c:raw_materials/cobalt" },
+  "result": { "tag": "c:dusts/cobalt", "count": 2 },
+  "energy": 600,
+  "time": 120
+}

@@ -1,0 +1,7 @@
+{
+  "type": "krios_industry:grinding",
+  "ingredient": { "tag": "c:raw_materials/aluminum" },
+  "result": { "tag": "c:dusts/aluminum", "count": 2 },
+  "energy": 600,
+  "time": 120
+}

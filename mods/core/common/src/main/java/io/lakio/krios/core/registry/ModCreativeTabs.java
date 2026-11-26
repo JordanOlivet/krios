@@ -25,6 +25,9 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.RAW_NEURITE.get());
                         output.accept(ModItems.NEURITE_DUST.get());
                         output.accept(ModItems.NEURITE_INGOT.get());
+                        output.accept(ModItems.IRON_DUST.get());
+                        output.accept(ModItems.GOLD_DUST.get());
+                        output.accept(ModItems.COPPER_DUST.get());
                         output.accept(ModBlocks.NEURAL_CASING.get());
                         output.accept(ModBlocks.NEURAL_CONDUIT.get());
                         output.accept(ModBlocks.KOIOS_CORE.get());

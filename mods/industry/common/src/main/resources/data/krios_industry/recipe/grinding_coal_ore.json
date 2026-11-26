@@ -1,0 +1,7 @@
+{
+  "type": "krios_industry:grinding",
+  "ingredient": { "tag": "c:ores/coal" },
+  "result": { "id": "minecraft:coal", "count": 2 },
+  "energy": 800,
+  "time": 160
+}
