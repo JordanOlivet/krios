@@ -308,4 +308,30 @@ screenshot 14-tier2-balance
 
 cursor off
 close
+wait ticks 5
+
+# The Magma Reactor's category: lava, as a bucket and as a fluid, into energy.
+command clear @s
+command give @s krios_industry:magma_reactor
+wait ticks 10
+key e
+wait screen
+wait ticks 10
+cursor slot 36
+wait ticks 3
+key u
+wait ticks 15
+screenshot 15-magma-reactor-uses
+# Its second tab: the Magma Reactor category, the reactor being its catalyst.
+cursor 260 36
+click
+wait ticks 8
+cursor 252 103
+wait ticks 5
+screenshot 15b-magma-reactor-category
+key escape
+wait ticks 8
+
+cursor off
+close
 quit
