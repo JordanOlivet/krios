@@ -58,6 +58,24 @@ class IndustryBalanceTest {
     }
 
     @Test
+    void aGrindGivesTheRecipeCountPlusAQuarterPerCountedPoint() {
+        assertEquals(2 * 4, IndustryBalance.grindQuarters(2, true, 0), "two dusts, no module");
+        assertEquals(3 * 4, IndustryBalance.grindQuarters(2, true, 2), "tier 1 cap: three dusts");
+        assertEquals(6 * 4, IndustryBalance.grindQuarters(2, true, 8), "last tier cap: six dusts");
+        assertEquals(39 * 4, IndustryBalance.grindQuarters(13, true, 8), "lapis at the last tier");
+    }
+
+    @Test
+    void offTheNetworkAGrindGivesExactlyHalfAndNeverLessThanOne() {
+        assertEquals(13 * 4, 2 * IndustryBalance.grindQuarters(13, false, 0), "two lapis ores give 13 lapis");
+        assertEquals(7 * 4, 2 * IndustryBalance.grindQuarters(7, false, 0), "two copper ores give 7 dusts");
+        assertEquals(4, IndustryBalance.grindQuarters(2, false, 0), "two dusts fall back to one");
+        assertEquals(4, IndustryBalance.grindQuarters(1, false, 0), "cobblestone to gravel stays one for one");
+        assertEquals(IndustryBalance.grindQuarters(2, false, 0), IndustryBalance.grindQuarters(2, false, 8),
+                "modules sleep off the network");
+    }
+
+    @Test
     void zoneMachinesEarnLessXpThanTheGrinder() {
         // The reduced-XP rule of zone machines: a fraction of a grind, never more.
         for (int xp : new int[] {IndustryBalance.HARVEST_BASE_XP, IndustryBalance.FELL_BASE_XP,

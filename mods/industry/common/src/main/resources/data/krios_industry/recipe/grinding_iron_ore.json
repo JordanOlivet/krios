@@ -1,7 +1,7 @@
 {
   "type": "krios_industry:grinding",
   "ingredient": { "tag": "c:ores/iron" },
-  "result": { "id": "minecraft:raw_iron", "count": 2 },
+  "result": { "id": "krios_core:iron_dust", "count": 2 },
   "energy": 800,
   "time": 160
 }

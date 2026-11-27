@@ -1,7 +1,9 @@
 package io.lakio.krios.industry.machine.grinder;
 
 import io.lakio.krios.industry.machine.MachineMenu;
+import io.lakio.krios.industry.machine.MachineTiers;
 import io.lakio.krios.industry.machine.module.ModuleItem;
+import io.lakio.krios.industry.machine.module.ModuleType;
 import io.lakio.krios.industry.registry.ModMenus;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.Container;
@@ -201,6 +203,13 @@ public class FractalGrinderMenu extends AbstractContainerMenu implements Machine
             if (!(stack.getItem() instanceof ModuleItem module)
                     || !module.getType().isProcessAxis()
                     || bayIndex >= activeModuleSlots()) {
+                return false;
+            }
+            // ADR-038: Yield points stop at the effective tier's cap.
+            if (module.getType() == ModuleType.YIELD && !MachineTiers.yieldModuleFits(
+                    ModuleItem.pointsIn(container, MODULE_SLOT_START, FractalGrinderBlockEntity.MODULE_SLOT_COUNT,
+                            ModuleType.YIELD, getContainerSlot()),
+                    module.points(), getEffectiveTier())) {
                 return false;
             }
             if (container instanceof FractalGrinderBlockEntity be

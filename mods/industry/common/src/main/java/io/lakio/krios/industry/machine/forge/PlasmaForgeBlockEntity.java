@@ -106,10 +106,9 @@ public class PlasmaForgeBlockEntity extends BlockEntity
             RecipeManager.createCheck(RecipeType.SMELTING);
     // Per-column runtime state (parallel processing, design 2026-09-30):
     // each column is an independent input -> output pair with its own
-    // progress and deterministic yield carry (ADR-006).
+    // progress. No yield carry: the forge smelts one for one (ADR-038).
     private final int[] progress = new int[PROCESS_SLOTS];
     private final int[] columnTime = new int[PROCESS_SLOTS];
-    private final int[] yieldQuarters = new int[PROCESS_SLOTS];
     /** Current demand in E/t, all columns summed; 0 while idle. */
     private int currentDrawPerTick;
     /** E actually consumed on the last work tick (0 = idle or starved). */
@@ -328,7 +327,6 @@ public class PlasmaForgeBlockEntity extends BlockEntity
         int activeColumns = Math.min(PROCESS_SLOTS, MachineTiers.processSlots(effectiveTier));
         int speedPoints = online ? be.modulePoints(ModuleType.SPEED) : 0;
         int efficiencyPoints = online ? be.modulePoints(ModuleType.EFFICIENCY) : 0;
-        int yieldPoints = online ? be.modulePoints(ModuleType.YIELD) : 0;
 
         int draw = 0;
         int consumed = 0;
@@ -340,7 +338,7 @@ public class PlasmaForgeBlockEntity extends BlockEntity
                     : be.quickCheck.getRecipeFor(new SingleRecipeInput(input), level).orElse(null);
             ItemStack result = holder == null ? ItemStack.EMPTY
                     : holder.value().getResultItem(level.registryAccess());
-            if (holder == null || result.isEmpty() || !be.canOutput(column, result, yieldPoints)) {
+            if (holder == null || result.isEmpty() || !be.canOutput(column, result)) {
                 be.progress[column] = 0;
                 be.columnTime[column] = 0;
                 continue;
@@ -357,7 +355,7 @@ public class PlasmaForgeBlockEntity extends BlockEntity
             if (be.energy.consume(energyPerTick)) {
                 consumed += energyPerTick;
                 if (++be.progress[column] >= be.columnTime[column]) {
-                    be.craft(column, holder, result, yieldPoints);
+                    be.craft(column, holder, result);
                     be.progress[column] = 0;
                 }
             } else {
@@ -430,13 +428,13 @@ public class PlasmaForgeBlockEntity extends BlockEntity
         return !faceConfig.isManual(face) || faceConfig.allows(face, Flow.ENERGY, false);
     }
 
-    /** Vanilla smelting is 1:1; connected yield modules add +25% each. */
-    private static int craftQuarters(ItemStack result, int yieldPoints) {
-        return result.getCount() * (4 + yieldPoints);
-    }
-
-    private boolean canOutput(int column, ItemStack result, int yieldPoints) {
-        int prospective = (yieldQuarters[column] + craftQuarters(result, yieldPoints)) / 4;
+    /**
+     * Smelting gives the recipe's own result, one for one: a dust is one
+     * ingot (ADR-038). The forge takes no Yield module; one left in its bay
+     * from an older version is inert.
+     */
+    private boolean canOutput(int column, ItemStack result) {
+        int prospective = result.getCount();
         ItemStack current = items.get(OUTPUT_FIRST + column);
         if (current.isEmpty()) {
             return prospective <= result.getMaxStackSize();
@@ -445,11 +443,8 @@ public class PlasmaForgeBlockEntity extends BlockEntity
                 && current.getCount() + prospective <= current.getMaxStackSize();
     }
 
-    private void craft(int column, RecipeHolder<SmeltingRecipe> holder, ItemStack result,
-            int yieldPoints) {
-        yieldQuarters[column] += craftQuarters(result, yieldPoints);
-        int crafted = yieldQuarters[column] / 4;
-        yieldQuarters[column] %= 4;
+    private void craft(int column, RecipeHolder<SmeltingRecipe> holder, ItemStack result) {
+        int crafted = result.getCount();
         items.get(INPUT_FIRST + column).shrink(1);
         ItemStack current = items.get(OUTPUT_FIRST + column);
         if (current.isEmpty()) {
@@ -732,7 +727,6 @@ public class PlasmaForgeBlockEntity extends BlockEntity
         energy.save(tag);
         faceConfig.save(tag);
         tag.putIntArray("Progress", progress.clone());
-        tag.putIntArray("YieldQuarters", yieldQuarters.clone());
         tag.putBoolean("InputBalance", inputBalance);
     }
 
@@ -742,10 +736,11 @@ public class PlasmaForgeBlockEntity extends BlockEntity
         ContainerHelper.loadAllItems(tag, items, registries);
         energy.load(tag);
         faceConfig.load(tag);
-        // Pre-parallel saves stored plain ints here: getIntArray answers
-        // empty and both arrays stay zeroed — a mid-craft op restarts.
+        // Pre-parallel saves stored a plain int here: getIntArray answers
+        // empty and the array stays zeroed — a mid-craft op restarts. The
+        // yield carry of saves before ADR-038 ("YieldQuarters", under one
+        // item per column) is dropped.
         loadColumns(tag.getIntArray("Progress"), progress);
-        loadColumns(tag.getIntArray("YieldQuarters"), yieldQuarters);
         inputBalance = tag.getBoolean("InputBalance");
     }
 

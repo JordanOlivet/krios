@@ -35,9 +35,6 @@ public class PlasmaForgeScreen extends MachineTerminalScreen<PlasmaForgeMenu> {
                             io.lakio.krios.industry.IndustryBalance.efficiencyPermille(
                                     modulePoints(ModuleType.EFFICIENCY)) / 1000.0)),
                     Component.translatable("gui.krios_industry.stats.energy")),
-            new StatsPanel.Row(StatsPanel.Icon.YIELD,
-                    () -> Component.literal("+" + modulePoints(ModuleType.YIELD) * 25 + " %"),
-                    Component.translatable("gui.krios_industry.stats.yield")),
             new StatsPanel.Row(StatsPanel.Icon.OUTPUT,
                     () -> Component.literal(menu.drawPerTick() + " E/t"),
                     Component.translatable("gui.krios_industry.stats.consumption")));

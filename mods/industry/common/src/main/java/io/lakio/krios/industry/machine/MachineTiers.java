@@ -37,14 +37,25 @@ public final class MachineTiers {
     }
 
     /**
-     * Grinder base yield ladder over 2: x2 / x3 / x3 / x4 (tier 3 breathes,
-     * design). Quarter-item accumulator keeps it deterministic (ADR-006).
-     * The grinder is the yield machine — the forge does not compound it.
+     * Yield points a machine counts per effective tier (ADR-038): the tier
+     * sets the ceiling, modules fill it. 2 / 4 / 6 / 8 points, so at most
+     * +50% / +100% / +150% / +200% over a recipe. Yield brings no base
+     * multiplier of its own: speed is what tiers grow without bound.
      */
-    private static final int[] YIELD_NUM = {2, 3, 3, 4};
+    public static final int YIELD_POINTS_PER_TIER = 2;
 
-    public static int yieldNum(int tier) {
-        return YIELD_NUM[tier - 1];
+    public static int yieldPointCap(int tier) {
+        return YIELD_POINTS_PER_TIER * tier;
+    }
+
+    /** The Yield points that take effect: the bay's total, capped by the tier. */
+    public static int countedYieldPoints(int bayPoints, int tier) {
+        return Math.min(bayPoints, yieldPointCap(tier));
+    }
+
+    /** Whether a Yield module of {@code modulePoints} fits a bay already counting {@code bayPoints}. */
+    public static boolean yieldModuleFits(int bayPoints, int modulePoints, int tier) {
+        return bayPoints + modulePoints <= yieldPointCap(tier);
     }
 
     /**

@@ -54,7 +54,7 @@ public class PhaseDeathFieldScreen extends ZoneMachineScreen<PhaseDeathFieldMenu
                                 IndustryBalance.efficiencyPermille(modulePoints(ModuleType.EFFICIENCY)) / 1000.0)),
                         Component.translatable("gui.krios_industry.stats.energy")),
                 new StatsPanel.Row(StatsPanel.Icon.YIELD,
-                        () -> Component.literal(Integer.toString(modulePoints(ModuleType.YIELD))),
+                        () -> lootingValue(modulePoints(ModuleType.YIELD), menu.getEffectiveTier()),
                         Component.translatable("gui.krios_industry.stats.looting")),
                 new StatsPanel.Row(StatsPanel.Icon.OUTPUT,
                         () -> Component.literal(menu.drawPerTick() + " E/t"),

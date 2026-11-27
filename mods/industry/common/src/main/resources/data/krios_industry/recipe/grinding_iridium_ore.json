@@ -1,7 +1,10 @@
 {
   "type": "krios_industry:grinding",
   "ingredient": { "tag": "c:ores/iridium" },
-  "result": { "tag": "c:raw_materials/iridium", "count": 2 },
+  "result": [
+    { "tag": "c:dusts/iridium", "count": 2 },
+    { "tag": "c:raw_materials/iridium", "count": 2 }
+  ],
   "energy": 800,
   "time": 160
 }

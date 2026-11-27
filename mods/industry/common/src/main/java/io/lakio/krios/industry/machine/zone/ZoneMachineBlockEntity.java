@@ -589,7 +589,7 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
         Work work = new Work(online, elapsed,
                 online ? modulePoints(ModuleType.SPEED) : 0,
                 IndustryBalance.efficiencyPermille(online ? modulePoints(ModuleType.EFFICIENCY) : 0),
-                online ? modulePoints(ModuleType.YIELD) : 0,
+                countedYieldPoints(),
                 effectiveTier,
                 IndustryBalance.ZONE_ACTIONS_BASE * MachineTiers.speedFactor(effectiveTier));
         int storedBefore = energy.getStored();
@@ -777,6 +777,11 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
     /** Bay slots this machine's tier activates (2 per tier). */
     public int activeModuleSlots() {
         return Math.min(MODULE_SLOT_COUNT, 2 * machineTier);
+    }
+
+    /** The Yield points a wake applies (ADR-038): capped by the effective tier, none offline. */
+    public int countedYieldPoints() {
+        return isOnline() ? MachineTiers.countedYieldPoints(modulePoints(ModuleType.YIELD), effectiveTier()) : 0;
     }
 
     // --- Energy ---
