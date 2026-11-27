@@ -48,12 +48,20 @@ public class KriosIndustryEmiPlugin implements EmiPlugin {
         registry.addWorkstation(VanillaEmiRecipeCategories.FUEL, EmiStack.of(ModBlocks.THERMAL_REACTOR.get()));
         registry.addWorkstation(VanillaEmiRecipeCategories.FUEL, EmiStack.of(ModBlocks.THERMAL_REACTOR_TIER2.get()));
 
+        EmiStack magma = EmiStack.of(ModBlocks.MAGMA_REACTOR.get());
+        EmiRecipeCategory magmaReactor = new EmiRecipeCategory(Constants.id("magma_reactor"), magma);
+        registry.addCategory(magmaReactor);
+        registry.addWorkstation(magmaReactor, magma);
+        registry.addRecipe(new MagmaReactorEmiRecipe(magmaReactor,
+                io.lakio.krios.industry.integration.MagmaReactorDisplay.LAVA));
+
         // The fill button, in the machine that runs each category.
         registry.addRecipeHandler(ModMenus.FRACTAL_GRINDER.get(), new MachineEmiHandler<>(grinding));
         registry.addRecipeHandler(ModMenus.PLASMA_FORGE.get(),
                 new MachineEmiHandler<>(VanillaEmiRecipeCategories.SMELTING));
         registry.addRecipeHandler(ModMenus.THERMAL_REACTOR.get(),
                 new MachineEmiHandler<>(VanillaEmiRecipeCategories.FUEL));
+        registry.addRecipeHandler(ModMenus.MAGMA_REACTOR.get(), new MachineEmiHandler<>(magmaReactor));
 
         // Copying an Engram is a special crafting recipe viewers cannot list.
         // Synthetic recipe: EMI's convention is an id path starting with a slash.

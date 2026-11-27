@@ -14,6 +14,7 @@ import io.lakio.krios.industry.Constants;
 import io.lakio.krios.industry.machine.MachineTiers;
 import io.lakio.krios.industry.machine.grinder.FractalGrinderBlockEntity;
 import io.lakio.krios.industry.machine.grinder.GrindingRecipe;
+import io.lakio.krios.industry.machine.magma.MagmaReactorBlockEntity;
 import io.lakio.krios.industry.machine.reactor.ThermalReactorBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
@@ -67,7 +68,154 @@ public class IndustryGameTests {
                 new TestFunction(BATCH, "grinder_off_network_gives_exactly_half", CoreGameTests.ARENA, 900, 0L, true,
                         IndustryGameTests::grinderOffNetworkGivesExactlyHalf),
                 new TestFunction(BATCH, "plasma_forge_smelts_one_for_one", CoreGameTests.ARENA, 600, 0L, true,
-                        IndustryGameTests::plasmaForgeSmeltsOneForOne));
+                        IndustryGameTests::plasmaForgeSmeltsOneForOne),
+                new TestFunction(BATCH, "magma_reactor_pours_a_bucket", CoreGameTests.ARENA, 100, 0L, true,
+                        IndustryGameTests::magmaReactorPoursABucket),
+                new TestFunction(BATCH, "magma_reactor_gets_640_energy_per_millibucket", CoreGameTests.ARENA, 400,
+                        0L, true, IndustryGameTests::magmaReactorGets640EnergyPerMillibucket),
+                new TestFunction(BATCH, "magma_reactor_drains_cauldrons_on_fluid_in_faces_only", CoreGameTests.ARENA,
+                        200, 0L, true, IndustryGameTests::magmaReactorDrainsCauldronsOnFluidInFacesOnly),
+                new TestFunction(BATCH, "magma_reactor_counts_energy_up_to_its_tier_cap", CoreGameTests.ARENA, 200,
+                        0L, true, IndustryGameTests::magmaReactorCountsEnergyUpToItsTierCap),
+                new TestFunction(BATCH, "magma_reactor_pipes_follow_the_face_contract", CoreGameTests.ARENA, 100,
+                        0L, true, IndustryGameTests::magmaReactorPipesFollowTheFaceContract),
+                new TestFunction(BATCH, "grinder_pulls_from_a_paused_magma_reactor", CoreGameTests.ARENA, 400,
+                        0L, true, IndustryGameTests::grinderPullsFromAPausedMagmaReactor));
+    }
+
+    /**
+     * Off the network a machine pulls from the generator it touches: a Magma
+     * Reactor with a full buffer and no lava never pushes, the grinder beside
+     * it still grinds.
+     */
+    private static void grinderPullsFromAPausedMagmaReactor(GameTestHelper helper) {
+        MagmaReactorBlockEntity reactor = placeMagmaReactor(helper, new BlockPos(1, 1, 1));
+        reactor.getEnergy().insert(reactor.getEnergy().getCapacity());
+        BlockPos grinderPos = new BlockPos(2, 1, 1);
+        helper.setBlock(grinderPos, io.lakio.krios.industry.registry.ModBlocks.FRACTAL_GRINDER.get());
+        FractalGrinderBlockEntity grinder = helper.getBlockEntity(grinderPos);
+        grinder.setItem(FractalGrinderBlockEntity.INPUT_FIRST, new ItemStack(Items.COBBLESTONE));
+        helper.succeedWhen(() -> helper.assertTrue(
+                grinder.getItem(FractalGrinderBlockEntity.OUTPUT_FIRST).is(Items.GRAVEL), "no gravel yet"));
+    }
+
+    // --- The Magma Reactor (design 2026-11-27, ADR-039) ---
+
+    private static MagmaReactorBlockEntity placeMagmaReactor(GameTestHelper helper, BlockPos pos) {
+        helper.setBlock(pos, io.lakio.krios.industry.registry.ModBlocks.MAGMA_REACTOR.get());
+        return helper.getBlockEntity(pos);
+    }
+
+    /** A lava bucket pours into the tank and its empty bucket goes to the output slot. */
+    private static void magmaReactorPoursABucket(GameTestHelper helper) {
+        MagmaReactorBlockEntity reactor = placeMagmaReactor(helper, new BlockPos(1, 1, 1));
+        reactor.setItem(MagmaReactorBlockEntity.BUCKET_IN_SLOT, new ItemStack(Items.LAVA_BUCKET));
+        helper.succeedWhen(() -> {
+            helper.assertTrue(reactor.getItem(MagmaReactorBlockEntity.BUCKET_IN_SLOT).isEmpty(),
+                    "the lava bucket is still in the input");
+            ItemStack out = reactor.getItem(MagmaReactorBlockEntity.BUCKET_OUT_SLOT);
+            helper.assertTrue(out.is(Items.BUCKET) && out.getCount() == 1, "the output slot holds " + out);
+            // The burner draws one cycle as soon as it lights.
+            helper.assertValueEqual(reactor.getLavaTank().getStored(),
+                    io.lakio.krios.industry.machine.magma.LavaTank.BUCKET
+                            - MagmaReactorBlockEntity.BURN_CYCLE_MB, "lava in the tank");
+            helper.assertTrue(reactor.energyStored() > 0, "the lava gave no energy");
+        });
+    }
+
+    /** Ten millibuckets burn into exactly 6,400 E off the network: twice the Thermal Reactor's 320 E/mB. */
+    private static void magmaReactorGets640EnergyPerMillibucket(GameTestHelper helper) {
+        MagmaReactorBlockEntity reactor = placeMagmaReactor(helper, new BlockPos(1, 1, 1));
+        reactor.getLavaTank().fill(10, false);
+        reactor.onLavaChanged();
+        helper.succeedWhen(() -> {
+            helper.assertTrue(reactor.getLavaTank().getStored() == 0, "lava left in the tank");
+            helper.assertTrue(!reactor.getBlockState().getValue(
+                    net.minecraft.world.level.block.state.properties.BlockStateProperties.LIT), "still burning");
+            helper.assertValueEqual(reactor.energyStored(), 10 * 640, "energy from 10 mB");
+        });
+    }
+
+    /**
+     * A manual FLUID-in face empties the lava cauldron it touches; a virgin
+     * face leaves its cauldron full.
+     */
+    private static void magmaReactorDrainsCauldronsOnFluidInFacesOnly(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(2, 1, 2);
+        MagmaReactorBlockEntity reactor = placeMagmaReactor(helper, pos);
+        BlockPos fed = pos.east();
+        BlockPos spared = pos.west();
+        helper.setBlock(fed, net.minecraft.world.level.block.Blocks.LAVA_CAULDRON);
+        helper.setBlock(spared, net.minecraft.world.level.block.Blocks.LAVA_CAULDRON);
+        // Face button: face * 16 + sub, sub 10 = the "in" preset (items and lava in).
+        reactor.handleFaceButton(net.minecraft.core.Direction.EAST.get3DDataValue() * 16 + 10);
+        helper.runAtTickTime(120, () -> {
+            helper.assertBlockPresent(net.minecraft.world.level.block.Blocks.CAULDRON, fed);
+            helper.assertBlockPresent(net.minecraft.world.level.block.Blocks.LAVA_CAULDRON, spared);
+            helper.assertValueEqual(reactor.getLavaTank().getStored(),
+                    io.lakio.krios.industry.machine.magma.LavaTank.BUCKET
+                            - MagmaReactorBlockEntity.BURN_CYCLE_MB, "lava from one cauldron");
+            helper.succeed();
+        });
+    }
+
+    /**
+     * Energy counts one point per effective tier (ADR-039): four modules in a
+     * Magma Reactor on a tier 2 core count two, and the bay refuses a third
+     * point before the KOIOS gate does.
+     */
+    private static void magmaReactorCountsEnergyUpToItsTierCap(GameTestHelper helper) {
+        placeOnNetwork(helper, io.lakio.krios.industry.registry.ModBlocks.MAGMA_REACTOR.get());
+        MagmaReactorBlockEntity reactor = helper.getBlockEntity(NETWORK_MACHINE);
+        int first = MagmaReactorBlockEntity.MODULE_SLOT_FIRST;
+        helper.startSequence()
+                .thenWaitUntil(() -> assertOnline(helper, reactor))
+                .thenExecute(() -> {
+                    KoiosCoreBlockEntity core = helper.getBlockEntity(CoreGameTests.CORE);
+                    core.setTierAdmin(2);
+                    core.setXpAdmin(io.lakio.krios.core.koios.KoiosBalance.LEVEL_XP[
+                            io.lakio.krios.industry.IndustryBalance.ENERGY_UNLOCK_LEVEL]);
+                    net.minecraft.world.entity.player.Player player =
+                            helper.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+                    var menu = reactor.createMenu(0, player.getInventory(), player);
+                    ItemStack energy = new ItemStack(io.lakio.krios.industry.registry.ModItems.ENERGY_MODULE.get());
+
+                    reactor.setItem(first, energy.copy());
+                    helper.assertTrue(menu.getSlot(first + 1).mayPlace(energy.copy()),
+                            "a second Energy point is refused at tier 2");
+                    reactor.setItem(first + 1, energy.copy());
+                    helper.assertTrue(!menu.getSlot(first + 2).mayPlace(energy.copy()),
+                            "a third Energy point goes in at tier 2");
+                    reactor.setItem(first + 2, energy.copy());
+                    reactor.setItem(first + 3, energy.copy());
+                    helper.assertValueEqual(reactor.countedEnergyPoints(), 2, "Energy points a tier 2 reactor counts");
+                })
+                .thenSucceed();
+    }
+
+    /**
+     * Other mods' pipes (ADR-039): a virgin face takes lava in and never lets
+     * it out; a face set by hand to FLUID out only lets it out, and takes none.
+     */
+    private static void magmaReactorPipesFollowTheFaceContract(GameTestHelper helper) {
+        BlockPos rel = new BlockPos(1, 1, 1);
+        MagmaReactorBlockEntity reactor = placeMagmaReactor(helper, rel);
+        BlockPos pos = helper.absolutePos(rel);
+        var fluids = io.lakio.krios.industry.platform.IndustryServices.FLUIDS;
+        net.minecraft.core.Direction virgin = net.minecraft.core.Direction.NORTH;
+        net.minecraft.core.Direction out = net.minecraft.core.Direction.UP;
+        reactor.faceConfig().enterManual(out,
+                (short) io.lakio.krios.core.network.FaceConfig.flowBits(io.lakio.krios.core.network.Flow.FLUID, true));
+
+        helper.assertValueEqual(fluids.insertLava(helper.getLevel(), pos, virgin, 2000), 2000,
+                "lava a virgin face takes");
+        helper.assertValueEqual(fluids.extractLava(helper.getLevel(), pos, virgin, 500), 0,
+                "lava out of a virgin face");
+        helper.assertValueEqual(fluids.insertLava(helper.getLevel(), pos, out, 1000), 0,
+                "lava into a FLUID-out face");
+        helper.assertValueEqual(fluids.extractLava(helper.getLevel(), pos, out, 500), 500,
+                "lava out of a FLUID-out face");
+        helper.succeed();
     }
 
     // --- The yield pass (ADR-038) ---

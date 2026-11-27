@@ -67,6 +67,7 @@
   "gui.krios_core.faces.hint": "Clic gauche : choisir une face. Clic droit + glisser : pivoter.",
   "gui.krios_core.flowtype.energy": "Énergie",
   "gui.krios_core.flowtype.item": "Objets",
+  "gui.krios_core.flowtype.fluid": "Fluides",
   "gui.krios_core.faces.in": "Entrée",
   "gui.krios_core.faces.out": "Sortie",
   "gui.krios_core.faces.preset.block": "Tout bloquer",

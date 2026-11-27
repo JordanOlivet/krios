@@ -20,6 +20,8 @@ public final class KriosIndustryClient {
     @SubscribeEvent
     public static void onRegisterScreens(RegisterMenuScreensEvent event) {
         event.register(ModMenus.THERMAL_REACTOR.get(), ThermalReactorScreen::new);
+        event.register(ModMenus.MAGMA_REACTOR.get(),
+                io.lakio.krios.industry.client.screen.MagmaReactorScreen::new);
         event.register(ModMenus.PHOTON_ARRAY.get(), PhotonArrayScreen::new);
         event.register(ModMenus.FRACTAL_GRINDER.get(), FractalGrinderScreen::new);
         event.register(ModMenus.PLASMA_FORGE.get(), PlasmaForgeScreen::new);

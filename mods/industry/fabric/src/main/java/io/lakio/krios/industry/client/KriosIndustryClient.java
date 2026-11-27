@@ -14,6 +14,8 @@ public class KriosIndustryClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         MenuScreens.register(ModMenus.THERMAL_REACTOR.get(), ThermalReactorScreen::new);
+        MenuScreens.register(ModMenus.MAGMA_REACTOR.get(),
+                io.lakio.krios.industry.client.screen.MagmaReactorScreen::new);
         MenuScreens.register(ModMenus.PHOTON_ARRAY.get(), PhotonArrayScreen::new);
         MenuScreens.register(ModMenus.FRACTAL_GRINDER.get(), FractalGrinderScreen::new);
         MenuScreens.register(ModMenus.PLASMA_FORGE.get(), PlasmaForgeScreen::new);

@@ -59,6 +59,28 @@ public final class MachineTiers {
     }
 
     /**
+     * Energy points a generator counts per effective tier (ADR-039): half
+     * the Yield cap, 1 / 2 / 3 / 4 points, so at most +25% / +50% / +75% /
+     * +100% energy from the same fuel. Energy is a multiplier on fuel like
+     * Yield is on ores; the cap keeps it from stacking without bound.
+     */
+    public static final int ENERGY_POINTS_PER_TIER = 1;
+
+    public static int energyPointCap(int tier) {
+        return ENERGY_POINTS_PER_TIER * tier;
+    }
+
+    /** The Energy points that take effect: the bay's total, capped by the tier. */
+    public static int countedEnergyPoints(int bayPoints, int tier) {
+        return Math.min(bayPoints, energyPointCap(tier));
+    }
+
+    /** Whether an Energy module of {@code modulePoints} fits a bay already counting {@code bayPoints}. */
+    public static boolean energyModuleFits(int bayPoints, int modulePoints, int tier) {
+        return bayPoints + modulePoints <= energyPointCap(tier);
+    }
+
+    /**
      * Zone edge per tier for zone machines (Chrono Farmer design
      * 2026-10-08): the zone analog of process slots. 9/13/19/27 keeps the
      * doubling invariant on AREA (81 -> 169 -> 361 -> 729), and 9x9 is

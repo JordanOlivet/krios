@@ -20,6 +20,11 @@ public final class ModBlockEntities {
             () -> Services.REGISTRAR.createBlockEntityType(ThermalReactorBlockEntity::new,
                     ModBlocks.THERMAL_REACTOR.get(), ModBlocks.THERMAL_REACTOR_TIER2.get()));
 
+    public static final Supplier<BlockEntityType<io.lakio.krios.industry.machine.magma.MagmaReactorBlockEntity>> MAGMA_REACTOR =
+            register("magma_reactor", () -> Services.REGISTRAR.createBlockEntityType(
+                    io.lakio.krios.industry.machine.magma.MagmaReactorBlockEntity::new,
+                    ModBlocks.MAGMA_REACTOR.get()));
+
     public static final Supplier<BlockEntityType<io.lakio.krios.industry.machine.photon.PhotonArrayBlockEntity>> PHOTON_ARRAY =
             register("photon_array", () -> Services.REGISTRAR.createBlockEntityType(
                     io.lakio.krios.industry.machine.photon.PhotonArrayBlockEntity::new,

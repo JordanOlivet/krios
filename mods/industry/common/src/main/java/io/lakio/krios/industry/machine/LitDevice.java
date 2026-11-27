@@ -44,7 +44,15 @@ public final class LitDevice {
 
     /** Manual item faces get serviced every ADR-017 interval. */
     public boolean pullDue(long now, FaceConfig faces) {
-        if (!ItemFlow.hasManualItemFace(faces) || now < nextPull) {
+        return pullDue(now, ItemFlow.hasManualItemFace(faces));
+    }
+
+    /**
+     * The same cadence for a machine that decides by itself what needs
+     * servicing (the Magma Reactor's manual fluid faces probe cauldrons).
+     */
+    public boolean pullDue(long now, boolean servicing) {
+        if (!servicing || now < nextPull) {
             return false;
         }
         nextPull = now + ItemFlow.WAKE_INTERVAL_TICKS;
@@ -53,12 +61,17 @@ public final class LitDevice {
 
     /** End of a visit: awake while lit, probing for manual faces, else asleep. */
     public void settle(boolean lit, FaceConfig faces, long now) {
+        settle(lit, ItemFlow.hasManualItemFace(faces), now);
+    }
+
+    /** End of a visit: awake while lit, probing while something needs servicing, else asleep. */
+    public void settle(boolean lit, boolean servicing, long now) {
         if (handle == null) {
             return;
         }
         if (lit) {
             handle.stayAwake();
-        } else if (ItemFlow.hasManualItemFace(faces)) {
+        } else if (servicing) {
             handle.sleepFor((int) Math.max(1, nextPull - now));
         } else {
             handle.sleep();

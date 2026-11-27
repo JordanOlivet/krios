@@ -58,7 +58,7 @@ public class ThermalReactorScreen extends MachineTerminalScreen<ThermalReactorMe
         super(menu, playerInventory, title);
     }
 
-    /** Energy-module point total (points model, 2026-10-01). */
+    /** Energy-module points counted (points model 2026-10-01, capped per tier by ADR-039). */
     private int energyPoints() {
         int points = 0;
         for (int i = ThermalReactorBlockEntity.MODULE_SLOT_FIRST; i <= ThermalReactorBlockEntity.MODULE_SLOT_LAST; i++) {
@@ -68,7 +68,7 @@ public class ThermalReactorScreen extends MachineTerminalScreen<ThermalReactorMe
                 points += module.points();
             }
         }
-        return points;
+        return io.lakio.krios.industry.machine.MachineTiers.countedEnergyPoints(points, menu.getEffectiveTier());
     }
 
     @Override

@@ -29,8 +29,8 @@ import net.minecraft.world.item.crafting.RecipeHolder;
  * annotation on NeoForge and by the {@code jei_mod_plugin} entrypoint on
  * Fabric): the grinding category, and the machines as catalysts of the
  * vanilla categories they run (smelting for the Plasma Forge, fuels for
- * the Thermal Reactor), each with a transfer handler that moves a recipe's
- * input into the open machine. The terminals' off-frame areas are core's
+ * the Thermal Reactor), the Magma Reactor's lava category, each with a
+ * transfer handler that moves a recipe's input into the open machine. The terminals' off-frame areas are core's
  * part.
  */
 @JeiPlugin
@@ -38,6 +38,10 @@ public class KriosIndustryJeiPlugin implements IModPlugin {
 
     public static final RecipeType<RecipeHolder<GrindingRecipe>> GRINDING =
             RecipeType.createRecipeHolderType(Constants.id("grinding"));
+
+    public static final RecipeType<io.lakio.krios.industry.integration.MagmaReactorDisplay> MAGMA_REACTOR =
+            RecipeType.create(Constants.MOD_ID, "magma_reactor",
+                    io.lakio.krios.industry.integration.MagmaReactorDisplay.class);
 
     private static final ResourceLocation UID = Constants.id("jei");
 
@@ -49,6 +53,8 @@ public class KriosIndustryJeiPlugin implements IModPlugin {
     @Override
     public void registerCategories(IRecipeCategoryRegistration registration) {
         registration.addRecipeCategories(new GrindingCategory(registration.getJeiHelpers().getGuiHelper()));
+        registration.addRecipeCategories(new MagmaReactorCategory(registration.getJeiHelpers().getGuiHelper(),
+                registration.getJeiHelpers().getPlatformFluidHelper().bucketVolume()));
     }
 
     @Override
@@ -61,6 +67,8 @@ public class KriosIndustryJeiPlugin implements IModPlugin {
                             .filter(holder -> holder.value().available())
                             .toList());
         }
+        registration.addRecipes(MAGMA_REACTOR,
+                java.util.List.of(io.lakio.krios.industry.integration.MagmaReactorDisplay.LAVA));
         // Copying an Engram is a special crafting recipe viewers cannot list.
         registration.addIngredientInfo(ModItems.ENGRAM.get(),
                 Component.translatable("gui.krios_industry.viewer.engram_info"));
@@ -77,6 +85,9 @@ public class KriosIndustryJeiPlugin implements IModPlugin {
         registration.addRecipeTransferHandler(new MachineTransferHandler<>(
                 ThermalReactorMenu.class, ModMenus.THERMAL_REACTOR.get(), RecipeTypes.FUELING, helper),
                 RecipeTypes.FUELING);
+        registration.addRecipeTransferHandler(new MachineTransferHandler<>(
+                io.lakio.krios.industry.machine.magma.MagmaReactorMenu.class, ModMenus.MAGMA_REACTOR.get(),
+                MAGMA_REACTOR, helper), MAGMA_REACTOR);
     }
 
     @Override
@@ -87,5 +98,6 @@ public class KriosIndustryJeiPlugin implements IModPlugin {
                 ModBlocks.PLASMA_FORGE.get(), ModBlocks.PLASMA_FORGE_TIER2.get());
         registration.addRecipeCatalysts(RecipeTypes.FUELING,
                 ModBlocks.THERMAL_REACTOR.get(), ModBlocks.THERMAL_REACTOR_TIER2.get());
+        registration.addRecipeCatalysts(MAGMA_REACTOR, ModBlocks.MAGMA_REACTOR.get());
     }
 }

@@ -74,9 +74,13 @@ public class HologramFacePanel extends AnnexPanel {
         return FaceConfig.isConfiguredBits(faceBits) && allowed ? 0x98 : 0x50;
     }
 
-    /** Badge palette (amber = energy, cyan = items), shared with the overlay. */
+    /** Badge palette (amber = energy, cyan = items, lava orange = fluids), shared with the overlay. */
     public static int flowColor(Flow flow) {
-        return flow == Flow.ENERGY ? 0xFFB03A : 0x31D8FF;
+        return switch (flow) {
+            case ENERGY -> 0xFFB03A;
+            case FLUID -> 0xE2501C;
+            default -> 0x31D8FF;
+        };
     }
 
     /** Internal click result: consumed by the panel, no menu button to send. */

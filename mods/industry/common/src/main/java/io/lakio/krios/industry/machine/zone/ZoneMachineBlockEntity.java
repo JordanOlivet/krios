@@ -15,7 +15,7 @@ import io.lakio.krios.industry.machine.MachineTiers;
 import io.lakio.krios.industry.machine.TieredMachine;
 import io.lakio.krios.industry.machine.module.ModuleItem;
 import io.lakio.krios.industry.machine.module.ModuleType;
-import io.lakio.krios.industry.machine.reactor.ThermalReactorBlockEntity;
+import io.lakio.krios.industry.machine.ContactEnergySource;
 import io.lakio.krios.core.network.EnergySink;
 import io.lakio.krios.core.network.FaceConfig;
 import io.lakio.krios.core.network.Flow;
@@ -807,7 +807,7 @@ public abstract class ZoneMachineBlockEntity extends BlockEntity
             if (faceConfig.isManual(direction) && !faceConfig.allows(direction, Flow.ENERGY, false)) {
                 continue;
             }
-            if (level.getBlockEntity(worldPosition.relative(direction)) instanceof ThermalReactorBlockEntity reactor
+            if (level.getBlockEntity(worldPosition.relative(direction)) instanceof ContactEnergySource reactor
                     && reactor.allowsEnergyExtract(direction.getOpposite())) {
                 int pulled = reactor.extractNetworkEnergy(
                         Math.min(want - total, energy.getCapacity() - energy.getStored()));

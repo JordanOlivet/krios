@@ -59,8 +59,9 @@ public class MachineTransferHandler<C extends AbstractContainerMenu & MachineMen
     @Override
     public IRecipeTransferError transferRecipe(C menu, R recipe, IRecipeSlotsView recipeSlots, Player player,
             boolean maxTransfer, boolean doTransfer) {
+        // Item inputs only: a fluid shown beside them (the Magma Reactor's lava) moves through no slot.
         List<IRecipeSlotView> inputs = recipeSlots.getSlotViews(RecipeIngredientRole.INPUT).stream()
-                .filter(view -> !view.isEmpty())
+                .filter(view -> view.getItemStacks().findAny().isPresent())
                 .toList();
         if (inputs.size() != 1) {
             // Not a one-input machine recipe: no button.

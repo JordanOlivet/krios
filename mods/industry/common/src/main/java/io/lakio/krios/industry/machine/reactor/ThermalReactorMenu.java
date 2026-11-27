@@ -133,6 +133,14 @@ public class ThermalReactorMenu extends AbstractContainerMenu implements Machine
                     || bayIndex >= activeModuleSlots()) {
                 return false;
             }
+            // ADR-039: Energy points stop at the effective tier's cap.
+            if (!io.lakio.krios.industry.machine.MachineTiers.energyModuleFits(
+                    io.lakio.krios.industry.machine.module.ModuleItem.pointsIn(container, MODULE_SLOT_START,
+                            ThermalReactorBlockEntity.MODULE_SLOT_COUNT,
+                            io.lakio.krios.industry.machine.module.ModuleType.ENERGY, getContainerSlot()),
+                    module.points(), getEffectiveTier())) {
+                return false;
+            }
             if (container instanceof ThermalReactorBlockEntity be
                     && be.getLevel() != null && !be.getLevel().isClientSide) {
                 return be.networkKoiosLevel() >= module.requiredLevel();

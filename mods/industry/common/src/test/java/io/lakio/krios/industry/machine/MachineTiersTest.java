@@ -55,6 +55,29 @@ class MachineTiersTest {
     }
 
     @Test
+    void eachTierAllowsOneMoreEnergyPoint() {
+        // ADR-039: 1 / 2 / 3 / 4 points, so at most twice a fuel's energy at the last tier.
+        for (int tier = 1; tier <= KoiosBalance.MAX_TIER; tier++) {
+            assertEquals(tier, MachineTiers.energyPointCap(tier), "tier " + tier);
+        }
+    }
+
+    @Test
+    void energyPointsPastTheCapDoNotCount() {
+        assertEquals(1, MachineTiers.countedEnergyPoints(2, 1), "two Energy modules off a tier 2 core count one");
+        assertEquals(2, MachineTiers.countedEnergyPoints(4, 2), "four in a tier 2 Magma Reactor count two");
+        assertEquals(2, MachineTiers.countedEnergyPoints(2, 2), "the Thermal Reactor's two slots stay whole");
+        assertEquals(3, MachineTiers.countedEnergyPoints(3, 4));
+    }
+
+    @Test
+    void anEnergyModuleFitsOnlyUnderTheCap() {
+        assertTrue(MachineTiers.energyModuleFits(1, 1, 2), "a second point at tier 2");
+        assertFalse(MachineTiers.energyModuleFits(2, 1, 2), "a third point at tier 2");
+        assertFalse(MachineTiers.energyModuleFits(1, 1, 1), "a second point at tier 1");
+    }
+
+    @Test
     void zonesGrowRoughlyDoubleInAreaAndStayOddAroundTheMachine() {
         assertEquals(9, MachineTiers.zoneEdge(1), "what one water source hydrates");
         for (int tier = 1; tier <= KoiosBalance.MAX_TIER; tier++) {

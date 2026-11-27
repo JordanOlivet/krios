@@ -1,0 +1,47 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_kit": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "krios_industry:upgrade_kit_tier2"
+            ]
+          }
+        ]
+      }
+    },
+    "has_lava": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "minecraft:lava_bucket"
+            ]
+          }
+        ]
+      }
+    },
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "krios_industry:magma_reactor"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_kit",
+      "has_lava",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "krios_industry:magma_reactor"
+    ]
+  }
+}

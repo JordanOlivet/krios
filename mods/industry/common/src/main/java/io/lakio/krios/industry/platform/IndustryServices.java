@@ -13,4 +13,6 @@ public class IndustryServices {
 
     public static final IItemAccess ITEMS = Services.load(IItemAccess.class);
     public static final IFakePlayers FAKE_PLAYERS = Services.load(IFakePlayers.class);
+    public static final io.lakio.krios.industry.platform.services.IFluidAccess FLUIDS =
+            Services.load(io.lakio.krios.industry.platform.services.IFluidAccess.class);
 }

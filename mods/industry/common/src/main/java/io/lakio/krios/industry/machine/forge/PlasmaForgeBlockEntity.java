@@ -4,7 +4,7 @@ import io.lakio.krios.industry.IndustryBalance;
 import io.lakio.krios.core.energy.EnergyBuffer;
 import io.lakio.krios.core.koios.KoiosBalance;
 import io.lakio.krios.core.koios.KoiosCoreBlockEntity;
-import io.lakio.krios.industry.machine.reactor.ThermalReactorBlockEntity;
+import io.lakio.krios.industry.machine.ContactEnergySource;
 import io.lakio.krios.industry.machine.ItemFlow;
 import io.lakio.krios.industry.machine.MachineTiers;
 import io.lakio.krios.industry.machine.TieredMachine;
@@ -410,7 +410,7 @@ public class PlasmaForgeBlockEntity extends BlockEntity
             if (!allowsEnergyIn(direction)) {
                 continue;
             }
-            if (level.getBlockEntity(pos.relative(direction)) instanceof ThermalReactorBlockEntity reactor
+            if (level.getBlockEntity(pos.relative(direction)) instanceof ContactEnergySource reactor
                     && reactor.allowsEnergyExtract(direction.getOpposite())) {
                 int pulled = reactor.extractNetworkEnergy(
                         Math.min(PULL_PER_TICK, energy.getCapacity() - energy.getStored()));
