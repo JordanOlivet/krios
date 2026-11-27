@@ -174,6 +174,19 @@ state
 screenshot 06b-magma-reactor
 krios set panel.faces off
 wait ticks 3
+# A click on a panel that misses its slots keeps the stack in hand (vanilla would throw
+# it): the empty bucket picked up, a click on the stats panel's blank, still carried.
+screen
+#expect slot 1 minecraft:bucket x1
+cursor slot 1
+click
+wait ticks 3
+krios press panel.stats.body
+wait ticks 5
+screen
+#expect carried minecraft:bucket x1
+#expect slot 1 empty
+cursor off
 close
 wait ticks 5
 
