@@ -40,6 +40,22 @@ public class StatsPanel extends AnnexPanel {
         ClientPrefs.setStatsExpanded(open);
     }
 
+    /**
+     * What the rows show, for a terminal's readout (ADR-033): each value as
+     * text, keyed by the last segment of its tooltip's lang key ("yield"
+     * for {@code gui.krios_industry.stats.yield}), in row order.
+     */
+    public java.util.Map<String, String> readout() {
+        java.util.Map<String, String> out = new java.util.LinkedHashMap<>();
+        for (Row row : rows) {
+            String key = row.tooltip().getContents()
+                    instanceof net.minecraft.network.chat.contents.TranslatableContents translatable
+                    ? translatable.getKey() : row.tooltip().getString();
+            out.put(key.substring(key.lastIndexOf('.') + 1), row.value().get().getString());
+        }
+        return out;
+    }
+
     @Override
     protected void layout(Font font) {
         int max = 0;

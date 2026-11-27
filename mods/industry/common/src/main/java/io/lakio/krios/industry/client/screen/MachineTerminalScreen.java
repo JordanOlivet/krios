@@ -179,6 +179,9 @@ public abstract class MachineTerminalScreen<T extends AbstractContainerMenu & Ma
         java.util.Map<String, Object> panels = new java.util.LinkedHashMap<>();
         for (AnnexPanel panel : annexPanels()) {
             panels.put(panel.key(), panel.isOpen());
+            if (panel instanceof io.lakio.krios.core.client.screen.StatsPanel stats) {
+                out.put("stats", new java.util.LinkedHashMap<String, Object>(stats.readout()));
+            }
         }
         out.put("panels", panels);
         return out;
