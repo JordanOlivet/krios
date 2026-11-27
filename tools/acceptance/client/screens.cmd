@@ -29,6 +29,7 @@ command setblock 10 200 2 krios_industry:photon_array
 command setblock 12 200 2 krios_industry:fractal_grinder
 command setblock 14 200 2 krios_industry:plasma_forge
 command setblock 16 200 2 krios_industry:fractal_grinder_tier2
+command setblock 18 200 2 krios_industry:magma_reactor
 command setblock 10 200 4 krios_industry:chrono_farmer[facing=north]
 command setblock 14 200 4 krios_industry:cyclic_forester[facing=north]
 command setblock 18 200 4 krios_industry:quantum_lure[facing=north]
@@ -40,6 +41,11 @@ command item replace block 8 200 2 container.0 with minecraft:coal_block 16
 command item replace block 12 200 2 container.0 with minecraft:cobblestone 32
 command item replace block 14 200 2 container.0 with minecraft:raw_iron 16
 command item replace block 16 200 2 container.0 with krios_core:chronite_ore 8
+# A lava bucket pours into the Magma Reactor's tank; two Energy points in its bay,
+# one counts on a tier 1 core (ADR-039).
+command item replace block 18 200 2 container.0 with minecraft:lava_bucket
+command item replace block 18 200 2 container.2 with krios_industry:energy_module
+command item replace block 18 200 2 container.3 with krios_industry:energy_module
 # Four Yield points in the tier 1 grinder's bay: two count (ADR-038).
 command item replace block 12 200 2 container.4 with krios_industry:yield_module_mk2
 command item replace block 12 200 2 container.5 with krios_industry:yield_module_mk2
@@ -139,6 +145,35 @@ krios set distribution off
 wait ticks 10
 state
 #expect state krios.distribution fill_first
+close
+wait ticks 5
+
+# The Magma Reactor: born at tier 2, capped at tier 1 by this core. One burn cycle
+# (100 mB) is drawn from the poured bucket and lasts 2000 ticks at this pace.
+tp 18.5 200 0.5 0 20
+wait ticks 15
+use 18 200 2
+wait screen
+wait ticks 8
+state
+#expect state krios.title Magma Reactor
+#expect state krios.voice gui.krios_industry.voice.magma_reactor.working
+#expect state krios.tier 2
+#expect state krios.effectiveTier 1
+#expect state krios.energyCapacity 200000
+#expect state krios.lava 900
+#expect state krios.lavaCapacity 16000
+#expect state krios.stats.energy_bonus +25 % · 1/1
+krios set panel.stats on
+wait ticks 3
+krios set panel.faces on
+wait ticks 5
+state
+#expect state krios.panels.stats true
+#expect state krios.panels.faces true
+screenshot 06b-magma-reactor
+krios set panel.faces off
+wait ticks 3
 close
 wait ticks 5
 
@@ -244,7 +279,7 @@ state
 #expect state krios.codex.open true
 #expect state krios.codexUnread false
 #expect state krios.codex.page koios
-#expect state krios.codex.entries koios,progression,diversity,thermal_reactor,photon_array,fractal_grinder,plasma_forge,chrono_farmer,cyclic_forester,quantum_lure,breeding_pod,harvest_pod,phase_death_field,bio_synthesizer,network,conduit,calibrator
+#expect state krios.codex.entries koios,progression,diversity,thermal_reactor,magma_reactor,photon_array,fractal_grinder,plasma_forge,chrono_farmer,cyclic_forester,quantum_lure,breeding_pod,harvest_pod,phase_death_field,bio_synthesizer,network,conduit,calibrator
 #expect state krios.codex.locked modules,critical
 screenshot 15-codex
 krios press codex.entry.progression

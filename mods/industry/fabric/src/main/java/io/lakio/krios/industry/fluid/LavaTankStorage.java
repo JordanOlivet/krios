@@ -1,0 +1,108 @@
+package io.lakio.krios.industry.fluid;
+
+import io.lakio.krios.industry.machine.magma.LavaTank;
+import io.lakio.krios.industry.machine.magma.MagmaReactorBlockEntity;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.StoragePreconditions;
+import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleSlotStorage;
+import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
+import net.fabricmc.fabric.api.transfer.v1.transaction.base.SnapshotParticipant;
+import net.minecraft.world.level.material.Fluids;
+
+/**
+ * Transfer API view of the Magma Reactor's tank, one per external query
+ * (ADR-039). The tank counts millibuckets, Fabric counts droplets (81 per
+ * mB): only whole millibuckets move. SnapshotParticipant makes it
+ * transaction-safe; the reactor hears of a change on the final commit only.
+ */
+public class LavaTankStorage extends SnapshotParticipant<Integer> implements SingleSlotStorage<FluidVariant> {
+
+    private static final long DROPLETS_PER_MB = FluidConstants.BUCKET / LavaTank.BUCKET;
+    private static final FluidVariant LAVA = FluidVariant.of(Fluids.LAVA);
+
+    private final MagmaReactorBlockEntity reactor;
+    private final boolean canInsert;
+    private final boolean canExtract;
+
+    public LavaTankStorage(MagmaReactorBlockEntity reactor, boolean canInsert, boolean canExtract) {
+        this.reactor = reactor;
+        this.canInsert = canInsert;
+        this.canExtract = canExtract;
+    }
+
+    @Override
+    public boolean supportsInsertion() {
+        return canInsert;
+    }
+
+    @Override
+    public boolean supportsExtraction() {
+        return canExtract;
+    }
+
+    @Override
+    public long insert(FluidVariant resource, long maxAmount, TransactionContext transaction) {
+        StoragePreconditions.notBlankNotNegative(resource, maxAmount);
+        if (!canInsert || !resource.isOf(Fluids.LAVA)) {
+            return 0;
+        }
+        LavaTank tank = reactor.getLavaTank();
+        int mb = (int) Math.min(maxAmount / DROPLETS_PER_MB, tank.room());
+        if (mb <= 0) {
+            return 0;
+        }
+        updateSnapshots(transaction);
+        return tank.fill(mb, false) * DROPLETS_PER_MB;
+    }
+
+    @Override
+    public long extract(FluidVariant resource, long maxAmount, TransactionContext transaction) {
+        StoragePreconditions.notBlankNotNegative(resource, maxAmount);
+        if (!canExtract || !resource.isOf(Fluids.LAVA)) {
+            return 0;
+        }
+        LavaTank tank = reactor.getLavaTank();
+        int mb = (int) Math.min(maxAmount / DROPLETS_PER_MB, tank.getStored());
+        if (mb <= 0) {
+            return 0;
+        }
+        updateSnapshots(transaction);
+        return tank.drain(mb, false) * DROPLETS_PER_MB;
+    }
+
+    @Override
+    public boolean isResourceBlank() {
+        return reactor.getLavaTank().getStored() == 0;
+    }
+
+    @Override
+    public FluidVariant getResource() {
+        return isResourceBlank() ? FluidVariant.blank() : LAVA;
+    }
+
+    @Override
+    public long getAmount() {
+        return reactor.getLavaTank().getStored() * DROPLETS_PER_MB;
+    }
+
+    @Override
+    public long getCapacity() {
+        return reactor.getLavaTank().getCapacity() * DROPLETS_PER_MB;
+    }
+
+    @Override
+    protected Integer createSnapshot() {
+        return reactor.getLavaTank().getStored();
+    }
+
+    @Override
+    protected void readSnapshot(Integer snapshot) {
+        reactor.getLavaTank().setStored(snapshot);
+    }
+
+    @Override
+    protected void onFinalCommit() {
+        reactor.onLavaChanged();
+    }
+}

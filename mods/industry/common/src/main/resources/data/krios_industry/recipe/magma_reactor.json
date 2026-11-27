@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "BMB",
+    "NRN",
+    "MKM"
+  ],
+  "key": {
+    "B": {
+      "item": "minecraft:blaze_rod"
+    },
+    "M": {
+      "item": "minecraft:magma_block"
+    },
+    "N": {
+      "item": "minecraft:nether_bricks"
+    },
+    "R": {
+      "item": "krios_industry:thermal_reactor"
+    },
+    "K": {
+      "item": "krios_industry:upgrade_kit_tier2"
+    }
+  },
+  "result": {
+    "id": "krios_industry:magma_reactor",
+    "count": 1
+  }
+}

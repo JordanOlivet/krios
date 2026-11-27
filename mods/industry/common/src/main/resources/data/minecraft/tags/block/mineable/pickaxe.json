@@ -2,6 +2,7 @@
   "values": [
     "krios_industry:thermal_reactor",
     "krios_industry:thermal_reactor_tier2",
+    "krios_industry:magma_reactor",
     "krios_industry:photon_array",
     "krios_industry:fractal_grinder",
     "krios_industry:fractal_grinder_tier2",

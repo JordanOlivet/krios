@@ -1,6 +1,7 @@
 package io.lakio.krios.industry;
 
 import io.lakio.krios.core.energy.EnergyBuffer;
+import io.lakio.krios.industry.fluid.LavaFluidHandler;
 import io.lakio.krios.industry.machine.reactor.ThermalReactorBlockEntity;
 import io.lakio.krios.core.platform.NeoForgeRegistrar;
 import io.lakio.krios.industry.registry.ModBlockEntities;
@@ -30,6 +31,16 @@ public class KriosIndustry {
         event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ModBlockEntities.THERMAL_REACTOR.get(),
                 (reactor, side) -> side == null || reactor.allowsEnergyExtract(side)
                         ? new ExtractOnlyEnergyStorage(reactor.getEnergy()) : null);
+        event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ModBlockEntities.MAGMA_REACTOR.get(),
+                (reactor, side) -> side == null || reactor.allowsEnergyExtract(side)
+                        ? new ExtractOnlyEnergyStorage(reactor.getEnergy()) : null);
+        // Lava from other mods' pipes (ADR-039): in through virgin and FLUID-in
+        // faces, out only through manual FLUID-out faces. A null side is a
+        // query from no face (a probe or a tool): it sees the tank, read-only.
+        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ModBlockEntities.MAGMA_REACTOR.get(),
+                (reactor, side) -> new LavaFluidHandler(reactor,
+                        side != null && reactor.allowsFluidInsert(side),
+                        side != null && reactor.allowsFluidExtract(side)));
         // Photon array: no face config (v1 scope), every side is extractable.
         event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ModBlockEntities.PHOTON_ARRAY.get(),
                 (array, side) -> new ExtractOnlyEnergyStorage(array.getEnergy()));

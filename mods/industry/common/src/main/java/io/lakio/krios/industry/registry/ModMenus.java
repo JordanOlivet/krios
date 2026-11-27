@@ -16,6 +16,10 @@ public final class ModMenus {
     public static final Supplier<MenuType<ThermalReactorMenu>> THERMAL_REACTOR = register("thermal_reactor",
             () -> Services.REGISTRAR.createMenuType(ThermalReactorMenu::new));
 
+    public static final Supplier<MenuType<io.lakio.krios.industry.machine.magma.MagmaReactorMenu>> MAGMA_REACTOR =
+            register("magma_reactor", () -> Services.REGISTRAR.createMenuType(
+                    io.lakio.krios.industry.machine.magma.MagmaReactorMenu::new));
+
     public static final Supplier<MenuType<io.lakio.krios.industry.machine.photon.PhotonArrayMenu>> PHOTON_ARRAY =
             register("photon_array", () -> Services.REGISTRAR.createMenuType(
                     io.lakio.krios.industry.machine.photon.PhotonArrayMenu::new));

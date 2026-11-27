@@ -19,6 +19,7 @@ public final class ModCreativeTabs {
                     .displayItems((params, output) -> {
                         output.accept(ModBlocks.THERMAL_REACTOR.get());
                         output.accept(ModBlocks.THERMAL_REACTOR_TIER2.get());
+                        output.accept(ModBlocks.MAGMA_REACTOR.get());
                         output.accept(ModBlocks.PHOTON_ARRAY.get());
                         output.accept(ModBlocks.FRACTAL_GRINDER.get());
                         output.accept(ModBlocks.FRACTAL_GRINDER_TIER2.get());

@@ -67,6 +67,7 @@
   "gui.krios_core.faces.hint": "Left-click: select a face. Right-drag: rotate.",
   "gui.krios_core.flowtype.energy": "Energy",
   "gui.krios_core.flowtype.item": "Items",
+  "gui.krios_core.flowtype.fluid": "Fluids",
   "gui.krios_core.faces.in": "Input",
   "gui.krios_core.faces.out": "Output",
   "gui.krios_core.faces.preset.block": "Block everything",

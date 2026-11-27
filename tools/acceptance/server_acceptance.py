@@ -386,6 +386,9 @@ LONE_REACTOR = "8 200 -4"
 # module in its bay. A hopper may take what burning left behind, never the fuel or a module.
 BUCKET_REACTOR, BUCKET_HOPPER = "10 200 -4", "10 199 -4"
 FUEL_REACTOR, FUEL_HOPPER = "12 200 -4", "12 199 -4"
+# A Magma Reactor off the network over a hopper, a lava cauldron against a virgin face:
+# the bucket pours into the tank, the hopper takes the empty one, the cauldron stays full.
+MAGMA, MAGMA_HOPPER, MAGMA_CAULDRON = "14 200 -4", "14 199 -4", "15 200 -4"
 LINE_MACHINES = [
     (REACTOR, "krios_industry:thermal_reactor"),
     (PHOTON, "krios_industry:photon_array"),
@@ -516,6 +519,11 @@ def phase_build(c: Checks, server: Server, r: Rcon) -> int:
     hoppers &= "Replaced a slot" in r.cmd(f"item replace block {FUEL_REACTOR} container.0 with minecraft:coal_block 4")
     hoppers &= "Replaced a slot" in r.cmd(f"item replace block {FUEL_REACTOR} container.1 with krios_industry:speed_module")
     c.check("placed two reactors over hoppers, fed lava and coal with a module", hoppers)
+    magma = "Changed the block" in r.cmd(f"setblock {MAGMA_HOPPER} minecraft:hopper")
+    magma &= "Changed the block" in r.cmd(f"setblock {MAGMA} krios_industry:magma_reactor")
+    magma &= "Changed the block" in r.cmd(f"setblock {MAGMA_CAULDRON} minecraft:lava_cauldron")
+    magma &= "Replaced a slot" in r.cmd(f"item replace block {MAGMA} container.0 with minecraft:lava_bucket")
+    c.check("placed a Magma Reactor over a hopper beside a lava cauldron, fed a lava bucket", magma)
 
     xp_before = number(block_data(r, CORE, "DataXp"))
     c.check("sprint 3000 ticks completes", sprint(server, r, 3000))
@@ -542,6 +550,13 @@ def phase_build(c: Checks, server: Server, r: Rcon) -> int:
             item_count(taken, "minecraft:coal_block") == 0 and item_count(taken, "krios_industry:speed_module") == 0
             and item_count(kept, "krios_industry:speed_module") == 1,
             f"hopper={taken} reactor={kept}")
+    lava = number(block_data(r, MAGMA, "Lava"))
+    c.check("the Magma Reactor poured the bucket into its tank and is burning it",
+            magma and 0 < lava < 1000, f"Lava={lava}")
+    taken = block_data(r, MAGMA_HOPPER, "Items")
+    c.check("a hopper under the Magma Reactor took the empty bucket", item_count(taken, "minecraft:bucket") == 1, taken)
+    c.check("a lava cauldron against a virgin face stays full",
+            "passed" in r.cmd(f"execute if block {MAGMA_CAULDRON} minecraft:lava_cauldron"))
     gravel = block_data(r, GRINDER, "Items")
     c.check("grinder turned cobblestone into gravel", item_count(gravel, "minecraft:gravel") > 0, gravel)
     shards = block_data(r, GRINDER2, "Items")
@@ -596,6 +611,10 @@ def phase_verify(c: Checks, server: Server, r: Rcon, xp_saved: int) -> None:
     c.check("core kept its data XP", xp_saved > 0 and xp >= xp_saved, f"before the restart={xp_saved}, now={xp}")
     gravel_before = item_count(block_data(r, GRINDER, "Items"), "minecraft:gravel")
     c.check("grinder kept its output", gravel_before > 0, f"gravel={gravel_before}")
+    if "passed" in r.cmd(f"execute if block {MAGMA} krios_industry:magma_reactor"):
+        # Saved by this version's build (a release's world has no Magma Reactor).
+        lava = number(block_data(r, MAGMA, "Lava"))
+        c.check("the Magma Reactor kept its lava", lava > 0, f"Lava={lava}")
     # More work for the grinder: the network must re-form by itself after a load.
     out = r.cmd(f"item replace block {GRINDER} container.0 with minecraft:cobblestone 8")
     c.check("fed the grinder again", "Replaced a slot" in out, out)

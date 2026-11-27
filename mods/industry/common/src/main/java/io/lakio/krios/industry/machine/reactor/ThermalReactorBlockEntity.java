@@ -292,9 +292,11 @@ public class ThermalReactorBlockEntity extends BlockEntity
         // rate with the burn untouched = more energy from the same fuel.
         Network network = NetworkManager.networkOf(be);
         boolean online = network != null && network.isValid();
-        int factor = MachineTiers.speedFactor(
-                MachineTiers.effectiveTier(network, be.machineTier));
-        int energyPoints = online ? be.modulePoints(ModuleType.ENERGY) : 0;
+        int effectiveTier = MachineTiers.effectiveTier(network, be.machineTier);
+        int factor = MachineTiers.speedFactor(effectiveTier);
+        // ADR-039: one Energy point per effective tier at most.
+        int energyPoints = online
+                ? MachineTiers.countedEnergyPoints(be.modulePoints(ModuleType.ENERGY), effectiveTier) : 0;
         be.currentGenerationPerTick = GENERATION_PER_TICK * factor * (4 + energyPoints) / 4;
         // Buffer thermostat (user call 2026-10-02): the goal state is every
         // buffer full. A burn only ticks when the whole tick's output fits,

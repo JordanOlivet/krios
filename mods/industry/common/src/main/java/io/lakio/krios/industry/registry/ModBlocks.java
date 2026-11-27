@@ -24,6 +24,10 @@ public final class ModBlocks {
     public static final Supplier<Block> THERMAL_REACTOR_TIER2 = registerWithItem("thermal_reactor_tier2",
             () -> new ThermalReactorBlock(machineProperties(12), 2));
 
+    /** Born at tier 2 (ADR-020: gated by Nether lava); its line grows with later kits. */
+    public static final Supplier<Block> MAGMA_REACTOR = registerWithItem("magma_reactor",
+            () -> new io.lakio.krios.industry.machine.magma.MagmaReactorBlock(machineProperties(13), 2));
+
     public static final Supplier<Block> PHOTON_ARRAY = registerWithItem("photon_array",
             // Full cube (machine body + cell deck on top): standard occlusion.
             () -> new io.lakio.krios.industry.machine.photon.PhotonArrayBlock(

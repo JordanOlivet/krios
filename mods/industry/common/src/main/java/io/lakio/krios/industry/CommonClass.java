@@ -31,7 +31,7 @@ public class CommonClass {
     /** The machines' Codex entries, between core's opening and closing ones (band 100-299). */
     private static void registerCodex() {
         String prefix = "gui." + Constants.MOD_ID + ".codex.";
-        String[] machines = {"thermal_reactor", "photon_array", "fractal_grinder", "plasma_forge",
+        String[] machines = {"thermal_reactor", "magma_reactor", "photon_array", "fractal_grinder", "plasma_forge",
                 "chrono_farmer", "cyclic_forester", "quantum_lure", "breeding_pod", "harvest_pod",
                 "phase_death_field", "bio_synthesizer"};
         for (int i = 0; i < machines.length; i++) {
