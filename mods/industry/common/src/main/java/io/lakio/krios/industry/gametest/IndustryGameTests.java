@@ -53,7 +53,198 @@ public class IndustryGameTests {
                 new TestFunction(BATCH, "vanilla_material_recipes_are_available", CoreGameTests.ARENA, 20, 0L, true,
                         IndustryGameTests::vanillaMaterialRecipesAreAvailable),
                 new TestFunction(BATCH, "absent_material_recipes_are_unavailable", CoreGameTests.ARENA, 20, 0L, true,
-                        IndustryGameTests::absentMaterialRecipesAreUnavailable));
+                        IndustryGameTests::absentMaterialRecipesAreUnavailable),
+                new TestFunction(BATCH, "ores_grind_straight_into_dusts", CoreGameTests.ARENA, 20, 0L, true,
+                        IndustryGameTests::oresGrindStraightIntoDusts),
+                new TestFunction(BATCH, "modded_ore_falls_back_to_its_raw_metal", CoreGameTests.ARENA, 20, 0L, true,
+                        IndustryGameTests::moddedOreFallsBackToItsRawMetal),
+                new TestFunction(BATCH, "grinder_counts_yield_up_to_its_tier_cap", CoreGameTests.ARENA, 600, 0L, true,
+                        IndustryGameTests::grinderCountsYieldUpToItsTierCap),
+                new TestFunction(BATCH, "module_bay_refuses_yield_past_the_cap", CoreGameTests.ARENA, 200, 0L, true,
+                        IndustryGameTests::moduleBayRefusesYieldPastTheCap),
+                new TestFunction(BATCH, "zone_machine_counts_yield_up_to_its_tier_cap", CoreGameTests.ARENA, 200, 0L,
+                        true, IndustryGameTests::zoneMachineCountsYieldUpToItsTierCap),
+                new TestFunction(BATCH, "grinder_off_network_gives_exactly_half", CoreGameTests.ARENA, 900, 0L, true,
+                        IndustryGameTests::grinderOffNetworkGivesExactlyHalf),
+                new TestFunction(BATCH, "plasma_forge_smelts_one_for_one", CoreGameTests.ARENA, 600, 0L, true,
+                        IndustryGameTests::plasmaForgeSmeltsOneForOne));
+    }
+
+    // --- The yield pass (ADR-038) ---
+
+    private static final BlockPos NETWORK_MACHINE = new BlockPos(5, 1, 2);
+    private static final BlockPos NETWORK_REACTOR = new BlockPos(6, 1, 2);
+
+    /** A machine beside a reactor, joined by a conduit to a formed tier 1 core. */
+    private static void placeOnNetwork(GameTestHelper helper, net.minecraft.world.level.block.Block machine) {
+        CoreGameTests.buildShell(helper);
+        helper.setBlock(new BlockPos(4, 1, 2), ModBlocks.NEURAL_CONDUIT.get());
+        helper.setBlock(NETWORK_MACHINE, machine);
+        helper.setBlock(NETWORK_REACTOR, io.lakio.krios.industry.registry.ModBlocks.THERMAL_REACTOR.get());
+    }
+
+    private static void assertOnline(GameTestHelper helper, net.minecraft.world.level.block.entity.BlockEntity be) {
+        Network network = NetworkManager.networkOf((io.lakio.krios.core.network.NetworkNode) be);
+        helper.assertTrue(network != null && network.isValid(), "the machine is on no valid network");
+    }
+
+    private static ItemStack yieldModule(boolean mk2) {
+        return new ItemStack(mk2 ? io.lakio.krios.industry.registry.ModItems.YIELD_MODULE_MK2.get()
+                : io.lakio.krios.industry.registry.ModItems.YIELD_MODULE.get());
+    }
+
+    /** A metal ore gives its dusts in one step; ancient debris and nether gold ore grind like the rest. */
+    private static void oresGrindStraightIntoDusts(GameTestHelper helper) {
+        record Expected(String recipe, Item item, int count) {
+        }
+        for (Expected expected : List.of(
+                new Expected("iron_ore", ModItems.IRON_DUST.get(), 2),
+                new Expected("gold_ore", ModItems.GOLD_DUST.get(), 2),
+                new Expected("copper_ore", ModItems.COPPER_DUST.get(), 7),
+                new Expected("neurite_ore", ModItems.NEURITE_DUST.get(), 2),
+                new Expected("ancient_debris", Items.NETHERITE_SCRAP, 2))) {
+            GrindingRecipe recipe = grinding(helper, expected.recipe());
+            helper.assertTrue(recipe.available(), "grinding_" + expected.recipe() + " is unavailable");
+            ItemStack result = recipe.result();
+            helper.assertTrue(result.is(expected.item()) && result.getCount() == expected.count(),
+                    "grinding_" + expected.recipe() + " gives " + result);
+        }
+        helper.assertTrue(grinding(helper, "ancient_debris")
+                .matches(new SingleRecipeInput(new ItemStack(Items.ANCIENT_DEBRIS)), helper.getLevel()),
+                "ancient debris does not match its recipe");
+        helper.assertTrue(grinding(helper, "gold_ore")
+                .matches(new SingleRecipeInput(new ItemStack(Items.NETHER_GOLD_ORE)), helper.getLevel()),
+                "nether gold ore does not match the gold ore recipe");
+        helper.succeed();
+    }
+
+    /** A result list gives its first entry that has an item: the dust, else the raw metal. */
+    private static void moddedOreFallsBackToItsRawMetal(GameTestHelper helper) {
+        GrindingRecipe noDust = new GrindingRecipe(Ingredient.of(Items.IRON_ORE), List.of(
+                Either.right(new GrindingRecipe.TagResult(itemTag("dusts/tin"), 2)),
+                Either.right(new GrindingRecipe.TagResult(itemTag("raw_materials/iron"), 2))), 800, 160);
+        helper.assertTrue(noDust.available(), "a recipe whose second entry has an item is unavailable");
+        helper.assertTrue(noDust.result().is(Items.RAW_IRON) && noDust.result().getCount() == 2,
+                "with no tin dust the recipe gave " + noDust.result());
+        GrindingRecipe withDust = new GrindingRecipe(Ingredient.of(Items.IRON_ORE), List.of(
+                Either.right(new GrindingRecipe.TagResult(itemTag("dusts/iron"), 2)),
+                Either.right(new GrindingRecipe.TagResult(itemTag("raw_materials/iron"), 2))), 800, 160);
+        helper.assertTrue(withDust.result().is(ModItems.IRON_DUST.get()),
+                "with an iron dust the recipe gave " + withDust.result());
+        helper.succeed();
+    }
+
+    /** Four Yield points in a tier 1 grinder count two: one raw iron gives three dusts, not four. */
+    private static void grinderCountsYieldUpToItsTierCap(GameTestHelper helper) {
+        placeOnNetwork(helper, io.lakio.krios.industry.registry.ModBlocks.FRACTAL_GRINDER.get());
+        FractalGrinderBlockEntity grinder = helper.getBlockEntity(NETWORK_MACHINE);
+        ThermalReactorBlockEntity reactor = helper.getBlockEntity(NETWORK_REACTOR);
+        helper.startSequence()
+                .thenWaitUntil(() -> assertOnline(helper, grinder))
+                .thenExecute(() -> {
+                    grinder.setItem(FractalGrinderBlockEntity.MODULE_SLOT_FIRST, yieldModule(true));
+                    grinder.setItem(FractalGrinderBlockEntity.MODULE_SLOT_FIRST + 1, yieldModule(true));
+                    reactor.setItem(ThermalReactorBlockEntity.FUEL_SLOT, new ItemStack(Items.COAL_BLOCK));
+                    grinder.setItem(FractalGrinderBlockEntity.INPUT_FIRST, new ItemStack(Items.RAW_IRON));
+                })
+                .thenWaitUntil(() -> helper.assertTrue(
+                        grinder.getItem(FractalGrinderBlockEntity.INPUT_FIRST).isEmpty(), "the raw iron is not ground"))
+                .thenExecute(() -> {
+                    ItemStack out = grinder.getItem(FractalGrinderBlockEntity.OUTPUT_FIRST);
+                    helper.assertTrue(out.is(ModItems.IRON_DUST.get()), "the output slot holds " + out);
+                    helper.assertValueEqual(out.getCount(), 3, "iron dusts from one raw iron at the tier 1 cap");
+                })
+                .thenSucceed();
+    }
+
+    /**
+     * The bay refuses a Yield module past the tier's cap, before the KOIOS
+     * gate: at level 4 a Yield I goes in beside a Yield I, not beside a Mk II.
+     */
+    private static void moduleBayRefusesYieldPastTheCap(GameTestHelper helper) {
+        placeOnNetwork(helper, io.lakio.krios.industry.registry.ModBlocks.FRACTAL_GRINDER.get());
+        FractalGrinderBlockEntity grinder = helper.getBlockEntity(NETWORK_MACHINE);
+        helper.startSequence()
+                .thenWaitUntil(() -> assertOnline(helper, grinder))
+                .thenExecute(() -> {
+                    KoiosCoreBlockEntity core = helper.getBlockEntity(CoreGameTests.CORE);
+                    core.setXpAdmin(io.lakio.krios.core.koios.KoiosBalance.LEVEL_XP[
+                            io.lakio.krios.industry.IndustryBalance.YIELD_UNLOCK_LEVEL]);
+                    net.minecraft.world.entity.player.Player player =
+                            helper.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+                    var menu = grinder.createMenu(0, player.getInventory(), player);
+                    var secondBaySlot = menu.getSlot(FractalGrinderBlockEntity.MODULE_SLOT_FIRST + 1);
+
+                    grinder.setItem(FractalGrinderBlockEntity.MODULE_SLOT_FIRST, yieldModule(false));
+                    helper.assertTrue(secondBaySlot.mayPlace(yieldModule(false)),
+                            "a second Yield I is refused in a tier 1 bay at level 4");
+                    grinder.setItem(FractalGrinderBlockEntity.MODULE_SLOT_FIRST, yieldModule(true));
+                    helper.assertTrue(!secondBaySlot.mayPlace(yieldModule(false)),
+                            "a Yield I goes in beside a Yield II, past the tier 1 cap");
+                })
+                .thenSucceed();
+    }
+
+    /** Zone machines count Yield the same way: four points in a tier 1 Harvest Pod count two. */
+    private static void zoneMachineCountsYieldUpToItsTierCap(GameTestHelper helper) {
+        placeOnNetwork(helper, io.lakio.krios.industry.registry.ModBlocks.HARVEST_POD.get());
+        io.lakio.krios.industry.machine.zone.ZoneMachineBlockEntity pod = helper.getBlockEntity(NETWORK_MACHINE);
+        int firstModule = pod.getContainerSize()
+                - io.lakio.krios.industry.machine.zone.ZoneMachineBlockEntity.MODULE_SLOT_COUNT;
+        helper.startSequence()
+                .thenWaitUntil(() -> assertOnline(helper, pod))
+                .thenExecute(() -> {
+                    pod.setItem(firstModule, yieldModule(true));
+                    pod.setItem(firstModule + 1, yieldModule(true));
+                    helper.assertValueEqual(pod.countedYieldPoints(), 2, "Yield points a tier 1 pod counts");
+                })
+                .thenSucceed();
+    }
+
+    /** Off a network a grinder gives exactly half: two copper ores give seven dusts, vanilla's average. */
+    private static void grinderOffNetworkGivesExactlyHalf(GameTestHelper helper) {
+        BlockPos reactorPos = new BlockPos(1, 1, 1);
+        BlockPos grinderPos = new BlockPos(2, 1, 1);
+        helper.setBlock(reactorPos, io.lakio.krios.industry.registry.ModBlocks.THERMAL_REACTOR.get());
+        helper.setBlock(grinderPos, io.lakio.krios.industry.registry.ModBlocks.FRACTAL_GRINDER.get());
+        ThermalReactorBlockEntity reactor = helper.getBlockEntity(reactorPos);
+        FractalGrinderBlockEntity grinder = helper.getBlockEntity(grinderPos);
+        reactor.setItem(ThermalReactorBlockEntity.FUEL_SLOT, new ItemStack(Items.COAL_BLOCK));
+        grinder.setItem(FractalGrinderBlockEntity.INPUT_FIRST, new ItemStack(Items.COPPER_ORE, 2));
+        helper.startSequence()
+                .thenWaitUntil(() -> helper.assertTrue(
+                        grinder.getItem(FractalGrinderBlockEntity.INPUT_FIRST).isEmpty(), "the ores are not ground"))
+                .thenExecute(() -> {
+                    ItemStack out = grinder.getItem(FractalGrinderBlockEntity.OUTPUT_FIRST);
+                    helper.assertTrue(out.is(ModItems.COPPER_DUST.get()), "the output slot holds " + out);
+                    helper.assertValueEqual(out.getCount(), 7, "copper dusts from two ores off the network");
+                })
+                .thenSucceed();
+    }
+
+    /** The forge smelts one dust into one ingot, Yield modules in its bay or not. */
+    private static void plasmaForgeSmeltsOneForOne(GameTestHelper helper) {
+        placeOnNetwork(helper, io.lakio.krios.industry.registry.ModBlocks.PLASMA_FORGE.get());
+        io.lakio.krios.industry.machine.forge.PlasmaForgeBlockEntity forge = helper.getBlockEntity(NETWORK_MACHINE);
+        ThermalReactorBlockEntity reactor = helper.getBlockEntity(NETWORK_REACTOR);
+        int bay = io.lakio.krios.industry.machine.forge.PlasmaForgeBlockEntity.MODULE_SLOT_FIRST;
+        int input = io.lakio.krios.industry.machine.forge.PlasmaForgeBlockEntity.INPUT_FIRST;
+        int output = io.lakio.krios.industry.machine.forge.PlasmaForgeBlockEntity.OUTPUT_FIRST;
+        helper.startSequence()
+                .thenWaitUntil(() -> assertOnline(helper, forge))
+                .thenExecute(() -> {
+                    forge.setItem(bay, yieldModule(true));
+                    forge.setItem(bay + 1, yieldModule(true));
+                    reactor.setItem(ThermalReactorBlockEntity.FUEL_SLOT, new ItemStack(Items.COAL_BLOCK));
+                    forge.setItem(input, new ItemStack(ModItems.IRON_DUST.get(), 2));
+                })
+                .thenWaitUntil(() -> helper.assertTrue(forge.getItem(input).isEmpty(), "the dusts are not smelted"))
+                .thenExecute(() -> {
+                    ItemStack out = forge.getItem(output);
+                    helper.assertTrue(out.is(Items.IRON_INGOT), "the output slot holds " + out);
+                    helper.assertValueEqual(out.getCount(), 2, "iron ingots from two dusts");
+                })
+                .thenSucceed();
     }
 
     /** The metals other mods bring, each with an ore and a raw recipe (ADR-037). */

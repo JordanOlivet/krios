@@ -206,6 +206,13 @@ public class ZoneMachineMenu extends AbstractContainerMenu implements MachineMen
                     || bayIndex >= activeModuleSlots()) {
                 return false;
             }
+            // ADR-038: Yield points stop at the effective tier's cap.
+            if (module.getType() == ModuleType.YIELD && !io.lakio.krios.industry.machine.MachineTiers.yieldModuleFits(
+                    ModuleItem.pointsIn(container, moduleSlotStart, ZoneMachineBlockEntity.MODULE_SLOT_COUNT,
+                            ModuleType.YIELD, getContainerSlot()),
+                    module.points(), getEffectiveTier())) {
+                return false;
+            }
             if (container instanceof ZoneMachineBlockEntity be
                     && be.getLevel() != null && !be.getLevel().isClientSide) {
                 return be.networkKoiosLevel() >= module.requiredLevel();

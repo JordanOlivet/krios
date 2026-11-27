@@ -40,6 +40,9 @@ command item replace block 8 200 2 container.0 with minecraft:coal_block 16
 command item replace block 12 200 2 container.0 with minecraft:cobblestone 32
 command item replace block 14 200 2 container.0 with minecraft:raw_iron 16
 command item replace block 16 200 2 container.0 with krios_core:chronite_ore 8
+# Four Yield points in the tier 1 grinder's bay: two count (ADR-038).
+command item replace block 12 200 2 container.4 with krios_industry:yield_module_mk2
+command item replace block 12 200 2 container.5 with krios_industry:yield_module_mk2
 command item replace block 10 200 4 container.0 with minecraft:wheat_seeds 32
 command clear @s
 tp 8.5 200 0.5 0 20
@@ -92,6 +95,11 @@ state
 #expect state krios.voice gui.krios_industry.voice.fractal_grinder.working
 #expect state krios.tier 1
 #expect state krios.distribution fill_first
+#expect state krios.stats.yield +50 % · 2/2
+krios set panel.stats on
+wait ticks 3
+state
+#expect state krios.panels.stats true
 cursor slot 2
 wait ticks 5
 screenshot 04-fractal-grinder

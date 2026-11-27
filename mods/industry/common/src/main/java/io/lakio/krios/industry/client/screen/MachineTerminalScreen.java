@@ -27,6 +27,29 @@ public abstract class MachineTerminalScreen<T extends AbstractContainerMenu & Ma
 
     /** Center of the 256px work area, for machine layouts. */
     protected static final int WORK_CENTER_X = 128;
+
+    /**
+     * Yield stats value (ADR-038): the bonus of the counted points, then
+     * counted / the effective tier's cap. Amber while modules beyond the
+     * cap sit idle in the bay.
+     */
+    protected static Component yieldValue(int bayPoints, int effectiveTier) {
+        int counted = io.lakio.krios.industry.machine.MachineTiers.countedYieldPoints(bayPoints, effectiveTier);
+        return yieldCapped(Component.literal("+" + counted * 25 + " % · " + counted + "/"
+                + io.lakio.krios.industry.machine.MachineTiers.yieldPointCap(effectiveTier)), bayPoints, counted);
+    }
+
+    /** The Phase Death Field's Looting level: counted / cap, amber past the cap. */
+    protected static Component lootingValue(int bayPoints, int effectiveTier) {
+        int counted = io.lakio.krios.industry.machine.MachineTiers.countedYieldPoints(bayPoints, effectiveTier);
+        return yieldCapped(Component.literal(counted + "/"
+                + io.lakio.krios.industry.machine.MachineTiers.yieldPointCap(effectiveTier)), bayPoints, counted);
+    }
+
+    private static Component yieldCapped(net.minecraft.network.chat.MutableComponent value, int bayPoints,
+            int counted) {
+        return bayPoints > counted ? value.withStyle(net.minecraft.ChatFormatting.GOLD) : value;
+    }
     /**
      * Two wrapped voice lines (2 x 9px) must fit above the inventory label
      * at y=104 with a 2px gap: long phrases and translations wrap instead
@@ -156,6 +179,9 @@ public abstract class MachineTerminalScreen<T extends AbstractContainerMenu & Ma
         java.util.Map<String, Object> panels = new java.util.LinkedHashMap<>();
         for (AnnexPanel panel : annexPanels()) {
             panels.put(panel.key(), panel.isOpen());
+            if (panel instanceof io.lakio.krios.core.client.screen.StatsPanel stats) {
+                out.put("stats", new java.util.LinkedHashMap<String, Object>(stats.readout()));
+            }
         }
         out.put("panels", panels);
         return out;

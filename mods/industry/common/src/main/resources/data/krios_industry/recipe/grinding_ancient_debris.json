@@ -1,0 +1,7 @@
+{
+  "type": "krios_industry:grinding",
+  "ingredient": { "tag": "c:ores/netherite_scrap" },
+  "result": { "id": "minecraft:netherite_scrap", "count": 2 },
+  "energy": 800,
+  "time": 160
+}

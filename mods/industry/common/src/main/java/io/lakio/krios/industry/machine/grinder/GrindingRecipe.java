@@ -1,5 +1,7 @@
 package io.lakio.krios.industry.machine.grinder;
 
+import java.util.List;
+
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -36,6 +38,10 @@ import net.minecraft.world.level.Level;
  * a material any mod may bring; while its result tag or its ingredient has no
  * item it is not {@link #available()}: it matches nothing and no recipe
  * viewer lists it.
+ *
+ * <p>The result may also be a list, read in order (ADR-038): the first entry
+ * with an item wins. A modded ore names its dust first and its raw metal
+ * second, so it still doubles in a pack that has no dust for that metal.
  */
 public class GrindingRecipe implements Recipe<SingleRecipeInput> {
 
@@ -52,18 +58,34 @@ public class GrindingRecipe implements Recipe<SingleRecipeInput> {
         ).apply(instance, TagResult::new));
     }
 
+    /** One result entry: an item or a tag. */
+    private static final Codec<Either<ItemStack, TagResult>> ENTRY_CODEC =
+            Codec.either(ItemStack.STRICT_CODEC, TagResult.CODEC);
+
+    /** One entry, or a non-empty list of them in order of preference. */
+    static final Codec<List<Either<ItemStack, TagResult>>> OUTPUTS_CODEC = Codec.either(
+            ENTRY_CODEC, ExtraCodecs.nonEmptyList(ENTRY_CODEC.listOf())).xmap(
+            either -> either.map(List::of, list -> list),
+            list -> list.size() == 1 ? Either.left(list.get(0)) : Either.right(list));
+
     private final Ingredient ingredient;
-    private final Either<ItemStack, TagResult> output;
+    private final List<Either<ItemStack, TagResult>> outputs;
     private final int energy;
     private final int time;
-    /** A tag result once it resolved to an item; an empty resolution is never kept. */
-    private ItemStack resolved = ItemStack.EMPTY;
+    /** Each tag entry once it resolved to an item; an empty resolution is never kept. */
+    private final ItemStack[] resolved;
 
-    public GrindingRecipe(Ingredient ingredient, Either<ItemStack, TagResult> output, int energy, int time) {
+    public GrindingRecipe(Ingredient ingredient, List<Either<ItemStack, TagResult>> outputs, int energy, int time) {
         this.ingredient = ingredient;
-        this.output = output;
+        this.outputs = List.copyOf(outputs);
         this.energy = energy;
         this.time = Math.max(1, time);
+        this.resolved = new ItemStack[this.outputs.size()];
+        java.util.Arrays.fill(resolved, ItemStack.EMPTY);
+    }
+
+    public GrindingRecipe(Ingredient ingredient, Either<ItemStack, TagResult> output, int energy, int time) {
+        this(ingredient, List.of(output), energy, time);
     }
 
     public GrindingRecipe(Ingredient ingredient, ItemStack result, int energy, int time) {
@@ -74,27 +96,36 @@ public class GrindingRecipe implements Recipe<SingleRecipeInput> {
         return ingredient;
     }
 
-    /** The result as the recipe file wrote it: an item or a tag. */
-    public Either<ItemStack, TagResult> output() {
-        return output;
+    /** The result entries as the recipe file wrote them, in order of preference. */
+    public List<Either<ItemStack, TagResult>> outputs() {
+        return outputs;
     }
 
     /**
-     * One operation's base result, empty while a tag result has no item.
-     * Shared: copy before changing it.
+     * One operation's base result: the first entry that has an item, empty
+     * while none has. Shared: copy before changing it.
      */
     public ItemStack result() {
-        return output.map(stack -> stack, this::resolve);
+        for (int i = 0; i < outputs.size(); i++) {
+            int index = i;
+            ItemStack stack = outputs.get(i).map(item -> item, tag -> resolve(index, tag));
+            if (!stack.isEmpty()) {
+                return stack;
+            }
+        }
+        return ItemStack.EMPTY;
     }
 
-    private ItemStack resolve(TagResult tagResult) {
-        if (resolved.isEmpty()) {
+    private ItemStack resolve(int index, TagResult tagResult) {
+        if (resolved[index].isEmpty()) {
             // Recipes are rebuilt on every reload, so a resolved item never
             // goes stale; an empty answer may only mean the tags are not
-            // bound yet, and is asked again.
-            resolved = TagOutputs.resolve(tagResult.tag(), tagResult.count());
+            // bound yet, and is asked again. The choice between entries is
+            // never kept for the same reason: a dust tag bound late wins
+            // over the raw metal as soon as it has an item.
+            resolved[index] = TagOutputs.resolve(tagResult.tag(), tagResult.count());
         }
-        return resolved;
+        return resolved[index];
     }
 
     /**
@@ -158,8 +189,7 @@ public class GrindingRecipe implements Recipe<SingleRecipeInput> {
 
         private static final MapCodec<GrindingRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
                 Ingredient.CODEC_NONEMPTY.fieldOf("ingredient").forGetter(GrindingRecipe::ingredient),
-                Codec.either(ItemStack.STRICT_CODEC, TagResult.CODEC).fieldOf("result")
-                        .forGetter(GrindingRecipe::output),
+                OUTPUTS_CODEC.fieldOf("result").forGetter(GrindingRecipe::outputs),
                 Codec.INT.optionalFieldOf("energy", DEFAULT_ENERGY).forGetter(GrindingRecipe::energy),
                 Codec.INT.optionalFieldOf("time", DEFAULT_TIME).forGetter(GrindingRecipe::time)
         ).apply(instance, GrindingRecipe::new));

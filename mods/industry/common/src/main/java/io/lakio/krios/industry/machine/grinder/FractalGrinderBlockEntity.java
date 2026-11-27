@@ -321,7 +321,8 @@ public class FractalGrinderBlockEntity extends BlockEntity
         int activeColumns = Math.min(PROCESS_SLOTS, MachineTiers.processSlots(effectiveTier));
         int speedPoints = online ? be.modulePoints(ModuleType.SPEED) : 0;
         int efficiencyPoints = online ? be.modulePoints(ModuleType.EFFICIENCY) : 0;
-        int yieldPoints = online ? be.modulePoints(ModuleType.YIELD) : 0;
+        int yieldPoints = online
+                ? MachineTiers.countedYieldPoints(be.modulePoints(ModuleType.YIELD), effectiveTier) : 0;
 
         int draw = 0;
         int consumed = 0;
@@ -332,7 +333,7 @@ public class FractalGrinderBlockEntity extends BlockEntity
             RecipeHolder<GrindingRecipe> holder = column >= activeColumns || input.isEmpty() ? null
                     : be.quickCheck.getRecipeFor(new SingleRecipeInput(input), level).orElse(null);
             if (holder == null
-                    || !be.canOutput(column, holder.value().result(), online, yieldPoints, effectiveTier)) {
+                    || !be.canOutput(column, holder.value().result(), online, yieldPoints)) {
                 be.progress[column] = 0;
                 be.columnTime[column] = 0;
                 continue;
@@ -350,7 +351,7 @@ public class FractalGrinderBlockEntity extends BlockEntity
             if (be.energy.consume(energyPerTick)) {
                 consumed += energyPerTick;
                 if (++be.progress[column] >= be.columnTime[column]) {
-                    be.craft(column, holder, online, yieldPoints, effectiveTier);
+                    be.craft(column, holder, online, yieldPoints);
                     be.progress[column] = 0;
                 }
             } else {
@@ -427,22 +428,14 @@ public class FractalGrinderBlockEntity extends BlockEntity
         return !faceConfig.isManual(face) || faceConfig.allows(face, Flow.ENERGY, false);
     }
 
-    /**
-     * Quarter-items produced per operation: x2 recipes fall back to 1:1
-     * offline. The tier yield ladder (x2/x3/x3/x4 base, design 2026-09-30)
-     * multiplies on top through the same accumulator.
-     */
-    private static int craftQuarters(ItemStack result, boolean online, int yieldPoints, int effectiveTier) {
-        return online
-                ? result.getCount() * (4 + yieldPoints)
-                        * MachineTiers.yieldNum(effectiveTier) / 2
-                : Math.max(1, result.getCount() / 2) * 4;
+    /** Quarter-items one operation produces (ADR-038: counted Yield points, exact half offline). */
+    private static int craftQuarters(ItemStack result, boolean online, int yieldPoints) {
+        return IndustryBalance.grindQuarters(result.getCount(), online, yieldPoints);
     }
 
-    private boolean canOutput(int column, ItemStack result, boolean online, int yieldPoints,
-            int effectiveTier) {
+    private boolean canOutput(int column, ItemStack result, boolean online, int yieldPoints) {
         int prospective = (yieldQuarters[column]
-                + craftQuarters(result, online, yieldPoints, effectiveTier)) / 4;
+                + craftQuarters(result, online, yieldPoints)) / 4;
         ItemStack current = items.get(OUTPUT_FIRST + column);
         if (current.isEmpty()) {
             return prospective <= result.getMaxStackSize();
@@ -452,13 +445,13 @@ public class FractalGrinderBlockEntity extends BlockEntity
     }
 
     /**
-     * Evolving yield multiplier (design): +25% per yield module on top of the
-     * recipe result (x2 recipe -> x2.5 -> x3), carried in quarter-items.
+     * Yield (ADR-038): +25% per counted Yield point on top of the recipe
+     * result (2 dusts -> 2.5 -> 3 ... 6 at the last tier), carried in
+     * quarter-items.
      */
-    private void craft(int column, RecipeHolder<GrindingRecipe> holder, boolean online,
-            int yieldPoints, int effectiveTier) {
+    private void craft(int column, RecipeHolder<GrindingRecipe> holder, boolean online, int yieldPoints) {
         ItemStack result = holder.value().result();
-        yieldQuarters[column] += craftQuarters(result, online, yieldPoints, effectiveTier);
+        yieldQuarters[column] += craftQuarters(result, online, yieldPoints);
         int crafted = yieldQuarters[column] / 4;
         yieldQuarters[column] %= 4;
         items.get(INPUT_FIRST + column).shrink(1);

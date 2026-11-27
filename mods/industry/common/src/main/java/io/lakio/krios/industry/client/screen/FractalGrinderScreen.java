@@ -36,7 +36,7 @@ public class FractalGrinderScreen extends MachineTerminalScreen<FractalGrinderMe
                                     modulePoints(ModuleType.EFFICIENCY)) / 1000.0)),
                     Component.translatable("gui.krios_industry.stats.energy")),
             new StatsPanel.Row(StatsPanel.Icon.YIELD,
-                    () -> Component.literal("+" + modulePoints(ModuleType.YIELD) * 25 + " %"),
+                    () -> yieldValue(modulePoints(ModuleType.YIELD), menu.getEffectiveTier()),
                     Component.translatable("gui.krios_industry.stats.yield")),
             new StatsPanel.Row(StatsPanel.Icon.OUTPUT,
                     () -> Component.literal(menu.drawPerTick() + " E/t"),

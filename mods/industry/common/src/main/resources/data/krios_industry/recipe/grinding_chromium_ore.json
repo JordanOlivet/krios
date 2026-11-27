@@ -1,7 +1,10 @@
 {
   "type": "krios_industry:grinding",
   "ingredient": { "tag": "c:ores/chromium" },
-  "result": { "tag": "c:raw_materials/chromium", "count": 2 },
+  "result": [
+    { "tag": "c:dusts/chromium", "count": 2 },
+    { "tag": "c:raw_materials/chromium", "count": 2 }
+  ],
   "energy": 800,
   "time": 160
 }

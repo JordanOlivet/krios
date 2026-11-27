@@ -40,6 +40,24 @@ public class ModuleItem extends Item {
         return requiredLevel;
     }
 
+    /**
+     * Point total on one axis over a bay of {@code count} slots from
+     * {@code first}, leaving out {@code skipSlot} (the slot a module is
+     * about to replace; -1 for none). Reads the container only, so a client
+     * menu predicts what the server decides.
+     */
+    public static int pointsIn(net.minecraft.world.Container container, int first, int count, ModuleType type,
+            int skipSlot) {
+        int points = 0;
+        for (int slot = first; slot < first + count; slot++) {
+            if (slot != skipSlot && container.getItem(slot).getItem() instanceof ModuleItem module
+                    && module.getType() == type) {
+                points += module.points();
+            }
+        }
+        return points;
+    }
+
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, context, tooltip, flag);

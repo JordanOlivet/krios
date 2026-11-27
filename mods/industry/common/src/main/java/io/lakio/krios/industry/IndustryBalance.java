@@ -153,6 +153,17 @@ public final class IndustryBalance {
     public static final int DISCONNECTED_TIME_TICKS = 200;
 
     /**
+     * Quarter-items one grinding operation produces (ADR-038, quarter
+     * accumulator of ADR-006). Online: the recipe's count, +25% per counted
+     * Yield point, and nothing from the tier. Offline: exactly half the
+     * count — two lapis ores give 13 lapis, vanilla's average — and never
+     * below one item, so a one-for-one recipe stays one for one.
+     */
+    public static int grindQuarters(int count, boolean online, int countedYieldPoints) {
+        return online ? count * (4 + countedYieldPoints) : Math.max(4, count * 2);
+    }
+
+    /**
      * Items pulled from an adjacent passive container per scheduled wake
      * (~1.5 s, ADR-017), times the effective-tier speed factor — 8/16/32/64.
      * The only transport number: machine-to-machine batches are the

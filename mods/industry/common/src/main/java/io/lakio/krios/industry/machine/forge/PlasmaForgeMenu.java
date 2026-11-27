@@ -183,7 +183,8 @@ public class PlasmaForgeMenu extends AbstractContainerMenu implements MachineMen
     /**
      * The KOIOS gate: a module goes in only when a formed core in range has
      * the required level; the machine tier gates the slot itself and the
-     * machine type gates the axis (no reactor energy modules here).
+     * machine type gates the axis (no reactor energy modules here, and no
+     * Yield: the grinder is the chain's only yield machine, ADR-038).
      * Server-authoritative — the client container is a SimpleContainer and
      * predicts optimistically.
      */
@@ -200,6 +201,7 @@ public class PlasmaForgeMenu extends AbstractContainerMenu implements MachineMen
         public boolean mayPlace(ItemStack stack) {
             if (!(stack.getItem() instanceof ModuleItem module)
                     || !module.getType().isProcessAxis()
+                    || module.getType() == io.lakio.krios.industry.machine.module.ModuleType.YIELD
                     || bayIndex >= activeModuleSlots()) {
                 return false;
             }
