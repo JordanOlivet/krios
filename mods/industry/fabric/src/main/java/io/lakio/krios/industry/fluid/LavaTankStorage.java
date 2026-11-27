@@ -8,7 +8,9 @@ import net.fabricmc.fabric.api.transfer.v1.storage.StoragePreconditions;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleSlotStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.fabricmc.fabric.api.transfer.v1.transaction.base.SnapshotParticipant;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.material.Fluids;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Transfer API view of the Magma Reactor's tank, one per external query
@@ -22,29 +24,31 @@ public class LavaTankStorage extends SnapshotParticipant<Integer> implements Sin
     private static final FluidVariant LAVA = FluidVariant.of(Fluids.LAVA);
 
     private final MagmaReactorBlockEntity reactor;
-    private final boolean canInsert;
-    private final boolean canExtract;
+    /** The face this view was asked for; null (no face) sees the tank, read-only. */
+    @Nullable
+    private final Direction side;
 
-    public LavaTankStorage(MagmaReactorBlockEntity reactor, boolean canInsert, boolean canExtract) {
+    public LavaTankStorage(MagmaReactorBlockEntity reactor, @Nullable Direction side) {
         this.reactor = reactor;
-        this.canInsert = canInsert;
-        this.canExtract = canExtract;
+        this.side = side;
     }
 
+    // The face contract is read on every call: a cached view sees a face
+    // the player changes later.
     @Override
     public boolean supportsInsertion() {
-        return canInsert;
+        return side != null && reactor.allowsFluidInsert(side);
     }
 
     @Override
     public boolean supportsExtraction() {
-        return canExtract;
+        return side != null && reactor.allowsFluidExtract(side);
     }
 
     @Override
     public long insert(FluidVariant resource, long maxAmount, TransactionContext transaction) {
         StoragePreconditions.notBlankNotNegative(resource, maxAmount);
-        if (!canInsert || !resource.isOf(Fluids.LAVA)) {
+        if (!supportsInsertion() || !resource.isOf(Fluids.LAVA)) {
             return 0;
         }
         LavaTank tank = reactor.getLavaTank();
@@ -59,7 +63,7 @@ public class LavaTankStorage extends SnapshotParticipant<Integer> implements Sin
     @Override
     public long extract(FluidVariant resource, long maxAmount, TransactionContext transaction) {
         StoragePreconditions.notBlankNotNegative(resource, maxAmount);
-        if (!canExtract || !resource.isOf(Fluids.LAVA)) {
+        if (!supportsExtraction() || !resource.isOf(Fluids.LAVA)) {
             return 0;
         }
         LavaTank tank = reactor.getLavaTank();

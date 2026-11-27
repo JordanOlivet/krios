@@ -25,9 +25,7 @@ public class KriosIndustry implements ModInitializer {
         // faces, out only through manual FLUID-out faces; a null side sees the
         // tank, read-only.
         net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage.SIDED.registerForBlockEntity(
-                (reactor, direction) -> new io.lakio.krios.industry.fluid.LavaTankStorage(reactor,
-                        direction != null && reactor.allowsFluidInsert(direction),
-                        direction != null && reactor.allowsFluidExtract(direction)),
+                io.lakio.krios.industry.fluid.LavaTankStorage::new,
                 ModBlockEntities.MAGMA_REACTOR.get());
         // Photon array: no face config (v1 scope), every side is extractable.
         EnergyStorage.SIDED.registerForBlockEntity(
