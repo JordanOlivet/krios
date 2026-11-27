@@ -78,7 +78,25 @@ public class IndustryGameTests {
                 new TestFunction(BATCH, "magma_reactor_counts_energy_up_to_its_tier_cap", CoreGameTests.ARENA, 200,
                         0L, true, IndustryGameTests::magmaReactorCountsEnergyUpToItsTierCap),
                 new TestFunction(BATCH, "magma_reactor_pipes_follow_the_face_contract", CoreGameTests.ARENA, 100,
-                        0L, true, IndustryGameTests::magmaReactorPipesFollowTheFaceContract));
+                        0L, true, IndustryGameTests::magmaReactorPipesFollowTheFaceContract),
+                new TestFunction(BATCH, "grinder_pulls_from_a_paused_magma_reactor", CoreGameTests.ARENA, 400,
+                        0L, true, IndustryGameTests::grinderPullsFromAPausedMagmaReactor));
+    }
+
+    /**
+     * Off the network a machine pulls from the generator it touches: a Magma
+     * Reactor with a full buffer and no lava never pushes, the grinder beside
+     * it still grinds.
+     */
+    private static void grinderPullsFromAPausedMagmaReactor(GameTestHelper helper) {
+        MagmaReactorBlockEntity reactor = placeMagmaReactor(helper, new BlockPos(1, 1, 1));
+        reactor.getEnergy().insert(reactor.getEnergy().getCapacity());
+        BlockPos grinderPos = new BlockPos(2, 1, 1);
+        helper.setBlock(grinderPos, io.lakio.krios.industry.registry.ModBlocks.FRACTAL_GRINDER.get());
+        FractalGrinderBlockEntity grinder = helper.getBlockEntity(grinderPos);
+        grinder.setItem(FractalGrinderBlockEntity.INPUT_FIRST, new ItemStack(Items.COBBLESTONE));
+        helper.succeedWhen(() -> helper.assertTrue(
+                grinder.getItem(FractalGrinderBlockEntity.OUTPUT_FIRST).is(Items.GRAVEL), "no gravel yet"));
     }
 
     // --- The Magma Reactor (design 2026-11-27, ADR-039) ---

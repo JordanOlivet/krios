@@ -42,7 +42,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 public class ThermalReactorBlockEntity extends BlockEntity
         implements net.minecraft.world.WorldlyContainer, MenuProvider, NetworkNode, EnergyPort,
-        io.lakio.krios.core.network.ConfigurableFaces,
+        io.lakio.krios.core.network.ConfigurableFaces, io.lakio.krios.industry.machine.ContactEnergySource,
         io.lakio.krios.core.energy.EnergyStats,
         io.lakio.krios.core.tick.TickingDevice, io.lakio.krios.core.tick.DeviceAlertable {
 
