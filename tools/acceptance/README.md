@@ -345,6 +345,7 @@ screenshot <name> [hud]
 state                           the game's state, and under "krios" what the open terminal shows
 krios set <control> on|off      a terminal's toggle by its name (panel.faces, codex, distribution)
 krios press <control>           a terminal's button by its name (close, codex.entry.progression)
+                                panel.<name>.body: a blank point of an open panel, a click that misses
 ```
 
 The two `krios` verbs and the `krios` part of `state` come from core's
@@ -363,6 +364,7 @@ A scenario can also say what a screen must hold. After a `screen` or
 ```
 #expect slot 0 minecraft:cobblestone x1     the slot holds exactly that
 #expect slot 9 empty
+#expect carried minecraft:bucket x1         the stack on the cursor (or empty)
 ```
 
 After a `state` line, a dotted path into its reply:

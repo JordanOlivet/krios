@@ -435,7 +435,8 @@ def expectations(scenario: Path, replies: list[dict]) -> tuple[int, list[str]]:
     are not met. Rehearsal reads such a line as a comment.
 
     `#expect slot <n> <item id> x<count>` (or `empty`) follows a `screen` or `wait screen`
-    line and says what that reply's items must hold. `#expect state <path> <value>` follows
+    line and says what that reply's items must hold; `#expect carried <item id> x<count>`
+    (or `empty`) says what the cursor holds there. `#expect state <path> <value>` follows
     a `state` line and says what that reply holds at a dotted path (`krios.panels.faces
     true`): the game's own state and what the mods' extensions add to it. The k-th screen
     (or state) line of the file is answered by the k-th such reply, whatever lines a server
@@ -467,6 +468,15 @@ def expectations(scenario: Path, replies: list[dict]) -> tuple[int, list[str]]:
             got = screens[index].get("items", {}).get(slot, "empty")
             if got != wanted:
                 unmet.append(f"line {number}: `{line.strip()}` — slot {slot} holds {got}")
+        elif words[:2] == ["#expect", "carried"] and len(words) >= 3:
+            count += 1
+            wanted = " ".join(words[2:])
+            if not 0 <= index < len(screens):
+                unmet.append(f"line {number}: `{line.strip()}` — no screen reply to check")
+                continue
+            got = screens[index].get("carried", "empty")
+            if got != wanted:
+                unmet.append(f"line {number}: `{line.strip()}` — the cursor holds {got}")
     return count, unmet
 
 

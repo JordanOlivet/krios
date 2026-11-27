@@ -147,7 +147,10 @@ public abstract class MachineTerminalScreen<T extends AbstractContainerMenu & Ma
         return Component.translatable("gui.krios_industry.voice.idle" + (slot + 1));
     }
 
-    /** The close cross, every annex panel, and the distribution toggle where there is one. */
+    /**
+     * The close cross, every annex panel (and a blank point of each open
+     * one), and the distribution toggle where there is one.
+     */
     @Override
     public List<Control> controls() {
         List<Control> list = super.controls();
@@ -156,6 +159,10 @@ public abstract class MachineTerminalScreen<T extends AbstractContainerMenu & Ma
         AnnexPanel.stack(panels);
         for (AnnexPanel panel : panels) {
             list.add(panel.control(leftPos, topPos, imageWidth));
+            Control body = panel.bodyControl(leftPos, topPos, imageWidth);
+            if (body != null) {
+                list.add(body);
+            }
         }
         if (hasDistributionToggle()) {
             list.add(new Control("distribution", leftPos + DIST_X + DIST_SIZE / 2,

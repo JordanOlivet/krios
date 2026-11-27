@@ -79,6 +79,19 @@ public abstract class AnnexPanel {
                         y + TAB_SIZE / 2, false);
     }
 
+    /**
+     * A blank point of the open panel, in its bottom padding: a click there
+     * hits no slot and no button ("panel.stats.body"). Null while collapsed.
+     * Call after {@link #stack}.
+     */
+    public KriosTerminalScreen.Control bodyControl(int leftPos, int topPos, int imageWidth) {
+        if (!open) {
+            return null;
+        }
+        return new KriosTerminalScreen.Control("panel." + key() + ".body", panelX(leftPos, imageWidth) + 1,
+                panelY(topPos) + panelHeight() - 2, null);
+    }
+
     /** True for panels hosting real menu slots: they must head their stack. */
     protected boolean anchorsSlots() {
         return false;

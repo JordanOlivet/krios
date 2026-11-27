@@ -250,4 +250,19 @@ public abstract class KriosTerminalScreen<T extends AbstractContainerMenu>
         }
         return super.mouseClicked(mouseX, mouseY, button);
     }
+
+    /**
+     * Vanilla drops the carried stack on a click outside the frame. A click
+     * on one of our panels off the frame (an annex, an overlay) missed a
+     * slot, it did not leave the screen: the stack stays in hand.
+     */
+    @Override
+    protected boolean hasClickedOutside(double mouseX, double mouseY, int guiLeft, int guiTop, int mouseButton) {
+        for (Rect2i area : extraAreas()) {
+            if (area.contains((int) Math.floor(mouseX), (int) Math.floor(mouseY))) {
+                return false;
+            }
+        }
+        return super.hasClickedOutside(mouseX, mouseY, guiLeft, guiTop, mouseButton);
+    }
 }
