@@ -318,7 +318,7 @@ Structure per **ADR-020**: every machine is a line (base at t1, improved each ti
 - **Quantum Mining Rig** — mines a configured X/Z area between a Y min and a Y max; mined items exit **from the quarry block itself**. Ships whole without krios_storage (hopper-limited throughput is the player's call). Tier-2 debut candidate (ADR-020). Open at build time: fluid handling, the protected-block list (bedrock, cores, machines), output buffer size. Simulated form: **Entangled Graviton Core**.
 - **Breeding Pod / Harvest Pod** ~~/ Reaper Array~~ — operate on creatures present in a zone in front of the block (breed; shear/milk/eggs; ~~kill~~). Same progression and simulated form. The Reaper Array merged into the Phase Death Field (**ADR-026**, 2026-10-13): one killing machine with a target filter and an optional "spare N breeders" rule.
 - **Bio Synthesizer (spawner) + Phase Death Field** — two spawner modes: *default* force-spawns every mob the biome allows in a configured zone (light ignored); *imprint* mode spawns only one creature type from its **neural imprint**. The Phase Death Field damages every mob in its zone (upgrades reach one-shot). Player-only drops and XP orbs need a fake player — a new platform service (both loaders ship one), decided when the Phase Death Field is built. Simulated forms: **Genesis Engine** (Breeding Pod, Harvest Pod) and **Oblivion Engine** (Bio Synthesizer, Phase Death Field, Reaper Array).
-- **Magma Reactor** — burns lava (the explicit fuel exception, as a generator). Tier-2 debut candidate (nether access). Starts with buckets, no fluid infrastructure required.
+- **Magma Reactor** — burns lava (the explicit fuel exception, as a generator). Tier-2 debut candidate (nether access). Starts with buckets, no fluid infrastructure required. Designed 2026-11-27, see "Magma Reactor" below.
 - **The Engram** (formerly "neural imprint") — KOIOS's captured data of a creature: the item that justifies "owning a mob's data". Feeds the spawner's imprint mode and the simulated forms of the creature lines — one concept, several machines. How it is obtained: to design.
 
 **Intermediate items** (microchip, actuator, drill head, condensator, supraconductor...) are born with their first consuming machine, never ahead — then substitute into the compute chip and other recipes au fil de l'eau (numbers-pass decision 2026-10-05).
@@ -439,6 +439,25 @@ The spawner line, fourth client of the creature layer. With a Phase Death Field 
 - **Modules**: Speed = cycle pace; Yield = +25 % mobs per point (quarter carry); Efficiency = cost. **KOIOS XP**: farm permille, diversity key `spawn:<species>`.
 - **Terminal**: the Engram slot in the left column with the species (or "biome mode") under it; the zone map; a cap readout (`n/cap`) where the buffer would be; the Census annex. States: synthesizing / cap reached / no room / nothing spawns here / peaceful.
 - Placeholders: recipe egg, actuators, chronite, neurite ingot, iron, redstone block; blank Engram from glass, neurite, redstone, chronite.
+
+### Magma Reactor (design session 2026-11-27)
+
+The first line born at tier 2 (ADR-020: gated by Nether lava). The Thermal Reactor already burns a lava bucket (320,000 E, the bucket left in its slot): the Magma Reactor earns its place by getting **twice as much out of lava**, and by taking it in bulk.
+
+- **Lava only.** The Thermal Reactor keeps burning lava buckets, unchanged (vanilla expectation, 0.1.0 worlds untouched); the Magma Reactor just does better with it.
+- **Value: 640 E per mB**, 640,000 E per bucket (twice the Thermal's). Constant across tiers, like every fuel.
+- **Rate: 32 E/t base**, times the tier factor: 64 E/t at tier 2, a bucket every 10,000 ticks. Deliberately off the park ratio: a Magma Reactor at tier 2 is worth two Thermal Reactors at tier 2 (the Photon Array sits at half a reactor the other way). Buffer sized like the Thermal's in time: 200,000 E at tier 2.
+- **Tank: 16,000 mB** at tier 2 (16 buckets, about 2 h 15 at 64 E/t), doubling with the machine tier like the energy buffers.
+- **Buckets**: a full lava bucket in the input slot is poured into the tank, the empty bucket goes to an output slot (stack of 16) that item-out faces and hoppers drain. Starts the machine with no fluid infrastructure.
+- **Lava cauldrons**: a lava cauldron touching a face set to FLUID in (manual, Calibrator) is emptied into the tank (a periodic probe, as for the item pulls). With the vanilla dripstone farm (a lava source over a pointed dripstone over a cauldron) it is renewable lava with no other mod. Only manual faces: a decorative cauldron next to a virgin face is left alone. Draining lava source blocks was considered and dropped: a source never comes back in vanilla, so it would give a few buckets per placement and could empty a dripstone farm's source.
+- **Other mods' pipes** (fluid capability: NeoForge `IFluidHandler`, Fabric Transfer API `Storage<FluidVariant>`, through a new platform service): **lava in** through virgin faces and FLUID-in manual faces (the energy contract: a virgin face keeps vanilla behavior); **lava out only through FLUID-out manual faces**, so a pipe in extract mode never empties a generator by surprise. `Flow.FLUID`, reserved in `FaceConfig`, gets its first use: the faces panel and the Calibrator offer it.
+- **Tiers**: the `min(machine tier, core tier)` rule as everywhere; on a tier 1 network or offline it runs on its base numbers (32 E/t). The line grows with future upgrade kits.
+- **Modules: 4 slots, Energy only** (tier 2 machines open 4). **New cap: Energy counts at most 1 point per effective tier** (+25/50/75/100 %), the Thermal Reactor included (no change for it today: 2 slots at tier 2). At tier 2 a bucket gives up to 960,000 E; the two extra slots wait for tier 3 or Mk II modules.
+- **Thermostat**: the Thermal's pool policy, a full buffer pauses mid-burn and the first drain resumes it.
+- **Recipe**: a Thermal Reactor (tier 1), an `upgrade_kit_tier2` and Nether materials (shaped). It shows in the recipe book on the first tier 2 kit or the first lava bucket.
+- **KOIOS XP**: one operation and 2 base XP per 1,000 mB burned, under the Thermal's lava key (`burn:minecraft:lava_bucket`), so lava stays one fuel for diversity whatever its path.
+- **Recipe viewers**: a dedicated "Magma Reactor" category in JEI and EMI (lava to energy, in mB and E).
+- **Textures**: drafts in palette A (copper and amber hardware, an orange lava core instead of the hearth), new files only; the user polishes them.
 
 ## Open questions (implementation-time)
 
